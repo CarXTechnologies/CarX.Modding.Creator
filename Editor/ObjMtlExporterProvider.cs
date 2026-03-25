@@ -1,47 +1,51 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using Plugins.CarX.Modding.Creator.Runtime;
 
-public class ObjMtlExporterProvider : IModResourcesProvider, IModResourcesCollect
+namespace Plugins.CarX.Modding.Creator.Editor
 {
-	private const string Directory = "models/";
-
-	private readonly IModFileProvider m_fileProvider;
-	private IModCollectionProvider m_collectionProvider;
-
-	public ObjMtlExporterProvider(IModFileProvider fileProvider)
+	public class ObjMtlExporterProvider : IModResourcesProvider, IModResourcesCollect
 	{
-		m_fileProvider = fileProvider;
-	}
+		private const string Directory = "models/";
 
-	public void SetCollection(IModCollectionProvider collectionProvider)
-	{
-		m_collectionProvider = collectionProvider;
-	}
+		private readonly IModFileProvider m_fileProvider;
+		private IModCollectionProvider m_collectionProvider;
 
-	public Task<object> Unpacking<T>(string catalog)
-	{
-		return null;
-	}
-
-	public void Packing(string catalog, object resource)
-	{
-		var unityInstance = (UnityPrefabInstance)resource;
-		UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), new []{ unityInstance.mesh }, new []{ unityInstance.material });
-	}
-
-	public string GetFileFormat()
-	{
-		return ".obj";
-	}
-
-	public string GetFilePath(object resource)
-	{
-		var unityInstance = (UnityPrefabInstance)resource;
-		if (unityInstance.mesh == null)
+		public ObjMtlExporterProvider(IModFileProvider fileProvider)
 		{
-			return Directory;
+			m_fileProvider = fileProvider;
 		}
 
-		return Path.Combine(Directory, unityInstance.mesh.name);
+		public void SetCollection(IModCollectionProvider collectionProvider)
+		{
+			m_collectionProvider = collectionProvider;
+		}
+
+		public Task<object> Unpacking<T>(string catalog)
+		{
+			return null;
+		}
+
+		public void Packing(string catalog, object resource)
+		{
+			var unityInstance = (UnityPrefabInstance)resource;
+			UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), new []{ unityInstance.mesh }, new []{ unityInstance.material });
+		}
+
+		public string GetFileFormat()
+		{
+			return ".obj";
+		}
+
+		public string GetFilePath(object resource)
+		{
+			var unityInstance = (UnityPrefabInstance)resource;
+			if (unityInstance.mesh == null)
+			{
+				return Directory;
+			}
+
+			return Path.Combine(Directory, unityInstance.mesh.name);
+		}
 	}
 }
