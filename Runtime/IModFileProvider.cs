@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
@@ -6,5 +7,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public Task<byte[]> LoadAsync(string subCatalog, string format);
 		public bool Save(string catalog, byte[] bytes);
+		public string[] GetAllPath();
 	}
 }

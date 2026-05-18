@@ -65,7 +65,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				IModResourcesProvider provider = item.provider;
 				object modObject = item.modObject;
 
-				string path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileFormat());
+				string path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
 				provider.Packing(path, modObject);
 			}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -36,6 +37,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			Directory.CreateDirectory(directory);
 			File.WriteAllBytes(catalog, bytes);
 			return true;
+		}
+
+		public string[] GetAllPath()
+		{
+			return Directory.GetDirectories(m_loadDirectory, "*", SearchOption.AllDirectories);
 		}
 	}
 }

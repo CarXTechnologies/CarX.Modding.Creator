@@ -21,7 +21,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			m_collectionProvider = collectionProvider;
 		}
 
-		public Task<object> Unpacking<T>(string catalog)
+		public virtual Task<object> Unpacking<T>(string catalog)
 		{
 			return null;
 		}
@@ -32,7 +32,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), new []{ unityInstance.mesh }, new []{ unityInstance.material });
 		}
 
-		public string GetFileFormat()
+		public string GetFileExtension()
 		{
 			return ".obj";
 		}

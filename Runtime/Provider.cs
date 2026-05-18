@@ -43,7 +43,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			m_fileProvider.Save(catalog, bytes);
 		}
 
-		public string GetFileFormat() => m_format;
+		public string GetFileExtension() => m_format;
 
 		public string GetFilePath(object resource)
 		{

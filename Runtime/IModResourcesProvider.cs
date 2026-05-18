@@ -7,7 +7,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public Task<object> Unpacking<T>(string catalog);
 		public void Packing(string catalog, object resource);
 
-		public string GetFileFormat();
+		public string GetFileExtension();
 		public string GetFilePath(object resource);
 	}
 }
