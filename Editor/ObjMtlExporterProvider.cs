@@ -37,6 +37,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return ".obj";
 		}
 
+		public string GetSubCatalog()
+		{
+			return Directory;
+		}
+
 		public string GetFilePath(object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;

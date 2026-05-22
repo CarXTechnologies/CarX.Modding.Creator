@@ -18,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public async Task<object> Unpacking<T>(string catalog)
 		{
-			var bytes = await m_fileProvider.LoadAsync(catalog, m_format);
+			var bytes = await m_fileProvider.LoadAsync(catalog.Replace(m_format, string.Empty), m_format);
 			if (bytes == null || bytes == Array.Empty<byte>())
 			{
 				return null;
@@ -45,9 +45,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public string GetFileExtension() => m_format;
 
+		public string GetSubCatalog() => m_catalog;
+
 		public string GetFilePath(object resource)
 		{
-			return GetPath(m_catalog, (T)resource);
+			return GetPath(GetSubCatalog(), (T)resource);
 		}
 
 		public abstract Task<T> Unpack(byte[] catalog);

@@ -8,6 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public void Packing(string catalog, object resource);
 
 		public string GetFileExtension();
+		public string GetSubCatalog();
 		public string GetFilePath(object resource);
 	}
 }

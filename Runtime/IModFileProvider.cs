@@ -7,6 +7,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public Task<byte[]> LoadAsync(string subCatalog, string format);
 		public bool Save(string catalog, byte[] bytes);
-		public string[] GetAllPath();
+		public string[] GetAllDirectoriesPath();
+		public string[] GetAllFilesPath(string path);
 	}
 }

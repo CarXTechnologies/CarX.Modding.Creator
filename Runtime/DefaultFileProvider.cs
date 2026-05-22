@@ -39,9 +39,28 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return true;
 		}
 
-		public string[] GetAllPath()
+		public string[] GetAllDirectoriesPath()
 		{
-			return Directory.GetDirectories(m_loadDirectory, "*", SearchOption.AllDirectories);
+			string[] directories = Directory.GetDirectories(m_loadDirectory, "*", SearchOption.TopDirectoryOnly);
+
+			for (int i = 0; i < directories.Length; i++)
+			{
+				directories[i] = directories[i].Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			}
+
+			return directories;
+		}
+
+		public string[] GetAllFilesPath(string path)
+		{
+			string[] files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+
+			for (int i = 0; i < files.Length; i++)
+			{
+				files[i] = files[i].Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			}
+
+			return files;
 		}
 	}
 }
