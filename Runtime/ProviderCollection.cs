@@ -72,7 +72,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			var provider = version == null
 				? FindProviders(m_defaultVersion, type)
-				: FindProviders(version.version, type);
+				: FindProviders(version.Version, type);
 
 			if (provider is IModResourcesCollect modResourcesCollect)
 			{

@@ -2,6 +2,6 @@
 {
 	public interface IModResources
 	{
-		public string id { get; set; }
+		public string Id { get; set; }
 	}
 }

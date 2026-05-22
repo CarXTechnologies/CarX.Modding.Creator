@@ -21,6 +21,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return Encoding.UTF8.GetBytes(JsonUtility.ToJson(resource, true));
 		}
 
-		public override string GetPath(string catalog, IModResources resource) => resource.id;
+		public override string GetPath(string catalog, IModResources resource) => resource.Id;
 	}
 }

@@ -8,6 +8,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 		}
 
-		public override string GetPath(string catalog, IModResources resource) => Path.Combine(catalog, resource.id);
+		public override string GetPath(string catalog, IModResources resource) => Path.Combine(catalog, resource.Id);
 	}
 }

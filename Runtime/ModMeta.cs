@@ -1,14 +1,20 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	[Serializable]
 	public class ModMeta : IModResources, IModResourcesVersion
 	{
-		public string id { get; set; }
+		[SerializeField] private string id;
+		[SerializeField] private string version;
+
+		public string Id { get => id; set => id = value; }
+
+		public string Version { get => version; set => version = value; }
+
 		public string name;
 		public string description;
-		public string version { get; set; }
 		public string icon;
 		public string largeIcon;
 		public string madeIn;

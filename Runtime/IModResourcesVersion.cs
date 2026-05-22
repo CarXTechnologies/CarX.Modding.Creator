@@ -2,6 +2,6 @@
 {
 	public interface IModResourcesVersion
 	{
-		public string version { get; set; }
+		public string Version { get; set; }
 	}
 }
