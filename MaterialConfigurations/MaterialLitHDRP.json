@@ -1,0 +1,908 @@
+{
+    "materialData": [
+        {
+            "propertyName": "_MainTex_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MainTex_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MainTex_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissionColor",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_Color",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BaseColor",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BaseColorMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BaseColorMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BaseColorMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BaseColorMap_MipInfo",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MaskMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MaskMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MaskMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMapOS_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMapOS_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_NormalMapOS_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMapOS_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMapOS_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_BentNormalMapOS_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_HeightMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_HeightMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_HeightMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_DetailMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_DetailMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_DetailMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMapOS_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMapOS_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TangentMapOS_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_AnisotropyMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_AnisotropyMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_AnisotropyMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SubsurfaceMaskMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SubsurfaceMaskMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SubsurfaceMaskMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmissionMaskMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmissionMaskMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmissionMaskMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_ThicknessMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_ThicknessMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_ThicknessMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_ThicknessRemap",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceThicknessMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceThicknessMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceThicknessMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceThicknessRemap",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceMaskMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceMaskMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_IridescenceMaskMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_CoatMaskMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_CoatMaskMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_CoatMaskMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SpecularColor",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SpecularColorMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SpecularColorMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_SpecularColorMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissiveColor",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissiveColorLDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissiveColorMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissiveColorMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_EmissiveColorMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmittanceColor",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmittanceColorMap_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmittanceColorMap_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_TransmittanceColorMap_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_DoubleSidedConstants",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_UVMappingMask",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_InvPrimScale",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_UVDetailsMappingMask",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_UVMappingMaskEmissive",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_DiffusionProfileAsset",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_Lightmaps_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_Lightmaps_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_Lightmaps_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_LightmapsInd_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_LightmapsInd_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_LightmapsInd_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_ShadowMasks_ST",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_ShadowMasks_TexelSize",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "unity_ShadowMasks_HDR",
+            "propertyType": 2
+        },
+        {
+            "propertyName": "_MainTex",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_NormalMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_BaseColorMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_MaskMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_NormalMapOS",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_BentNormalMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_BentNormalMapOS",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_HeightMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_DetailMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_TangentMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_TangentMapOS",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_AnisotropyMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_SubsurfaceMaskMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_TransmissionMaskMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_ThicknessMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_IridescenceThicknessMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_IridescenceMaskMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_CoatMaskMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_SpecularColorMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_EmissiveColorMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_TransmittanceColorMap",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "unity_Lightmaps",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "unity_LightmapsInd",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "unity_ShadowMasks",
+            "propertyType": 4
+        },
+        {
+            "propertyName": "_SrcBlend",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DstBlend",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Cutoff",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ZTestGBuffer",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilWriteMask",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ZWrite",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Metallic",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_CullMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilWriteMaskGBuffer",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilRefGBuffer",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaCutoffEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilWriteMaskDepth",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilRefDepth",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilWriteMaskMV",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilRefMV",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaSrcBlend",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaDstBlend",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ZTestTransparent",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DstBlend2",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ZTestDepthEqualForOpaque",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_CullModeForward",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_StencilRef",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Smoothness",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_MetallicRemapMin",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_MetallicRemapMax",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SmoothnessRemapMin",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SmoothnessRemapMax",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaRemapMin",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaRemapMax",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AORemapMin",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AORemapMax",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_NormalScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightAmplitude",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightCenter",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightMapParametrization",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightOffset",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightMin",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightMax",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightTessAmplitude",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightTessCenter",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_HeightPoMAmplitude",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DetailAlbedoScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DetailNormalScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DetailSmoothnessScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Anisotropy",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SubsurfaceMask",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransmissionMask",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Thickness",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_IridescenceThickness",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_IridescenceMask",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_CoatMask",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EnergyConservingSpecularColor",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SpecularOcclusionMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlbedoAffectEmissive",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EmissiveIntensityUnit",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_UseEmissiveIntensity",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EmissiveIntensity",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EmissiveExposureWeight",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_UseShadowThreshold",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaCutoff",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaCutoffShadow",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaCutoffPrepass",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AlphaCutoffPostpass",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentDepthPrepassEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentBackfaceEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentDepthPostpassEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentSortPriority",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_RefractionModel",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_Ior",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ATDistance",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentWritingMotionVec",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PerPixelSorting",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SurfaceType",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_BlendMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentZWrite",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransparentCullMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_OpaqueCullMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EnableFogOnTransparent",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EnableBlendModePreserveSpecularLighting",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DoubleSidedEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DoubleSidedNormalMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DoubleSidedGIMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_UVBase",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ObjectSpaceUVMapping",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TexWorldScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_InvTilingScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_NormalMapSpace",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_MaterialID",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TransmissionEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DisplacementMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DisplacementLockObjectScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DisplacementLockTilingScale",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DepthOffsetEnable",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EnableGeometricSpecularAA",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SpecularAAScreenSpaceVariance",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SpecularAAThreshold",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PPDMinSamples",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PPDMaxSamples",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PPDLodThreshold",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PPDPrimitiveLength",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_PPDPrimitiveWidth",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_UVDetail",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_LinkDetailsWithBase",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_EmissiveColorMode",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_UVEmissive",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ObjectSpaceUVMappingEmissive",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_TexWorldScaleEmissive",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_SupportDecals",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ReceivesSSR",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_ReceivesSSRTransparent",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_AddPrecomputedVelocity",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_RayTracing",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DiffusionProfile",
+            "propertyType": 0
+        },
+        {
+            "propertyName": "_DiffusionProfileHash",
+            "propertyType": 0
+        }
+    ]
+}
