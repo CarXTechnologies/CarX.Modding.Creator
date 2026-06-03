@@ -4,7 +4,7 @@ using System.Numerics;
 using UnityEditor;
 using UnityEngine;
 
-namespace Editor
+namespace Plugins.CarX.Modding.Creator.Editor
 {
 	[Serializable]
 	public struct MaterialData

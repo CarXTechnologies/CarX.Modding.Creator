@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Editor
+namespace Plugins.CarX.Modding.Creator.Editor
 {
 	internal class MaterialEditorWindow : EditorWindow
 	{
