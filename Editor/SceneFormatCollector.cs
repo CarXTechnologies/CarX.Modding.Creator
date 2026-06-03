@@ -112,7 +112,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			switch (component)
 			{
 				case Transform transform:
-					staticInstances.Add(new StaticInstance(prefabInstance.prefabId, new LocalToWorld(transform.position, transform.rotation, transform.lossyScale)));
+					staticInstances.Add(new StaticInstance(prefabInstance.prefabId, new LToWorld(transform.position, transform.rotation, transform.lossyScale)));
 					break;
 			}
 		}

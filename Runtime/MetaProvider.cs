@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public class MetaProvider : Provider<IModResources>
+	public class MetaProvider<T> : Provider<IModResources> where T : IModResources
 	{
 		public MetaProvider(IModFileProvider provider, string catalog) : base(provider, catalog, ".json")
 		{
@@ -13,7 +13,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public override Task<IModResources> Unpack(byte[] bytes)
 		{
-			return Task.FromResult(JsonUtility.FromJson<IModResources>(Encoding.UTF8.GetString(bytes)));
+			string str = Encoding.UTF8.GetString(bytes);
+			IModResources res = JsonUtility.FromJson<T>(str);
+
+			return Task.FromResult(res);
 		}
 
 		public override byte[] Pack(string catalog, IModResources resource)

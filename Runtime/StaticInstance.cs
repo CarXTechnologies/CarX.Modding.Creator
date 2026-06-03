@@ -6,9 +6,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	public struct StaticInstance
 	{
 		public int prefabId;
-		public LocalToWorld localToWorld;
+		public LToWorld localToWorld;
 
-		public StaticInstance(int prefabId, LocalToWorld localToWorld)
+		public StaticInstance(int prefabId, LToWorld localToWorld)
 		{
 			this.prefabId = prefabId;
 			this.localToWorld = localToWorld;

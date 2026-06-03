@@ -7,13 +7,20 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	[Serializable]
 	public class StaticHierarchyMeta : IModResources, IModResourcesVersion
 	{
-		[SerializeField] private string id;
-		[SerializeField] private string version;
+		public string Id
+		{
+			get => id;
+			set => id = value;
+		}
 
-		public string Id { get => id; set => id = value; }
+		public string Version
+		{
+			get => version;
+			set => version = value;
+		}
 
-		public string Version { get => version; set => version = value; }
-
+		public string id;
+		public string version;
 		public List<StaticInstance> staticObjects;
 
 		public StaticHierarchyMeta(string id, string version, List<StaticInstance> staticObjects)

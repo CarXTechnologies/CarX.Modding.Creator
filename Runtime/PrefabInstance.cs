@@ -7,6 +7,9 @@ public struct PrefabInstance : IEquatable<PrefabInstance>
 	public string mesh;
 	public string material;
 
+	public string GetMeshName() => mesh.Split('/')[^1];
+	public string GetMaterialName() => material.Split('/')[^1];
+
 	public bool Equals(PrefabInstance other)
 	{
 		return mesh == other.mesh && material == other.material;

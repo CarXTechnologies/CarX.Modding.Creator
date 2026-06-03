@@ -2,7 +2,7 @@
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public class HierarchiesMetaProvider : MetaProvider
+	public class HierarchiesMetaProvider<T> : MetaProvider<T> where T : IModResources
 	{
 		public HierarchiesMetaProvider(IModFileProvider provider) : base(provider, "hierarchies/")
 		{

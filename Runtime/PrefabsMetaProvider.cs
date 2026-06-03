@@ -2,7 +2,7 @@
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public class PrefabsMetaProvider : MetaProvider
+	public class PrefabsMetaProvider<T> : MetaProvider<T> where T : IModResources
 	{
 		public PrefabsMetaProvider(IModFileProvider provider) : base(provider, "prefabs/")
 		{

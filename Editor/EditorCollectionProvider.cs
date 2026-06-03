@@ -16,9 +16,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		protected override VersionProvider[] providers { get; set; } =
 		{
 			new(Version.GetFullVersionFormat(),
-				new ModProvider(typeof(ModMeta), new MetaProvider(DefaultFileProvider, string.Empty)),
-				new ModProvider(typeof(StaticHierarchyMeta), new HierarchiesMetaProvider(DefaultFileProvider)),
-				new ModProvider(typeof(PrefabHierarchyMeta), new PrefabsMetaProvider(DefaultFileProvider)),
+				new ModProvider(typeof(ModMeta), new MetaProvider<ModMeta>(DefaultFileProvider, string.Empty)),
+				new ModProvider(typeof(StaticHierarchyMeta), new HierarchiesMetaProvider<StaticHierarchyMeta>(DefaultFileProvider)),
+				new ModProvider(typeof(PrefabHierarchyMeta), new PrefabsMetaProvider<PrefabHierarchyMeta>(DefaultFileProvider)),
 				new ModProvider(typeof(UnityPrefabInstance), new ObjMtlExporterProvider(DefaultFileProvider)),
 				new ModProvider(typeof(Texture2D), new TexturePngProvider(DefaultFileProvider))
 			),

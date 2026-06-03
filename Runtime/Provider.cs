@@ -24,7 +24,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				return null;
 			}
 
-			return Unpack(bytes);
+			var jsonObj = await Unpack(bytes);
+			return jsonObj;
 		}
 
 		public void Packing(string catalog, object resource)
