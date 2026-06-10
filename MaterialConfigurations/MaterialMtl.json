@@ -1,0 +1,39 @@
+{
+    "materialData": [
+        { "propertyName": "Ka", "propertyType": 2, "comment": "Ambient color" },
+        { "propertyName": "Kd", "propertyType": 2, "comment": "Diffuse color" },
+        { "propertyName": "Ks", "propertyType": 2, "comment": "Specular color" },
+        { "propertyName": "Ke", "propertyType": 2, "comment": "Emissive color (PBR)" },
+        { "propertyName": "Tf", "propertyType": 2, "comment": "Transmission filter color" },
+
+        { "propertyName": "Ns", "propertyType": 0, "comment": "Specular exponent (shininess)" },
+        { "propertyName": "Ni", "propertyType": 0, "comment": "Optical density (index of refraction)" },
+        { "propertyName": "d", "propertyType": 0, "comment": "Dissolve (transparency)" },
+        { "propertyName": "Tr", "propertyType": 0, "comment": "Transparency (inverted, 1 - d)" },
+        { "propertyName": "illum", "propertyType": 0, "comment": "Illumination model (0-10)" },
+
+        { "propertyName": "Pr", "propertyType": 0, "comment": "PBR Roughness" },
+        { "propertyName": "Pm", "propertyType": 0, "comment": "PBR Metallic" },
+        { "propertyName": "Ps", "propertyType": 0, "comment": "PBR Sheen" },
+        { "propertyName": "Pc", "propertyType": 0, "comment": "PBR Clearcoat thickness" },
+        { "propertyName": "Pcr", "propertyType": 0, "comment": "PBR Clearcoat roughness" },
+
+        { "propertyName": "map_Ka", "propertyType": 4, "comment": "Ambient color map" },
+        { "propertyName": "map_Kd", "propertyType": 4, "comment": "Diffuse color map (albedo)" },
+        { "propertyName": "map_Ks", "propertyType": 4, "comment": "Specular color map" },
+        { "propertyName": "map_Ke", "propertyType": 4, "comment": "Emissive map (PBR)" },
+        { "propertyName": "map_Ns", "propertyType": 4, "comment": "Specular exponent map (gloss)" },
+        { "propertyName": "map_d", "propertyType": 4, "comment": "Dissolve (transparency) map" },
+
+        { "propertyName": "map_Pr", "propertyType": 4, "comment": "PBR Roughness map" },
+        { "propertyName": "map_Pm", "propertyType": 4, "comment": "PBR Metallic map" },
+
+        { "propertyName": "bump", "propertyType": 4, "comment": "Normal map (legacy)" },
+        { "propertyName": "map_bump", "propertyType": 4, "comment": "Normal map (legacy)" },
+        { "propertyName": "norm", "propertyType": 4, "comment": "Normal map (PBR)" },
+
+        { "propertyName": "disp", "propertyType": 4, "comment": "Displacement map" },
+        { "propertyName": "refl", "propertyType": 4, "comment": "Reflection map (spheremap)" },
+        { "propertyName": "decal", "propertyType": 4, "comment": "Decal map" }
+    ]
+}

@@ -1,0 +1,3182 @@
+{
+    "materialVariantData": [
+        {
+            "name": "MAT_UNSUPPORTED",
+            "variant": 0,
+            "propertyData": [],
+            "info": {
+                "queue": {
+                    "value": 0,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_DEFAULT",
+            "variant": 1,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_DEFAULT_ALPHABLEND",
+            "variant": 513,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Alpha Map",
+                        "tooltip": "Packed alpha texture. R - unused, G - unused, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_DEFAULT_ALPHATEST",
+            "variant": 1025,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Alpha Map",
+                        "tooltip": "Packed alpha texture. R - unused, G - unused, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2450,
+                    "offset": 0
+                },
+                "type": 2,
+                "additionalKeywords": "ALPHATEST"
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS",
+            "variant": 3,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_ALPHABLEND",
+            "variant": 515,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_ALPHATEST",
+            "variant": 1027,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2450,
+                    "offset": 0
+                },
+                "type": 2,
+                "additionalKeywords": "ALPHATEST"
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_NORMAL",
+            "variant": 11,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_NORMAL_EMISSION",
+            "variant": 1048587,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Map",
+                        "tooltip": "Texture of emission."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "A set of different parameters for emission. X - inverse period, Y - rising time. Z - delta between max and min emission amount, W - min emission amount."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Inverse Period",
+                            "tooltip": "Emission inverse period."
+                        },
+                        {
+                            "text": "Rising Time",
+                            "tooltip": "Emission rising time."
+                        },
+                        {
+                            "text": "Delta Emission",
+                            "tooltip": "Delta between max and min emission amount."
+                        },
+                        {
+                            "text": "Min Emission Amount",
+                            "tooltip": "Minimum emission amount."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_NORMAL_ALPHABLEND",
+            "variant": 523,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - alpha, A- unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_NORMAL_ALPHATEST",
+            "variant": 1035,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - unused, B - alpha, A- unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2450,
+                    "offset": 0
+                },
+                "type": 2,
+                "additionalKeywords": "ALPHATEST"
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_METALNESS_NORMAL",
+            "variant": 15,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND",
+            "variant": 527,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_LAYERS4",
+            "variant": 8235,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "First Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Second Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Third Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture3",
+                    "label": {
+                        "text": "Fourth Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "First Surface Map",
+                        "tooltip": "Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Second Surface Map",
+                        "tooltip": "Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Third Surface Map",
+                        "tooltip": "Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap3",
+                    "label": {
+                        "text": "Fourth Surface Map",
+                        "tooltip": "Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Multipliers",
+                        "tooltip": "uv coordinates multiplier per each uv-set."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "First UV Multiplier",
+                            "tooltip": "Multiplier of the first uv set."
+                        },
+                        {
+                            "text": "Second UV Multiplier",
+                            "tooltip": "Multiplier of the second uv set."
+                        },
+                        {
+                            "text": "Third UV Multiplier",
+                            "tooltip": "Multiplier of the third uv set."
+                        },
+                        {
+                            "text": "Fourth UV Multiplier",
+                            "tooltip": "Multiplier of the fourth uv set."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_COLORMASK_ROUGHNESS_METALNESS",
+            "variant": 4103,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Mask Color",
+                        "tooltip": "The color used to paint the object using the mask."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Packed Map",
+                        "tooltip": "Packed parameters into texture. R - roughness, G - metalness, B - blend mask, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL",
+            "variant": 4111,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Mask Color",
+                        "tooltip": "The color used to paint the object using the mask."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Packed Map",
+                        "tooltip": "Packed parameters into texture. R - roughness, G - metalness, B - blend mask, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_DEFAULT",
+            "variant": 135,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_GENERIC",
+            "variant": 4231,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "First Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the red channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Second Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the green channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Third Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the blue channel of the color and emission masks. The alpha channel value is also responsible for the alpha parameter during rendering."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Color Mask",
+                        "tooltip": "A mask for blending between colors and diffuse map. The red channel is responsible for blending with the first color, green - with the second color, blue - with the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Mask",
+                        "tooltip": "A mask for the displaying of the colored emission. The red channel is responsible for the emission of the first color, green - the second color, blue - the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - first color intensity, Y - second color intensity, Z - third color intensity, W - overall intensity."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "First Color Intensity",
+                            "tooltip": "Emission intensity of the first color."
+                        },
+                        {
+                            "text": "Second Color Intensity",
+                            "tooltip": "Emission intensity of the second color."
+                        },
+                        {
+                            "text": "Third Color Intensity",
+                            "tooltip": "Emission intensity of the third color."
+                        },
+                        {
+                            "text": "Overall intensity",
+                            "tooltip": "The total value of the emission intensity"
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_GENERIC_ALPHABLEND",
+            "variant": 4743,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "First Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the red channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Second Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the green channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Third Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the blue channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Color Mask",
+                        "tooltip": "A mask for blending between colors and diffuse map. The red channel is responsible for blending with the first color, green - with the second color, blue - with the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_TIRE",
+            "variant": 4194439,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Base Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture with alpha."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "First Layer Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture with alpha."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Second Layer Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture3",
+                    "label": {
+                        "text": "Third Layer Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Base Surface Map",
+                        "tooltip": "Surface packed parameters. R - normal.x, G - normal.y, B - roughness, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Wears Surface Map",
+                        "tooltip": "Wears packed parameters. R - second layer roughness, G - second layer mask, B - third layer roughness, A - third layer mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Wears Normal Map",
+                        "tooltip": "Wears packed normals. R - second layer normal.x, G - second layer normal.y, B - third layer normal.x, A - third layer normal.y."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Layer Parameters",
+                        "tooltip": "Parameters responsible for the visual of layers."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "First Layer Intensity",
+                            "tooltip": "multiplier/mask that regulates the contribution of the first layer."
+                        },
+                        {
+                            "text": "Second Layer Intensity",
+                            "tooltip": "multiplier/mask that regulates the contribution of the second layer."
+                        },
+                        {
+                            "text": "Third Layer Intensity",
+                            "tooltip": "multiplier/mask that regulates the contribution of the third layer."
+                        },
+                        {
+                            "text": "UV Mirror Factor",
+                            "tooltip": "The coefficient is responsible for the horizontal direction of the UV."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_LIGHTS",
+            "variant": 1048711,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Emission Weight",
+                        "tooltip": "Exposure compensation weight. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Emission Mode",
+                        "tooltip": "Emissiom mode weight. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Mask",
+                        "tooltip": "A mask for the displaying of the colored emission. The red channel is responsible for the emission of the first color, green - the second color, blue - the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Weights of each mask channel."
+                    },
+                    "type": 1,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_COLORED_EMISSION",
+            "variant": 1048712,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "First Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the red channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Second Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the green channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Third Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the blue channel of the color and emission masks. The alpha channel value is also responsible for the alpha parameter during rendering."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Mask",
+                        "tooltip": "A mask for the displaying of the colored emission. The red channel is responsible for the emission of the first color, green - the second color, blue - the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - first color intensity, Y - second color intensity, Z - third color intensity, W - overall intensity."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "First Color Intensity",
+                            "tooltip": "Emission intensity of the first color."
+                        },
+                        {
+                            "text": "Second Color Intensity",
+                            "tooltip": "Emission intensity of the second color."
+                        },
+                        {
+                            "text": "Third Color Intensity",
+                            "tooltip": "Emission intensity of the third color."
+                        },
+                        {
+                            "text": "Overall intensity",
+                            "tooltip": "The total value of the emission intensity"
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_LIGHTS_REFRACTION",
+            "variant": 1050759,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Transmittance Color",
+                        "tooltip": "The color of the passing rays."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Refraction Normal Map",
+                        "tooltip": "Texture of refraction normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - first color intensity, Y - second color intensity, Z - third color intensity, W - overall intensity."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Index Of Refraction",
+                            "tooltip": "Index of refraction (IOR) value."
+                        },
+                        {
+                            "text": "Thickness",
+                            "tooltip": "Thickness."
+                        },
+                        {
+                            "text": "Third Color Intensity",
+                            "tooltip": "Emission intensity of the third color."
+                        },
+                        {
+                            "text": "Overall intensity",
+                            "tooltip": "The total value of the emission intensity"
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 49
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT",
+            "variant": 150,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Livery Diffuse Map",
+                        "tooltip": "Livery diffuse/albedo texture. Must be black by default."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Livery Surface Map",
+                        "tooltip": "Livery surface packed texture. Must be black by default. R - roughness, G - metalness, B - clearcoat, A - hologram mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Clearcoat",
+                            "tooltip": "The total value of the surface clearcoat is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Anisotropy",
+                            "tooltip": "The total value of the surface anisotropy is in the range from 0 to 1."
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT_3_0",
+            "variant": 152,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Livery Diffuse Map",
+                        "tooltip": "Livery diffuse/albedo texture. Must be black by default."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture3",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Livery Surface Map",
+                        "tooltip": "Livery surface packed texture. Must be black by default. R - roughness, G - metalness, B - clearcoat, A - hologram mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap3",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap1",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap2",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap3",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Clearcoat",
+                            "tooltip": "The total value of the surface clearcoat is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Anisotropy",
+                            "tooltip": "The total value of the surface anisotropy is in the range from 0 to 1."
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT_MINIMAL",
+            "variant": 153,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Livery Diffuse Map",
+                        "tooltip": "Livery diffuse/albedo texture. Must be black by default."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture3",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Livery Surface Map",
+                        "tooltip": "Livery surface packed texture. Must be black by default. R - roughness, G - metalness, B - clearcoat, A - hologram mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap3",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap1",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap2",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap3",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Clearcoat",
+                            "tooltip": "The total value of the surface clearcoat is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Anisotropy",
+                            "tooltip": "The total value of the surface anisotropy is in the range from 0 to 1."
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT_VERTEXAO",
+            "variant": 524438,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Clearcoat",
+                            "tooltip": "The total value of the surface clearcoat is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_RIM",
+            "variant": 524439,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Livery Diffuse Map",
+                        "tooltip": "Livery diffuse/albedo texture. Must be black by default."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture3",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Livery Surface Map",
+                        "tooltip": "Livery surface packed texture. Must be black by default. R - roughness, G - metalness, B - clearcoat, A - hologram mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap3",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap1",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap2",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap3",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Clearcoat",
+                            "tooltip": "The total value of the surface clearcoat is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Anisotropy",
+                            "tooltip": "The total value of the surface anisotropy is in the range from 0 to 1."
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT_STITCHES",
+            "variant": 671,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "AO/Alpha Map",
+                        "tooltip": "Packed ao and alpha parameters into texture. R - unused, G - ao, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - roughness, G - metalness, B - unused, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "Hologram",
+                            "tooltip": "The total value of the hologram effect is in the range from 0 to 1."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 3000,
+                    "offset": 25
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_GLASS",
+            "variant": 640,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Main Color",
+                        "tooltip": "Main color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Secondary Color",
+                        "tooltip": "Secondary color for car paint."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Livery Diffuse Map",
+                        "tooltip": "Livery diffuse/albedo texture. Must be black by default."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Livery Surface Map",
+                        "tooltip": "Livery surface packed texture. Must be black by default. R - roughness, G - metalness, B - clearcoat, A - hologram mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap2",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - roughness, G - metalness, B - clearcoat, A - anisotropy."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Hologram Texture",
+                        "tooltip": "Texture for hologram effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Surface Parameters",
+                        "tooltip": "Parameters for surface. X - roughness, Y - metalness, Z - clearcoat, W - anisotropy."
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Roughness",
+                            "tooltip": "The total value of the surface roughness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Metalness",
+                            "tooltip": "The total value of the surface metalness is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "Opacity",
+                            "tooltip": "The total value of the glass opacity is in the range from 0 to 1."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2600,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_PAINT_MINIMAL",
+            "variant": 153,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_MIRRORS",
+            "variant": 151,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_MIRRORS_ADVANCED",
+            "variant": 154,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture. Must be white by default"
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. Must be white by default. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_CAR_ROTORS",
+            "variant": 151177,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "First Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the red channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vSecondaryColor",
+                    "label": {
+                        "text": "Second Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the green channel of the color and emission masks."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Third Mask Color",
+                        "tooltip": "The color used for painting and emission. It is displayed on the blue channel of the color and emission masks. The alpha channel value is also responsible for the alpha parameter during rendering."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap1",
+                    "label": {
+                        "text": "Color Mask",
+                        "tooltip": "A mask for blending between colors and diffuse map. The red channel is responsible for blending with the first color, green - with the second color, blue - with the third color."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Heat Mask",
+                        "tooltip": "A mask for the heating effect."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - unused, Y - unused, Z - unused, W - temperatureK"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "Temperature",
+                            "tooltip": "Temperature in Kelvins for the heating effect."
+                        }
+                    ]
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Horizontal Tiling",
+                        "tooltip": "The number of horizontal repetitions of the textures."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2200,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_PARTICLE",
+            "variant": 33537,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Alpha Map",
+                        "tooltip": "Packed alpha parameters into texture. R - unused, G - unused, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - fade scale, Y - emission strength, Z - unused, W - compensate exposure"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Fade Scale",
+                            "tooltip": "The scale of fade when the particle approaches other objects."
+                        },
+                        {
+                            "text": "Emission Strength",
+                            "tooltip": "Emission strength."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "Compensate Exposure",
+                            "tooltip": "The exposure compensation value ranges from 0 to 1. The higher the value, the more noticeable the exposure effect will be in a lighted scene and much weaker the effect in the dark and vice versa."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 4000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_PARTICLE_OFFSCREEN",
+            "variant": 2130689,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Alpha Map",
+                        "tooltip": "Packed alpha parameters into texture. R - unused, G - unused, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - fade scale, Y - emission strength, Z - unused, W - compensate exposure"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Fade Scale",
+                            "tooltip": "The scale of fade when the particle approaches other objects."
+                        },
+                        {
+                            "text": "Emission Strength",
+                            "tooltip": "Emission strength."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "Compensate Exposure",
+                            "tooltip": "The exposure compensation value ranges from 0 to 1. The higher the value, the more noticeable the exposure effect will be in a lighted scene and much weaker the effect in the dark and vice versa."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 5000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_PARTICLE_COMPLEX_LIT",
+            "variant": 1082127,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture taking into account the alpha channel."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface packed parameters. R - roughness, G - metalness, B - ao, A - emission."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Texture of surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - fade scale, Y - emission strength, Z - unused, W - compensate exposure"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Fade Scale",
+                            "tooltip": "The scale of fade when the particle approaches other objects."
+                        },
+                        {
+                            "text": "Emission Strength",
+                            "tooltip": "Emission strength."
+                        },
+                        {
+                            "text": "",
+                            "tooltip": ""
+                        },
+                        {
+                            "text": "Compensate Exposure",
+                            "tooltip": "The exposure compensation value ranges from 0 to 1. The higher the value, the more noticeable the exposure effect will be in a lighted scene and much weaker the effect in the dark and vice versa."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 4000,
+                    "offset": 0
+                },
+                "type": 1,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_MATTESHADOW",
+            "variant": 131072,
+            "propertyData": [
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Color Parameters",
+                        "tooltip": "Color parameters. X - red [0; 1], Y - green [0; 1], Z - blue [0; 1], W - alpha [0; 1]"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Red Channel",
+                            "tooltip": "The value of the red color channel is in the range from 0 to 1"
+                        },
+                        {
+                            "text": "Green Channel",
+                            "tooltip": "The value of the green color channel is in the range from 0 to 1"
+                        },
+                        {
+                            "text": "Blue Channel",
+                            "tooltip": "The value of the blue color channel is in the range from 0 to 1"
+                        },
+                        {
+                            "text": "Alpha Channel",
+                            "tooltip": "The value of the alpha color channel is in the range from 0 to 1"
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_FOLIAGE_SIMPLE_ALPHATEST",
+            "variant": 8389633,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - unused, G - ao, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2450,
+                    "offset": 50
+                },
+                "type": 2,
+                "additionalKeywords": "ALPHATEST"
+            }
+        },
+        {
+            "name": "MAT_FOLIAGE_ALPHATEST",
+            "variant": 8389643,
+            "propertyData": [
+                {
+                    "name": "u_vThirdColor",
+                    "label": {
+                        "text": "Alpha Chanel",
+                        "tooltip": "The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - roughness, G - ao, B - alpha, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2450,
+                    "offset": 50
+                },
+                "type": 2,
+                "additionalKeywords": "ALPHATEST"
+            }
+        },
+        {
+            "name": "MAT_WINDOW",
+            "variant": 1048655,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Map",
+                        "tooltip": "Default emission texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - roughness, G - metalness, B - ao, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - inverse period, Y - rising time, Z - delta between max and min emission amount, W - min emission amount"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Inverse Period",
+                            "tooltip": "Emission inverse period."
+                        },
+                        {
+                            "text": "Rising Time",
+                            "tooltip": "Emission rising time."
+                        },
+                        {
+                            "text": "Emissin Delta",
+                            "tooltip": "Delta between max and min emission amount."
+                        },
+                        {
+                            "text": "Min Emission",
+                            "tooltip": "Min emission amount."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_EMISSION",
+            "variant": 1048591,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "Default diffuse/albedo texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Map",
+                        "tooltip": "Default emission texture."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Default surface packed parameters. R - roughness, G - metalness, B - ao, Alpha - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Default surface normals."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fParams",
+                    "label": {
+                        "text": "Emission Parameters",
+                        "tooltip": "Parameters of emission brightness by color. X - inverse period, Y - rising time, Z - delta between max and min emission amount, W - min emission amount"
+                    },
+                    "type": 1,
+                    "vectorLabels": [
+                        {
+                            "text": "Inverse Period",
+                            "tooltip": "Emission inverse period."
+                        },
+                        {
+                            "text": "Rising Time",
+                            "tooltip": "Emission rising time."
+                        },
+                        {
+                            "text": "Emissin Delta",
+                            "tooltip": "Delta between max and min emission amount."
+                        },
+                        {
+                            "text": "Min Emission",
+                            "tooltip": "Min emission amount."
+                        }
+                    ]
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_SLOD",
+            "variant": 65536,
+            "propertyData": [
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Diffuse Map",
+                        "tooltip": "RGB - default diffuse/albedo texture. Alpha - packed roughness value."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Emission Map",
+                        "tooltip": "RGB - default emission texture. Alpha - window mask."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        },
+        {
+            "name": "MAT_INTERIOR",
+            "variant": 1064971,
+            "propertyData": [
+                {
+                    "name": "u_vColor",
+                    "label": {
+                        "text": "Aspect Ratio",
+                        "tooltip": "Red channel stores aspect ratio. For example, if one room in atlas has 2:1 aspect ratio, red channel will be 0.5. This parameter is controlled only by the red channel value."
+                    },
+                    "type": 0,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture",
+                    "label": {
+                        "text": "Exterior Map",
+                        "tooltip": "Exterior texture for interior mapping."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture2",
+                    "label": {
+                        "text": "Interior Map",
+                        "tooltip": "Interior texture for interior mapping. The alpha channel stores information about the depth of the atlas."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sTexture1",
+                    "label": {
+                        "text": "Emission Map",
+                        "tooltip": "Emission texture for interior mapping."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_fTiling",
+                    "label": {
+                        "text": "Interiors Count",
+                        "tooltip": "The number of interiors horizontally and vertically."
+                    },
+                    "type": 2,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sPackedMap",
+                    "label": {
+                        "text": "Surface Map",
+                        "tooltip": "Surface texture for interior mapping. R - roughness, G - metalness, B - unused, A - unused."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                },
+                {
+                    "name": "u_sNormalMap",
+                    "label": {
+                        "text": "Normal Map",
+                        "tooltip": "Surface normals texture for interior mapping."
+                    },
+                    "type": 4,
+                    "vectorLabels": []
+                }
+            ],
+            "info": {
+                "queue": {
+                    "value": 2000,
+                    "offset": 0
+                },
+                "type": 0,
+                "additionalKeywords": ""
+            }
+        }
+    ]
+}

@@ -1,26 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
+using Plugins.CarX.Modding.Runtime;
 using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	[Serializable]
-	public struct MaterialData
-	{
-		public string propertyName;
-		public MaterialPropertyType propertyType;
-	}
-
-	[Serializable]
-	public struct MaterialVariantAssetData
-	{
-		public MaterialData[] materialData;
-	}
-
 	public class MaterialVariantGeneric<T> : ScriptableSingleton<T> where T : ScriptableObject
 	{
+		public int materialVariant;
 		public MaterialData[] materialData;
 
 		public SerializedObject GetSerializedObject()
