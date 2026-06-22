@@ -6,8 +6,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 {
 	public class MaterialVariantGeneric<T> : ScriptableSingleton<T> where T : ScriptableObject
 	{
-		public int materialVariant;
-		public MaterialData[] materialData;
+		public MaterialMapData[] materialData;
 
 		public SerializedObject GetSerializedObject()
 		{

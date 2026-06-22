@@ -77,7 +77,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				property.InsertArrayElementAtIndex(i);
 				var element = property.GetArrayElementAtIndex(i);
-				element.boxedValue = new MaterialData { propertyName = names[i - index], propertyType = type };
+				element.boxedValue = new MaterialMapData { propertyName = names[i - index], propertyType = type };
 			}
 		}
 
