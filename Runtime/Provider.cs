@@ -7,18 +7,34 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		protected readonly string m_catalog;
 		protected readonly string m_format;
+		protected readonly string[] m_loadFormat;
 		protected readonly IModFileProvider m_fileProvider;
 
-		protected Provider(IModFileProvider fileProvider, string catalog, string format)
+		protected Provider(IModFileProvider fileProvider, string catalog, string outFormat, params string[] loadFormat)
 		{
 			m_fileProvider = fileProvider;
 			m_catalog = catalog;
-			m_format = format;
+			m_format = outFormat;
+			if (loadFormat == null || loadFormat.Length < 1)
+			{
+				loadFormat = new []{ outFormat };
+			}
+			m_loadFormat = loadFormat;
 		}
 
 		public async Task<object> Unpacking<T>(string catalog)
 		{
-			var bytes = await m_fileProvider.LoadAsync(catalog.Replace(m_format, string.Empty), m_format);
+			byte[] bytes = Array.Empty<byte>();
+
+			for (int i = 0; i < m_loadFormat.Length; i++)
+			{
+				bytes = await m_fileProvider.LoadAsync(catalog, m_loadFormat[i]);
+				if (bytes is { Length: >= 1 })
+				{
+					break;
+				}
+			}
+
 			if (bytes == null || bytes == Array.Empty<byte>())
 			{
 				return null;

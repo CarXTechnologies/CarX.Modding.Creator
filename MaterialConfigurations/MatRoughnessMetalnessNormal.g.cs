@@ -8,16 +8,16 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Generation
 {
 	/// <summary>
-	/// Generated abstract material mapping for MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND variant
+	/// Generated abstract material mapping for MAT_ROUGHNESS_METALNESS_NORMAL variant
 	/// Implement mapping logic by deriving from this class and assigning the static 'mapping' field.
 	/// </summary>
-	public abstract class MatRoughnessMetalnessNormalAlphablend
+	public abstract class MatRoughnessMetalnessNormal
 	{
-		public static MatRoughnessMetalnessNormalAlphablend mapping;
+		public static MatRoughnessMetalnessNormal mapping;
 
-		protected MatRoughnessMetalnessNormalAlphablend(MatRoughnessMetalnessNormalAlphablend mapping)
+		protected MatRoughnessMetalnessNormal(MatRoughnessMetalnessNormal mapping)
 		{
-			MatRoughnessMetalnessNormalAlphablend.mapping = mapping;
+			MatRoughnessMetalnessNormal.mapping = mapping;
 		}
 
 		[Serializable]
@@ -72,26 +72,26 @@ namespace Plugins.CarX.Modding.Creator.Generation
 					new MaterialData
 					{
 						propertyType = 4,
-						propertyName = "map_bump",
-						action = ((n, v, m) => mapping.FromMapBump(n, (Texture2D)v, m))
-					},
-					new MaterialData
-					{
-						propertyType = 4,
 						propertyName = "bump",
 						action = ((n, v, m) => mapping.FromBump(n, (Texture2D)v, m))
 					},
 					new MaterialData
 					{
 						propertyType = 4,
-						propertyName = "norm",
-						action = ((n, v, m) => mapping.FromNorm(n, (Texture2D)v, m))
+						propertyName = "map_Kn",
+						action = ((n, v, m) => mapping.FromMapKn(n, (Texture2D)v, m))
 					},
 					new MaterialData
 					{
 						propertyType = 4,
-						propertyName = "map_Kn",
-						action = ((n, v, m) => mapping.FromMapKn(n, (Texture2D)v, m))
+						propertyName = "map_bump",
+						action = ((n, v, m) => mapping.FromMapBump(n, (Texture2D)v, m))
+					},
+					new MaterialData
+					{
+						propertyType = 4,
+						propertyName = "norm",
+						action = ((n, v, m) => mapping.FromNorm(n, (Texture2D)v, m))
 					}
 				}
 			},
@@ -161,23 +161,6 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		}
 
 		/// <summary>
-		/// Handles mapping for the 'map_bump' property.
-		/// This method is generated and should not be modified.
-		/// </summary>
-		public virtual void FromMapBump(string name, Texture2D mapBump, Material property)
-		{
-			switch (name)
-			{
-				case "u_sNormalMap":
-					usNormalMapFromMapBump(name, mapBump, property);
-					usNormalMapFromBump(name, mapBump, property);
-					usNormalMapFromNorm(name, mapBump, property);
-					usNormalMapFromMapKn(name, mapBump, property);
-					break;
-			}
-		}
-
-		/// <summary>
 		/// Handles mapping for the 'bump' property.
 		/// This method is generated and should not be modified.
 		/// </summary>
@@ -186,27 +169,10 @@ namespace Plugins.CarX.Modding.Creator.Generation
 			switch (name)
 			{
 				case "u_sNormalMap":
-					usNormalMapFromMapBump(name, bump, property);
 					usNormalMapFromBump(name, bump, property);
-					usNormalMapFromNorm(name, bump, property);
 					usNormalMapFromMapKn(name, bump, property);
-					break;
-			}
-		}
-
-		/// <summary>
-		/// Handles mapping for the 'norm' property.
-		/// This method is generated and should not be modified.
-		/// </summary>
-		public virtual void FromNorm(string name, Texture2D norm, Material property)
-		{
-			switch (name)
-			{
-				case "u_sNormalMap":
-					usNormalMapFromMapBump(name, norm, property);
-					usNormalMapFromBump(name, norm, property);
-					usNormalMapFromNorm(name, norm, property);
-					usNormalMapFromMapKn(name, norm, property);
+					usNormalMapFromMapBump(name, bump, property);
+					usNormalMapFromNorm(name, bump, property);
 					break;
 			}
 		}
@@ -220,10 +186,44 @@ namespace Plugins.CarX.Modding.Creator.Generation
 			switch (name)
 			{
 				case "u_sNormalMap":
-					usNormalMapFromMapBump(name, mapKn, property);
 					usNormalMapFromBump(name, mapKn, property);
-					usNormalMapFromNorm(name, mapKn, property);
 					usNormalMapFromMapKn(name, mapKn, property);
+					usNormalMapFromMapBump(name, mapKn, property);
+					usNormalMapFromNorm(name, mapKn, property);
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Handles mapping for the 'map_bump' property.
+		/// This method is generated and should not be modified.
+		/// </summary>
+		public virtual void FromMapBump(string name, Texture2D mapBump, Material property)
+		{
+			switch (name)
+			{
+				case "u_sNormalMap":
+					usNormalMapFromBump(name, mapBump, property);
+					usNormalMapFromMapKn(name, mapBump, property);
+					usNormalMapFromMapBump(name, mapBump, property);
+					usNormalMapFromNorm(name, mapBump, property);
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Handles mapping for the 'norm' property.
+		/// This method is generated and should not be modified.
+		/// </summary>
+		public virtual void FromNorm(string name, Texture2D norm, Material property)
+		{
+			switch (name)
+			{
+				case "u_sNormalMap":
+					usNormalMapFromBump(name, norm, property);
+					usNormalMapFromMapKn(name, norm, property);
+					usNormalMapFromMapBump(name, norm, property);
+					usNormalMapFromNorm(name, norm, property);
 					break;
 			}
 		}
@@ -237,7 +237,7 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		}
 
 		/// <summary>
-		/// Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused.
+		/// Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused.
 		/// </summary>
 		protected virtual void usPackedMapFromMapPr(string name, Texture2D uSpackedmap, Material property)
 		{
@@ -245,7 +245,7 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		}
 
 		/// <summary>
-		/// Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused.
+		/// Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused.
 		/// </summary>
 		protected virtual void usPackedMapFromMapPm(string name, Texture2D uSpackedmap, Material property)
 		{
@@ -253,19 +253,11 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		}
 
 		/// <summary>
-		/// Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused.
+		/// Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused.
 		/// </summary>
 		protected virtual void usPackedMapFromMapD(string name, Texture2D uSpackedmap, Material property)
 		{
 			property.SetTexture(name, uSpackedmap);
-		}
-
-		/// <summary>
-		/// Texture of surface normals.
-		/// </summary>
-		protected virtual void usNormalMapFromMapBump(string name, Texture2D uSnormalmap, Material property)
-		{
-			property.SetTexture(name, uSnormalmap);
 		}
 
 		/// <summary>
@@ -279,7 +271,7 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		/// <summary>
 		/// Texture of surface normals.
 		/// </summary>
-		protected virtual void usNormalMapFromNorm(string name, Texture2D uSnormalmap, Material property)
+		protected virtual void usNormalMapFromMapKn(string name, Texture2D uSnormalmap, Material property)
 		{
 			property.SetTexture(name, uSnormalmap);
 		}
@@ -287,7 +279,15 @@ namespace Plugins.CarX.Modding.Creator.Generation
 		/// <summary>
 		/// Texture of surface normals.
 		/// </summary>
-		protected virtual void usNormalMapFromMapKn(string name, Texture2D uSnormalmap, Material property)
+		protected virtual void usNormalMapFromMapBump(string name, Texture2D uSnormalmap, Material property)
+		{
+			property.SetTexture(name, uSnormalmap);
+		}
+
+		/// <summary>
+		/// Texture of surface normals.
+		/// </summary>
+		protected virtual void usNormalMapFromNorm(string name, Texture2D uSnormalmap, Material property)
 		{
 			property.SetTexture(name, uSnormalmap);
 		}

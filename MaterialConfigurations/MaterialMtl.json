@@ -20,6 +20,7 @@
 
         { "propertyName": "map_Ka", "propertyType": 4, "comment": "Ambient color map" },
         { "propertyName": "map_Kd", "propertyType": 4, "comment": "Diffuse color map (albedo)" },
+        { "propertyName": "map_Kn", "propertyType": 4, "comment": "Normal map"},
         { "propertyName": "map_Ks", "propertyType": 4, "comment": "Specular color map" },
         { "propertyName": "map_Ke", "propertyType": 4, "comment": "Emissive map (PBR)" },
         { "propertyName": "map_Ns", "propertyType": 4, "comment": "Specular exponent map (gloss)" },

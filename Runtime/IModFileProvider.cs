@@ -5,6 +5,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public interface IModFileProvider
 	{
+		public string Catalog { get; }
+
 		public Task<byte[]> LoadAsync(string subCatalog, string format);
 		public bool Save(string catalog, byte[] bytes);
 		public string[] GetAllDirectoriesPath();

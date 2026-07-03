@@ -9,6 +9,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		private readonly string m_loadDirectory;
 
+		public string Catalog => m_loadDirectory;
+
 		public DefaultFileProvider(string loadDirectory)
 		{
 			m_loadDirectory = loadDirectory;

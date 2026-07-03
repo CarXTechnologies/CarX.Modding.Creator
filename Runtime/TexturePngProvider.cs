@@ -1,19 +1,20 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class TexturePngProvider : Provider<Texture2D>
 	{
-		public TexturePngProvider(IModFileProvider provider) : base(provider, "textures/", ".png")
+		public TexturePngProvider(IModFileProvider provider) : base(provider, "textures/", ".png", ".png", ".jpg")
 		{
 
 		}
 
 		public override Task<Texture2D> Unpack(byte[] objectBytes)
 		{
-			var loadedTexture = new Texture2D(2, 2);
+			var loadedTexture = new Texture2D(2, 2, GraphicsFormat.B8G8R8A8_SRGB, TextureCreationFlags.MipChain);
 			loadedTexture.LoadImage(objectBytes);
 			return Task.FromResult(loadedTexture);
 		}
