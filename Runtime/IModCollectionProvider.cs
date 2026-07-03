@@ -8,6 +8,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public ModProvider[] GetProviders(string version);
 
-		public void PackingModResource<T>(IModCollectionProvider collectionProvider, T resource, string dir);
+		public string PackingModResource<T>(IModCollectionProvider collectionProvider, T resource, string dir, bool useResDirectory = true);
 	}
 }

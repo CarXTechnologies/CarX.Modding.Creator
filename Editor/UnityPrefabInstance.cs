@@ -8,6 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	{
 		public int prefabId;
 		public Mesh mesh;
+		public Mesh meshCollider;
 		public Material material;
 
 		public PrefabInstance CreateInstance()
@@ -16,8 +17,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				prefabId = prefabId,
 				mesh = AssetDatabase.GetAssetPath(mesh),
-				material = AssetDatabase.GetAssetPath(material)
+				material = AssetDatabase.GetAssetPath(material),
+				collider = AssetDatabase.GetAssetPath(meshCollider)
 			};
+		}
+
+		public bool IsNull()
+		{
+			return mesh == null && material == null && meshCollider == null;
 		}
 	}
 }

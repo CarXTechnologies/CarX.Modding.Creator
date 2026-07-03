@@ -88,11 +88,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return versionProvider.providers;
 		}
 
-		public void PackingModResource<T>(IModCollectionProvider collectionProvider, T resource, string dir)
+		public string PackingModResource<T>(IModCollectionProvider collectionProvider, T resource, string dir, bool useResDirectory = true)
 		{
 			IModResourcesProvider provider = collectionProvider.GetProvider(resource as IModResourcesVersion, typeof(T));
-			string catalog = Path.Combine(dir, provider.GetFilePath(resource) + provider.GetFileExtension());
+			string catalog = Path.Combine(dir, (useResDirectory ? provider.GetFilePath(resource) : Path.GetFileName(provider.GetFilePath(resource))) + provider.GetFileExtension());
 			provider.Packing(catalog, resource);
+
+			return catalog;
 		}
 	}
 }

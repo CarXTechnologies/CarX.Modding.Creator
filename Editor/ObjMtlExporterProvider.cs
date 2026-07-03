@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Plugins.CarX.Modding.Creator.Runtime;
+using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
@@ -29,7 +31,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public void Packing(string catalog, object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
-			UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), new []{ unityInstance.mesh }, new []{ unityInstance.material });
+
+			if (unityInstance.meshCollider != null && unityInstance.mesh != unityInstance.meshCollider)
+			{
+				UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), unityInstance.meshCollider, Array.Empty<Material>());
+			}
+
+			if (unityInstance.mesh != null && unityInstance.material != null)
+			{
+				UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), unityInstance.mesh, new[] { unityInstance.material });
+			}
 		}
 
 		public string GetFileExtension()
@@ -45,12 +56,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public string GetFilePath(object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
-			if (unityInstance.mesh == null)
-			{
-				return Directory;
-			}
-
-			return Path.Combine(Directory, unityInstance.mesh.name);
+			return Path.Combine(Directory, unityInstance.prefabId.ToString());
 		}
 	}
 }

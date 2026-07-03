@@ -1,120 +1,142 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public struct SceneFormatCollector : IModResultCollector
+	public class SceneFormatCollector : IModResultCollector
 	{
-		private Transform m_root;
-		private string m_sceneName;
-		private string m_tagGarbage;
-
-		private List<StaticInstance> staticInstances;
-		private List<PrefabInstance> prefabInstances;
-
-		private Dictionary<int, UnityPrefabInstance> unityPrefabInstancesDic;
-		private HashSet<PrefabInstance> editorPrefabInstances;
+		private readonly Transform m_root;
+		private readonly string m_sceneName;
+		private readonly string m_tagGarbage;
 
 		public SceneFormatCollector(Transform root, string sceneName, string tagGarbage)
 		{
 			m_root = root;
 			m_sceneName = sceneName;
 			m_tagGarbage = tagGarbage;
-			staticInstances = new List<StaticInstance>();
-			prefabInstances = new List<PrefabInstance>();
-			unityPrefabInstancesDic = new Dictionary<int, UnityPrefabInstance>();
-			editorPrefabInstances = new HashSet<PrefabInstance>();
 		}
 
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
 			var modResults = new ModResults(collectionProvider);
+			var unityPrefabInstances = CollectUnityPrefabInstances();
 
-			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, CollectUnityComponent);
-			PopulatePrefabInstances(modResults);
-			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, CollectUnityComponentPost);
+			var editorPrefabInstances = new HashSet<PrefabInstance>();
+			var prefabInstances = new List<PrefabInstance>();
+
+			PopulatePrefabInstances(modResults, unityPrefabInstances, editorPrefabInstances, prefabInstances);
+
+			var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances);
 
 			modResults.Add(new StaticHierarchyMeta(m_sceneName, version, staticInstances));
 			modResults.Add(new PrefabHierarchyMeta(m_sceneName, version, prefabInstances));
 			return modResults;
 		}
 
-		private void PopulatePrefabInstances(ModResults modResults)
+		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances()
 		{
-			foreach (var prefabInstance in unityPrefabInstancesDic)
+			var unityPrefabInstances = new Dictionary<int, UnityPrefabInstance>();
+			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
-				var unityPrefabInstance = prefabInstance.Value;
-				unityPrefabInstance.prefabId = editorPrefabInstances.Count;
+				var instanceId = o.GetInstanceID();
+				var prefab = unityPrefabInstances.GetValueOrDefault(instanceId);
+				switch (component)
+				{
+					case MeshFilter meshFilter:
+						prefab.mesh = meshFilter.sharedMesh;
+						break;
+					case MeshRenderer meshRenderer:
+						prefab.material = meshRenderer.sharedMaterial;
+						break;
+					case MeshCollider meshCollider:
+						prefab.meshCollider = meshCollider.sharedMesh;
+						break;
+				}
 
-				var instance = unityPrefabInstance.CreateInstance();
+				unityPrefabInstances[instanceId] = prefab;
+			});
+			return unityPrefabInstances;
+		}
 
-				if (unityPrefabInstance.mesh == null || unityPrefabInstance.material == null)
+		private static void PopulatePrefabInstances(ModResults modResults,
+			IEnumerable<KeyValuePair<int, UnityPrefabInstance>> unityPrefabInstances,
+			ISet<PrefabInstance> editorPrefabInstances,
+			ICollection<PrefabInstance> prefabInstances)
+		{
+			foreach (var unityPrefabInstance in unityPrefabInstances.Select(p => p.Value))
+			{
+				if (unityPrefabInstance.IsNull())
 				{
 					continue;
 				}
 
-				if (editorPrefabInstances.Add(instance) && modResults.TryGetProvider(unityPrefabInstance, out var provider))
+				var instance = unityPrefabInstance.CreateInstance();
+				if (modResults.TryGetProvider(unityPrefabInstance, out var provider))
 				{
-					var pathModel = provider.GetFilePath(unityPrefabInstance);
+					instance.prefabId = editorPrefabInstances.Count;
 
-					prefabInstances.Add(new PrefabInstance
+					string pathCollider = string.Empty;
+					string pathMesh = string.Empty;
+					string pathMaterial = string.Empty;
+
+					if (unityPrefabInstance.meshCollider != null)
 					{
-						prefabId = instance.prefabId,
-						material = pathModel,
-						mesh = pathModel,
-					});
+						pathCollider = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.meshCollider.name);
+					}
 
-					modResults.Add(unityPrefabInstance);
+					if (unityPrefabInstance.mesh != null)
+					{
+						pathMesh = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.mesh.name);
+					}
+
+					if (unityPrefabInstance.material != null)
+					{
+						pathMaterial = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.material.name);
+					}
+
+					if (editorPrefabInstances.Add(instance))
+					{
+						prefabInstances.Add(new PrefabInstance
+						{
+							prefabId = instance.prefabId,
+							material = pathMaterial,
+							mesh = pathMesh,
+							collider = pathCollider
+						});
+
+						modResults.Add(unityPrefabInstance);
+					}
 				}
 			}
 		}
 
-		private void CollectUnityComponent(GameObject o, Component component)
+		private List<StaticInstance> CollectStaticInstances(
+			IReadOnlyDictionary<int, UnityPrefabInstance> unityPrefabInstances,
+			HashSet<PrefabInstance> editorPrefabInstances)
 		{
-			var instanceId = o.GetInstanceID();
-			UnityPrefabInstance prefab = unityPrefabInstancesDic.GetValueOrDefault(instanceId);
-			switch (component)
+			var staticInstances = new List<StaticInstance>();
+			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
-				case MeshFilter go:
-					prefab.mesh = go.sharedMesh;
-					break;
-				case MeshRenderer go:
-					prefab.material = go.sharedMaterial;
-					break;
-			}
-
-			unityPrefabInstancesDic[instanceId] = prefab;
-		}
-
-		private void CollectUnityComponentPost(GameObject o, Component component)
-		{
-			PrefabInstance prefabInstance;
-
-			if (unityPrefabInstancesDic.TryGetValue(o.GetInstanceID(), out UnityPrefabInstance unityPrefabInstance))
-			{
-				prefabInstance = unityPrefabInstance.CreateInstance();
-
-				if (editorPrefabInstances.TryGetValue(prefabInstance, out var editorPrefabInstance))
-				{
-					prefabInstance = editorPrefabInstance;
-				}
-				else
+				if (component is not Transform transform)
 				{
 					return;
 				}
-			}
-			else
-			{
-				return;
-			}
 
-			switch (component)
-			{
-				case Transform transform:
-					staticInstances.Add(new StaticInstance(prefabInstance.prefabId, new LToWorld(transform.position, transform.rotation, transform.lossyScale)));
-					break;
-			}
+				if (!unityPrefabInstances.TryGetValue(o.GetInstanceID(), out var unityPrefabInstance))
+				{
+					return;
+				}
+
+				var prefabInstance = unityPrefabInstance.CreateInstance();
+				if (editorPrefabInstances.TryGetValue(prefabInstance, out var editorPrefabInstance))
+				{
+					staticInstances.Add(new StaticInstance(editorPrefabInstance.prefabId, new LToWorld(transform.position, transform.rotation, transform.lossyScale)));
+				}
+			});
+			return staticInstances;
 		}
 	}
 }

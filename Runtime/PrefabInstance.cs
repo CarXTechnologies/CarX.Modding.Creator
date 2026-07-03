@@ -7,12 +7,15 @@ public struct PrefabInstance : IEquatable<PrefabInstance>
 	public string mesh;
 	public string material;
 
+	public string collider;
+
 	public string GetMeshName() => mesh.Split('/')[^1];
 	public string GetMaterialName() => material.Split('/')[^1];
+	public string GetColliderName() => collider.Split('/')[^1];
 
 	public bool Equals(PrefabInstance other)
 	{
-		return mesh == other.mesh && material == other.material;
+		return mesh == other.mesh && material == other.material && collider == other.collider;
 	}
 
 	public override bool Equals(object obj)
@@ -22,6 +25,6 @@ public struct PrefabInstance : IEquatable<PrefabInstance>
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(mesh, material);
+		return HashCode.Combine(mesh, material, collider);
 	}
 }
