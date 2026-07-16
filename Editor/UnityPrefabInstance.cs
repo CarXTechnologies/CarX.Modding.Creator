@@ -1,30 +1,50 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+using Plugins.CarX.Modding.Creator.Runtime;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public struct UnityPrefabInstance
+	public struct LODInfo
 	{
-		public int prefabId;
 		public Mesh mesh;
 		public Mesh meshCollider;
 		public Material material;
+	}
+
+	public struct UnityPrefabInstance : IModResourcesVersion
+	{
+		public int prefabId;
+		public List<LODInfo> lods;
+
+		public string Version { get; set; }
 
 		public PrefabInstance CreateInstance()
 		{
-			return new PrefabInstance
+			var newPrefabInstance = new PrefabInstance { prefabId = prefabId, lods = new List<LODInfoData>() };
+
+			if (lods == null)
 			{
-				prefabId = prefabId,
-				mesh = AssetDatabase.GetAssetPath(mesh),
-				material = AssetDatabase.GetAssetPath(material),
-				collider = AssetDatabase.GetAssetPath(meshCollider)
-			};
+				return newPrefabInstance;
+			}
+
+			foreach (var lod in lods)
+			{
+				newPrefabInstance.lods.Add(new LODInfoData
+				{
+					mesh = lod.mesh != null ? AssetDatabase.GetAssetPath(lod.mesh) : string.Empty,
+					material = lod.material != null ? AssetDatabase.GetAssetPath(lod.material) : string.Empty,
+					collider = lod.meshCollider != null ? AssetDatabase.GetAssetPath(lod.meshCollider) : string.Empty
+				});
+			}
+
+			return newPrefabInstance;
 		}
 
 		public bool IsNull()
 		{
-			return mesh == null && material == null && meshCollider == null;
+			return lods == null || !lods.Any(lod => lod.mesh != null || lod.material != null || lod.meshCollider != null);
 		}
 	}
 }

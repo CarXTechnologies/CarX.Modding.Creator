@@ -1,21 +1,35 @@
 ﻿using System;
+using System.Collections.Generic;
 
 [Serializable]
 public struct PrefabInstance : IEquatable<PrefabInstance>
 {
 	public int prefabId;
-	public string mesh;
-	public string material;
-
-	public string collider;
-
-	public string GetMeshName() => mesh.Split('/')[^1];
-	public string GetMaterialName() => material.Split('/')[^1];
-	public string GetColliderName() => collider.Split('/')[^1];
+	public List<LODInfoData> lods;
 
 	public bool Equals(PrefabInstance other)
 	{
-		return mesh == other.mesh && material == other.material && collider == other.collider;
+		if (lods == null && other.lods == null)
+		{
+			return true;
+		}
+		if (lods == null || other.lods == null)
+		{
+			return false;
+		}
+		if (lods.Count != other.lods.Count)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < lods.Count; i++)
+		{
+			if (!lods[i].Equals(other.lods[i]))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public override bool Equals(object obj)
@@ -25,6 +39,16 @@ public struct PrefabInstance : IEquatable<PrefabInstance>
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(mesh, material, collider);
+		if (lods == null)
+		{
+			return 0;
+		}
+
+		int hash = 0;
+		foreach (var lod in lods)
+		{
+			hash = HashCode.Combine(hash, lod.GetHashCode());
+		}
+		return hash;
 	}
 }

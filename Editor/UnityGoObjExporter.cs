@@ -14,13 +14,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public static void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials)
 		{
 			string name = mesh.name;
-			string objString = BuildObj(mesh, materials, name);
-			fileProvider.Save(Path.Combine(path, name + ".obj"), Encoding.UTF8.GetBytes(objString));
+			string pathToObj = Path.Combine(path, name + ".obj");
+			if (!File.Exists(pathToObj))
+			{
+				string objString = BuildObj(mesh, materials, name);
+				fileProvider.Save(pathToObj, Encoding.UTF8.GetBytes(objString));
+			}
 
 			if (materials.Length != 0)
 			{
-				var mtlString = BuildMtl(collectionProvider, materials, path);
-				fileProvider.Save(Path.Combine(path, name + ".mtl"), Encoding.UTF8.GetBytes(mtlString));
+				var mtlPath = Path.Combine(path, name + ".mtl");
+				if (!File.Exists(mtlPath))
+				{
+					var mtlString = BuildMtl(collectionProvider, materials, path);
+					fileProvider.Save(mtlPath, Encoding.UTF8.GetBytes(mtlString));
+				}
 			}
 		}
 
@@ -49,6 +57,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 			}
 
+			fs.AppendFormat("o {0}", name).AppendLine();
 			for (var u = 0; u < mesh.subMeshCount && u < materials.Length; u++)
 			{
 				var mat = materials[u];
@@ -57,7 +66,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				var tr = mesh.GetTriangles(u);
 				for (var k = 0; k < tr.Length; k += 3)
 				{
-					fs.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}", tr[k], tr[k + 1], tr[k + 2]).AppendLine();
+					fs.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}", tr[k] + 1, tr[k + 1] + 1, tr[k + 2] + 1).AppendLine();
 				}
 			}
 

@@ -22,38 +22,87 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
 			var modResults = new ModResults(collectionProvider);
-			var unityPrefabInstances = CollectUnityPrefabInstances();
+			var unityPrefabInstances = CollectUnityPrefabInstances(version); // Передаем version
 
-			var editorPrefabInstances = new HashSet<PrefabInstance>();
+			var editorPrefabInstances = new Dictionary<PrefabInstance, int>();
 			var prefabInstances = new List<PrefabInstance>();
 
 			PopulatePrefabInstances(modResults, unityPrefabInstances, editorPrefabInstances, prefabInstances);
 
-			var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances);
+			var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances, modResults);
 
 			modResults.Add(new StaticHierarchyMeta(m_sceneName, version, staticInstances));
 			modResults.Add(new PrefabHierarchyMeta(m_sceneName, version, prefabInstances));
 			return modResults;
 		}
 
-		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances()
+		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances(string version) // Добавляем параметр version
 		{
 			var unityPrefabInstances = new Dictionary<int, UnityPrefabInstance>();
+			var processedGameObjects = new HashSet<int>(); // To ensure each GameObject is processed only once
+
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
 				var instanceId = o.GetInstanceID();
-				var prefab = unityPrefabInstances.GetValueOrDefault(instanceId);
-				switch (component)
+
+				// Process each GameObject only once
+				if (processedGameObjects.Contains(instanceId))
 				{
-					case MeshFilter meshFilter:
-						prefab.mesh = meshFilter.sharedMesh;
-						break;
-					case MeshRenderer meshRenderer:
-						prefab.material = meshRenderer.sharedMaterial;
-						break;
-					case MeshCollider meshCollider:
-						prefab.meshCollider = meshCollider.sharedMesh;
-						break;
+					return;
+				}
+				processedGameObjects.Add(instanceId);
+
+				var prefab = new UnityPrefabInstance { lods = new List<LODInfo>(), Version = version }; // Присваиваем Version
+
+				var lodGroup = o.GetComponent<LODGroup>();
+				if (lodGroup != null)
+				{
+					var lods = lodGroup.GetLODs();
+					foreach (var lod in lods)
+					{
+						var currentLODInfo = new LODInfo();
+						foreach (var renderer in lod.renderers)
+						{
+							if (renderer == null) continue; // Skip null renderers
+
+							var meshFilter = renderer.GetComponent<MeshFilter>();
+							if (meshFilter != null)
+							{
+								currentLODInfo.mesh = meshFilter.sharedMesh;
+							}
+							var meshRenderer = renderer.GetComponent<MeshRenderer>();
+							if (meshRenderer != null)
+							{
+								currentLODInfo.material = meshRenderer.sharedMaterial;
+							}
+							var meshCollider = renderer.GetComponent<MeshCollider>();
+							if (meshCollider != null)
+							{
+								currentLODInfo.meshCollider = meshCollider.sharedMesh;
+							}
+						}
+						prefab.lods.Add(currentLODInfo);
+					}
+				}
+				else
+				{
+					var singleLODInfo = new LODInfo();
+					var meshFilter = o.GetComponent<MeshFilter>();
+					if (meshFilter != null)
+					{
+						singleLODInfo.mesh = meshFilter.sharedMesh;
+					}
+					var meshRenderer = o.GetComponent<MeshRenderer>();
+					if (meshRenderer != null)
+					{
+						singleLODInfo.material = meshRenderer.sharedMaterial;
+					}
+					var meshCollider = o.GetComponent<MeshCollider>();
+					if (meshCollider != null)
+					{
+						singleLODInfo.meshCollider = meshCollider.sharedMesh;
+					}
+					prefab.lods.Add(singleLODInfo);
 				}
 
 				unityPrefabInstances[instanceId] = prefab;
@@ -61,9 +110,41 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return unityPrefabInstances;
 		}
 
+		private static PrefabInstance CreatePrefabInstanceWithPath(UnityPrefabInstance unityPrefabInstance,
+			IModResourcesProvider provider)
+		{
+			var prefabInstance = new PrefabInstance { lods = new List<LODInfoData>() };
+
+			if (unityPrefabInstance.lods != null)
+			{
+				foreach (var lodInfo in unityPrefabInstance.lods)
+				{
+					var lodInfoData = new LODInfoData();
+
+					if (lodInfo.meshCollider != null)
+					{
+						lodInfoData.collider = Path.Combine(provider.GetSubCatalog(), lodInfo.meshCollider.name);
+					}
+
+					if (lodInfo.mesh != null)
+					{
+						lodInfoData.mesh = Path.Combine(provider.GetSubCatalog(), lodInfo.mesh.name);
+					}
+
+					if (lodInfo.material != null)
+					{
+						lodInfoData.material = Path.Combine(provider.GetSubCatalog(), lodInfo.material.name);
+					}
+					prefabInstance.lods.Add(lodInfoData);
+				}
+			}
+
+			return prefabInstance;
+		}
+
 		private static void PopulatePrefabInstances(ModResults modResults,
 			IEnumerable<KeyValuePair<int, UnityPrefabInstance>> unityPrefabInstances,
-			ISet<PrefabInstance> editorPrefabInstances,
+			IDictionary<PrefabInstance, int> editorPrefabInstances,
 			ICollection<PrefabInstance> prefabInstances)
 		{
 			foreach (var unityPrefabInstance in unityPrefabInstances.Select(p => p.Value))
@@ -73,39 +154,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					continue;
 				}
 
-				var instance = unityPrefabInstance.CreateInstance();
 				if (modResults.TryGetProvider(unityPrefabInstance, out var provider))
 				{
-					instance.prefabId = editorPrefabInstances.Count;
+					var prefabInstance = CreatePrefabInstanceWithPath(unityPrefabInstance, provider);
 
-					string pathCollider = string.Empty;
-					string pathMesh = string.Empty;
-					string pathMaterial = string.Empty;
-
-					if (unityPrefabInstance.meshCollider != null)
+					if (!editorPrefabInstances.ContainsKey(prefabInstance))
 					{
-						pathCollider = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.meshCollider.name);
-					}
+						var newPrefabId = editorPrefabInstances.Count;
+						editorPrefabInstances.Add(prefabInstance, newPrefabId);
 
-					if (unityPrefabInstance.mesh != null)
-					{
-						pathMesh = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.mesh.name);
-					}
-
-					if (unityPrefabInstance.material != null)
-					{
-						pathMaterial = Path.Combine(provider.GetSubCatalog(), unityPrefabInstance.material.name);
-					}
-
-					if (editorPrefabInstances.Add(instance))
-					{
-						prefabInstances.Add(new PrefabInstance
-						{
-							prefabId = instance.prefabId,
-							material = pathMaterial,
-							mesh = pathMesh,
-							collider = pathCollider
-						});
+						prefabInstance.prefabId = newPrefabId;
+						prefabInstances.Add(prefabInstance);
 
 						modResults.Add(unityPrefabInstance);
 					}
@@ -115,7 +174,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private List<StaticInstance> CollectStaticInstances(
 			IReadOnlyDictionary<int, UnityPrefabInstance> unityPrefabInstances,
-			HashSet<PrefabInstance> editorPrefabInstances)
+			IReadOnlyDictionary<PrefabInstance, int> editorPrefabInstances,
+			ModResults modResults)
 		{
 			var staticInstances = new List<StaticInstance>();
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
@@ -130,10 +190,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					return;
 				}
 
-				var prefabInstance = unityPrefabInstance.CreateInstance();
-				if (editorPrefabInstances.TryGetValue(prefabInstance, out var editorPrefabInstance))
+				if (modResults.TryGetProvider(unityPrefabInstance, out var provider))
 				{
-					staticInstances.Add(new StaticInstance(editorPrefabInstance.prefabId, new LToWorld(transform.position, transform.rotation, transform.lossyScale)));
+					var lookupInstance = CreatePrefabInstanceWithPath(unityPrefabInstance, provider);
+
+					if (editorPrefabInstances.TryGetValue(lookupInstance, out var prefabId))
+					{
+						staticInstances.Add(new StaticInstance(prefabId, new LToWorld(transform.position, transform.rotation, transform.lossyScale)));
+					}
 				}
 			});
 			return staticInstances;

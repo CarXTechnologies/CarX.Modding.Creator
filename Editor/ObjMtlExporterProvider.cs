@@ -31,15 +31,31 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public void Packing(string catalog, object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
+			var baseCatalogPath = Path.GetDirectoryName(catalog);
 
-			if (unityInstance.meshCollider != null && unityInstance.mesh != unityInstance.meshCollider)
+			if (unityInstance.lods == null || unityInstance.lods.Count == 0)
 			{
-				UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), unityInstance.meshCollider, Array.Empty<Material>());
+				Debug.LogWarning($"UnityPrefabInstance with prefabId {unityInstance.prefabId} has no LODs to pack.");
+				return;
 			}
 
-			if (unityInstance.mesh != null && unityInstance.material != null)
+			for (int i = 0; i < unityInstance.lods.Count; i++)
 			{
-				UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, Path.GetDirectoryName(catalog), unityInstance.mesh, new[] { unityInstance.material });
+				var lodInfo = unityInstance.lods[i];
+
+				if (lodInfo.mesh != null && lodInfo.material != null)
+				{
+					UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, new[] { lodInfo.material });
+				}
+				else if (lodInfo.mesh != null)
+				{
+					UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, Array.Empty<Material>());
+				}
+
+				if (lodInfo.meshCollider != null && lodInfo.mesh != lodInfo.meshCollider)
+				{
+					UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, Array.Empty<Material>());
+				}
 			}
 		}
 
@@ -56,6 +72,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public string GetFilePath(object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
+			// This will return a base path. The actual LOD files will have suffixes added during packing.
 			return Path.Combine(Directory, unityInstance.prefabId.ToString());
 		}
 	}
