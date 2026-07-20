@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (unityInstance.lods == null || unityInstance.lods.Count == 0)
 			{
-				Debug.LogWarning($"UnityPrefabInstance with prefabId {unityInstance.prefabId} has no LODs to pack.");
+				Debug.LogWarning($"UnityPrefabInstance with prefabId {unityInstance.prefabId} has no to pack.");
 				return;
 			}
 

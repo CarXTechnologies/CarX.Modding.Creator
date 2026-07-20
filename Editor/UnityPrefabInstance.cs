@@ -17,12 +17,24 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	{
 		public int prefabId;
 		public List<LODInfo> lods;
+        public Vector3 LocalReferencePoint;
+        public Vector4 LODDistances0;
+        public Vector4 LODDistances1;
+        public bool HasLODGroup;
 
 		public string Version { get; set; }
 
 		public PrefabInstance CreateInstance()
 		{
-			var newPrefabInstance = new PrefabInstance { prefabId = prefabId, lods = new List<LODInfoData>() };
+			var newPrefabInstance = new PrefabInstance
+            {
+                prefabId = prefabId,
+                lods = new List<LODInfoData>(),
+                LocalReferencePoint = LocalReferencePoint,
+                LODDistances0 = LODDistances0,
+                LODDistances1 = LODDistances1,
+                HasLODGroup = HasLODGroup
+            };
 
 			if (lods == null)
 			{

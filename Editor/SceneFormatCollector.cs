@@ -57,52 +57,49 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				var lodGroup = o.GetComponent<LODGroup>();
 				if (lodGroup != null)
 				{
-					var lods = lodGroup.GetLODs();
-					foreach (var lod in lods)
+					if (lodGroup.lodCount > 8)
+					{
+						Debug.LogWarning("LODGroup has more than 8 LOD - Not supported", lodGroup);
+						return;
+					}
+
+					prefab.HasLODGroup = true;
+					prefab.LocalReferencePoint = lodGroup.localReferencePoint;
+
+					var worldSpaceSize = GetWorldSpaceScale(o.transform) * lodGroup.size;
+					var lodDistances0 = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+					var lodDistances1 = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+					var lodGroupLODs = lodGroup.GetLODs();
+
+					for (int i = 0; i < lodGroup.lodCount; ++i)
+					{
+						float d = worldSpaceSize / lodGroupLODs[i].screenRelativeTransitionHeight;
+						if (i < 4)
+							lodDistances0[i] = d;
+						else
+							lodDistances1[i - 4] = d;
+					}
+					prefab.LODDistances0 = lodDistances0;
+					prefab.LODDistances1 = lodDistances1;
+
+					foreach (var lod in lodGroupLODs)
 					{
 						var currentLODInfo = new LODInfo();
 						foreach (var renderer in lod.renderers)
 						{
-							if (renderer == null) continue; // Skip null renderers
+							if (renderer == null)
+							{
+								continue;
+							}
 
-							var meshFilter = renderer.GetComponent<MeshFilter>();
-							if (meshFilter != null)
-							{
-								currentLODInfo.mesh = meshFilter.sharedMesh;
-							}
-							var meshRenderer = renderer.GetComponent<MeshRenderer>();
-							if (meshRenderer != null)
-							{
-								currentLODInfo.material = meshRenderer.sharedMaterial;
-							}
-							var meshCollider = renderer.GetComponent<MeshCollider>();
-							if (meshCollider != null)
-							{
-								currentLODInfo.meshCollider = meshCollider.sharedMesh;
-							}
+							currentLODInfo = CollectLodInfo(renderer.gameObject);
 						}
 						prefab.lods.Add(currentLODInfo);
 					}
 				}
 				else
 				{
-					var singleLODInfo = new LODInfo();
-					var meshFilter = o.GetComponent<MeshFilter>();
-					if (meshFilter != null)
-					{
-						singleLODInfo.mesh = meshFilter.sharedMesh;
-					}
-					var meshRenderer = o.GetComponent<MeshRenderer>();
-					if (meshRenderer != null)
-					{
-						singleLODInfo.material = meshRenderer.sharedMaterial;
-					}
-					var meshCollider = o.GetComponent<MeshCollider>();
-					if (meshCollider != null)
-					{
-						singleLODInfo.meshCollider = meshCollider.sharedMesh;
-					}
-					prefab.lods.Add(singleLODInfo);
+					prefab.lods.Add(CollectLodInfo(o));
 				}
 
 				unityPrefabInstances[instanceId] = prefab;
@@ -110,10 +107,38 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return unityPrefabInstances;
 		}
 
-		private static PrefabInstance CreatePrefabInstanceWithPath(UnityPrefabInstance unityPrefabInstance,
-			IModResourcesProvider provider)
+		private static LODInfo CollectLodInfo(GameObject o)
 		{
-			var prefabInstance = new PrefabInstance { lods = new List<LODInfoData>() };
+			var singleLODInfo = new LODInfo();
+			var meshFilter = o.GetComponent<MeshFilter>();
+			if (meshFilter != null)
+			{
+				singleLODInfo.mesh = meshFilter.sharedMesh;
+			}
+			var meshRenderer = o.GetComponent<MeshRenderer>();
+			if (meshRenderer != null)
+			{
+				singleLODInfo.material = meshRenderer.sharedMaterial;
+			}
+			var meshCollider = o.GetComponent<MeshCollider>();
+			if (meshCollider != null)
+			{
+				singleLODInfo.meshCollider = meshCollider.sharedMesh;
+			}
+
+			return singleLODInfo;
+		}
+
+		private static PrefabInstance CreatePrefabInstanceWithPath(UnityPrefabInstance unityPrefabInstance, IModResourcesProvider provider)
+		{
+			var prefabInstance = new PrefabInstance
+			{
+				lods = new List<LODInfoData>(),
+				LocalReferencePoint = unityPrefabInstance.LocalReferencePoint,
+				LODDistances0 = unityPrefabInstance.LODDistances0,
+				LODDistances1 = unityPrefabInstance.LODDistances1,
+				HasLODGroup = unityPrefabInstance.HasLODGroup
+			};
 
 			if (unityPrefabInstance.lods != null)
 			{
@@ -201,6 +226,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 			});
 			return staticInstances;
+		}
+
+		private static float GetWorldSpaceScale(Transform transform)
+		{
+			var lossyScale = transform.lossyScale;
+			return Mathf.Max(Mathf.Abs(lossyScale.x), Mathf.Abs(lossyScale.y), Mathf.Abs(lossyScale.z));
 		}
 	}
 }
