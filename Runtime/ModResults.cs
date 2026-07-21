@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 
+#if UNITY_EDITOR
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEditor;
+#endif
+
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class ModResults
@@ -60,6 +66,39 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public void UploadInCatalog(string catalog)
 		{
+#if UNITY_EDITOR
+			try
+			{
+				var listToExecute = new Task[m_results.Count];
+				for (var i = 0; i < m_results.Count; i++)
+				{
+					var item = m_results[i];
+					var provider = item.provider;
+					var modObject = item.modObject;
+
+					EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({i + 1}/{m_results.Count})", (float)i / m_results.Count);
+
+					var path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
+					if (provider.IsThread())
+					{
+						listToExecute[i] = Task.Run((() =>
+						{
+							provider.Packing(path, modObject);
+						}));
+					}
+					else
+					{
+						provider.Packing(path, modObject);
+					}
+				}
+
+				Task.WaitAll(listToExecute);
+			}
+			finally
+			{
+				EditorUtility.ClearProgressBar();
+			}
+#else
 			foreach (var item in m_results)
 			{
 				IModResourcesProvider provider = item.provider;
@@ -68,6 +107,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				string path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
 				provider.Packing(path, modObject);
 			}
+#endif
 
 			m_results.Clear();
 		}

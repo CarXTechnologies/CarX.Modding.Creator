@@ -7,6 +7,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class TexturePngProvider : Provider<Texture2D>
 	{
+		public override bool IsThread() => false;
+
 		public TexturePngProvider(IModFileProvider provider) : base(provider, "textures/", ".png", ".png", ".jpg")
 		{
 

@@ -21,8 +21,4 @@ public struct LODInfoData : IEquatable<LODInfoData>
 	{
 		return HashCode.Combine(mesh, material, collider);
 	}
-
-	public string GetMeshName() => mesh.Split('/')[^1];
-	public string GetMaterialName() => material.Split('/')[^1];
-	public string GetColliderName() => collider.Split('/')[^1];
 }

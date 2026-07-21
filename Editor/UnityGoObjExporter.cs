@@ -11,8 +11,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public static class UnityGoObjExporter
 	{
 		private static Material s_blitMat;
+		private static RenderTexture s_cachedRenderTexture;
+		private static Texture2D s_cachedTexture2D;
 
-		// A simple struct to hold vertex counts from an existing OBJ file.
 		private struct ObjStats
 		{
 			public int vertices;
@@ -22,13 +23,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public static void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials)
 		{
-			// NOTE: The 'name' parameter for OBJ/MTL files is derived from the mesh name.
-			// This implies that all meshes intended for the same file should share the same name.
 			string name = mesh.name;
 			string pathToObj = Path.Combine(path, name + ".obj");
 			string mtlPath = Path.Combine(path, name + ".mtl");
 
-			// --- Handle .mtl file (Append if exists) ---
 			HashSet<string> existingMtlNames = GetExistingMtlNames(mtlPath);
 			List<Material> materialsToAddToMtl = new List<Material>();
 			foreach (Material mat in materials)
@@ -41,46 +39,36 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (materialsToAddToMtl.Count > 0)
 			{
-				string newMtlContent = BuildMtl(collectionProvider, materialsToAddToMtl.ToArray(), path);
 				if (!File.Exists(mtlPath))
 				{
-					fileProvider.Save(mtlPath, Encoding.UTF8.GetBytes(newMtlContent));
+					string newMtlContent = BuildMtl(collectionProvider, materialsToAddToMtl.ToArray(), path);
+					File.WriteAllText(mtlPath, newMtlContent, Encoding.UTF8);
 				}
 				else
 				{
-					var existingContent = File.ReadAllText(mtlPath, Encoding.UTF8);
-					fileProvider.Save(mtlPath, Encoding.UTF8.GetBytes(existingContent + newMtlContent));
+					string newMtlContent = BuildMtl(collectionProvider, materialsToAddToMtl.ToArray(), path);
+					File.AppendAllText(mtlPath, newMtlContent, Encoding.UTF8);
 				}
 			}
 
-			// --- Handle .obj file (Smart Append) ---
 			if (!File.Exists(pathToObj))
 			{
-				// If file doesn't exist, create it from scratch.
 				string objString = BuildFullObj(mesh, materials, name);
-				fileProvider.Save(pathToObj, Encoding.UTF8.GetBytes(objString));
+				File.WriteAllText(pathToObj, objString, Encoding.UTF8);
 			}
 			else
 			{
-				// If file exists, get current vertex counts to use as offsets.
 				ObjStats stats = GetObjectStats(pathToObj);
-				
-				// Build only the data for the new mesh, with offset indices.
 				string appendString = BuildAppendableObjData(mesh, materials, name, stats);
-				
-				// Append the new, correctly offset data to the existing file.
-				var existingContent = File.ReadAllText(pathToObj, Encoding.UTF8);
-				fileProvider.Save(pathToObj, Encoding.UTF8.GetBytes(existingContent + "\n" + appendString));
+				File.AppendAllText(pathToObj, "\n" + appendString, Encoding.UTF8);
 			}
 		}
 
-		// Reads an existing OBJ file and counts the number of vertices, uvs, and normals.
 		private static ObjStats GetObjectStats(string path)
 		{
 			var stats = new ObjStats();
 			if (!File.Exists(path)) return stats;
 
-			// Using ReadLines for better memory efficiency with large files.
 			foreach (var line in File.ReadLines(path))
 			{
 				if (line.StartsWith("v ")) stats.vertices++;
@@ -90,26 +78,20 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return stats;
 		}
 
-		// Builds a complete OBJ string for a new file.
 		private static string BuildFullObj(Mesh mesh, Material[] materials, string name)
 		{
 			var sb = new StringBuilder();
 			sb.AppendFormat("mtllib {0}.mtl", name).AppendLine();
-			// For a new file, the offsets are all zero.
 			sb.Append(BuildAppendableObjData(mesh, materials, name, new ObjStats()));
 			return sb.ToString();
 		}
 
-		// Builds an OBJ string for a mesh to be appended, using offsets for indices.
 		private static string BuildAppendableObjData(Mesh mesh, Material[] materials, string objectName, ObjStats offsets)
 		{
 			var sb = new StringBuilder();
 
-			// 1. Object Name
-			// Each mesh becomes a new object in the OBJ file.
 			sb.AppendFormat("o {0}", objectName).AppendLine();
 
-			// 2. Append this mesh's geometry data.
 			foreach (var v in mesh.vertices)
 			{
 				sb.AppendFormat(CultureInfo.InvariantCulture, "v {0:F6} {1:F6} {2:F6}", v.x, v.y, v.z).AppendLine();
@@ -123,24 +105,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				sb.AppendFormat(CultureInfo.InvariantCulture, "vt {0:F6} {1:F6}", uv.x, uv.y).AppendLine();
 			}
 
-			// 3. Append faces for each submesh, applying the offsets to all indices.
 			for (var u = 0; u < mesh.subMeshCount; u++)
 			{
-				if (u >= materials.Length) continue; // Safety check
-				
+				if (u >= materials.Length)
+				{
+					continue;
+				}
+
 				var mat = materials[u];
 				sb.AppendFormat("usemtl {0}", mat.name).AppendLine();
 
 				var tr = mesh.GetTriangles(u);
 				for (var k = 0; k < tr.Length; k += 3)
 				{
-					// OBJ format is 1-based, so we add 1 to each 0-based index.
 					int i1 = tr[k] + 1;
 					int i2 = tr[k + 1] + 1;
 					int i3 = tr[k + 2] + 1;
 
-					// Apply the offsets to create correct global indices.
-					// The format is f v/vt/vn v/vt/vn v/vt/vn
 					sb.AppendFormat(CultureInfo.InvariantCulture, "f {0}/{1}/{2} {3}/{4}/{5} {6}/{7}/{8}", 
 						i1 + offsets.vertices, i1 + offsets.uvs, i1 + offsets.normals,
 						i2 + offsets.vertices, i2 + offsets.uvs, i2 + offsets.normals,
@@ -277,23 +258,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private static Texture2D CopyInReadable(Texture2D texture)
 		{
-			RenderTexture tmp = RenderTexture.GetTemporary(
-				texture.width,
-				texture.height,
-				0,
-				RenderTextureFormat.Default,
-				RenderTextureReadWrite.Linear);
+			if (s_cachedRenderTexture == null || s_cachedRenderTexture.width != texture.width || s_cachedRenderTexture.height != texture.height)
+			{
+				if (s_cachedRenderTexture != null) RenderTexture.ReleaseTemporary(s_cachedRenderTexture);
+				s_cachedRenderTexture = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+			}
 
-			Graphics.Blit(texture, tmp);
+			Graphics.Blit(texture, s_cachedRenderTexture);
 
-			Texture2D newTexture = new Texture2D(texture.width, texture.height);
+			if (s_cachedTexture2D == null || s_cachedTexture2D.width != texture.width || s_cachedTexture2D.height != texture.height)
+			{
+				s_cachedTexture2D = new Texture2D(texture.width, texture.height);
+			}
 
-			newTexture.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
-			newTexture.Apply();
+			s_cachedTexture2D.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
+			s_cachedTexture2D.Apply();
 
-			RenderTexture.ReleaseTemporary(tmp);
-
-			return newTexture;
+			return s_cachedTexture2D;
 		}
 
 		private static Texture2D Blit(Texture2D texture, int pass)
@@ -303,23 +284,24 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				s_blitMat = new Material(Shader.Find("Hidden/ConvertingEx"));
 			}
 
-			RenderTexture tmp = RenderTexture.GetTemporary(
-				texture.width,
-				texture.height,
-				0,
-				RenderTextureFormat.Default,
-				RenderTextureReadWrite.Linear);
+			if (s_cachedRenderTexture == null || s_cachedRenderTexture.width != texture.width || s_cachedRenderTexture.height != texture.height)
+			{
+				if (s_cachedRenderTexture != null) RenderTexture.ReleaseTemporary(s_cachedRenderTexture);
+				s_cachedRenderTexture = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+			}
 
 			s_blitMat.SetVector("_MainTex_ST", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-			Graphics.Blit(texture, tmp, s_blitMat, pass);
+			Graphics.Blit(texture, s_cachedRenderTexture, s_blitMat, pass);
 
-			Texture2D newTexture = new Texture2D(texture.width, texture.height);
-			newTexture.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
-			newTexture.Apply();
+			if (s_cachedTexture2D == null || s_cachedTexture2D.width != texture.width || s_cachedTexture2D.height != texture.height)
+			{
+				s_cachedTexture2D = new Texture2D(texture.width, texture.height);
+			}
+			
+			s_cachedTexture2D.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
+			s_cachedTexture2D.Apply();
 
-			RenderTexture.ReleaseTemporary(tmp);
-
-			return newTexture;
+			return s_cachedTexture2D;
 		}
 	}
 }

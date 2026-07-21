@@ -22,7 +22,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
 			var modResults = new ModResults(collectionProvider);
-			var unityPrefabInstances = CollectUnityPrefabInstances(version); // Передаем version
+			var unityPrefabInstances = CollectUnityPrefabInstances(version);
 
 			var editorPrefabInstances = new Dictionary<PrefabInstance, int>();
 			var prefabInstances = new List<PrefabInstance>();
@@ -36,23 +36,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return modResults;
 		}
 
-		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances(string version) // Добавляем параметр version
+		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances(string version)
 		{
 			var unityPrefabInstances = new Dictionary<int, UnityPrefabInstance>();
-			var processedGameObjects = new HashSet<int>(); // To ensure each GameObject is processed only once
+			var processedGameObjects = new HashSet<int>();
 
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
 				var instanceId = o.GetInstanceID();
 
-				// Process each GameObject only once
 				if (processedGameObjects.Contains(instanceId))
 				{
 					return;
 				}
+
 				processedGameObjects.Add(instanceId);
 
-				var prefab = new UnityPrefabInstance { lods = new List<LODInfo>(), Version = version }; // Присваиваем Version
+				var prefab = new UnityPrefabInstance { lods = new List<LODInfo>(), Version = version };
 
 				var lodGroup = o.GetComponent<LODGroup>();
 				if (lodGroup != null)

@@ -5,6 +5,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public abstract class Provider<T> : IModResourcesProvider
 	{
+		public virtual bool IsThread() => true;
+
 		protected readonly string m_catalog;
 		protected readonly string m_format;
 		protected readonly string[] m_loadFormat;
