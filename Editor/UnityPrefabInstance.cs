@@ -8,6 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 {
 	public struct LODInfo
 	{
+		public int lodLevel;
 		public Mesh mesh;
 		public Mesh meshCollider;
 		public Material material;
