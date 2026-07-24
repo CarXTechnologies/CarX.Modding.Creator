@@ -96,5 +96,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			return catalog;
 		}
+
+		public string GetModResourcePath<T>(IModCollectionProvider collectionProvider, T resource, string dir, bool useResDirectory = true)
+		{
+			IModResourcesProvider provider = collectionProvider.GetProvider(resource as IModResourcesVersion, typeof(T));
+			string catalog = Path.Combine(dir, (useResDirectory ? provider.GetFilePath(resource) : Path.GetFileName(provider.GetFilePath(resource))) + provider.GetFileExtension());
+
+			return catalog;
+		}
 	}
 }

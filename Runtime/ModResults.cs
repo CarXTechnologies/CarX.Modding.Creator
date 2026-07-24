@@ -69,7 +69,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 #if UNITY_EDITOR
 			try
 			{
-				var listToExecute = new Task[m_results.Count];
+				var listToExecute = new List<Task>(m_results.Count);
 				for (var i = 0; i < m_results.Count; i++)
 				{
 					var item = m_results[i];
@@ -81,10 +81,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					var path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
 					if (provider.IsThread())
 					{
-						listToExecute[i] = Task.Run((() =>
+						listToExecute.Add(Task.Run((() =>
 						{
 							provider.Packing(path, modObject);
-						}));
+						})));
 					}
 					else
 					{
@@ -92,20 +92,24 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					}
 				}
 
-				Task.WaitAll(listToExecute);
+				for (var i = 0; i < m_results.Count; i++)
+				{
+					var item = m_results[i];
+					var provider = item.provider;
+					var modObject = item.modObject;
+
+					EditorUtility.DisplayProgressBar("Post Upload Catalog", $"Packing... ({i + 1}/{m_results.Count})", (float)i / m_results.Count);
+
+					var path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
+
+					provider.EndPackingSafe(path, modObject);
+				}
+
+				Task.WaitAll(listToExecute.ToArray());
 			}
 			finally
 			{
 				EditorUtility.ClearProgressBar();
-			}
-#else
-			foreach (var item in m_results)
-			{
-				IModResourcesProvider provider = item.provider;
-				object modObject = item.modObject;
-
-				string path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
-				provider.Packing(path, modObject);
 			}
 #endif
 

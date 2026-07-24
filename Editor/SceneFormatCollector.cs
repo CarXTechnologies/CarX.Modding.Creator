@@ -146,21 +146,25 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					var lodInfoData = new LODInfoData();
 
-					if (lodInfo.meshCollider != null)
-					{
-						lodInfoData.collider = Path.Combine(provider.GetSubCatalog(), lodInfo.meshCollider.name);
-					}
-
 					if (lodInfo.mesh != null)
 					{
-						lodInfoData.mesh = Path.Combine(provider.GetSubCatalog(), lodInfo.mesh.name);
+						lodInfoData.mesh = Path.Combine(provider.GetSubCatalog(), lodInfo.mesh.GetHashCode().ToString());
 					}
 
 					if (lodInfo.material != null)
 					{
-						lodInfoData.material = Path.Combine(provider.GetSubCatalog(), lodInfo.material.name);
+						lodInfoData.material = Path.Combine(provider.GetSubCatalog(), lodInfo.material.GetHashCode().ToString());
+						prefabInstance.lods.Add(lodInfoData);
+						continue;
 					}
-					prefabInstance.lods.Add(lodInfoData);
+
+					if (lodInfo.meshCollider != null)
+					{
+						lodInfoData.collider = Path.Combine(provider.GetSubCatalog(), lodInfo.meshCollider.GetHashCode().ToString());
+						lodInfoData.material = Path.Combine(provider.GetSubCatalog(), "empty");
+						prefabInstance.lods.Add(lodInfoData);
+						continue;
+					}
 				}
 			}
 

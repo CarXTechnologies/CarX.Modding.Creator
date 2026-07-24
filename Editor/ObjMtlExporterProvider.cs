@@ -10,8 +10,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class ObjMtlExporterProvider : IModResourcesProvider, IModResourcesCollect
 	{
 		private const string Directory = "models/";
-
-
+		private UnityGoObjExporter m_exporter;
 
 		private readonly IModFileProvider m_fileProvider;
 		private IModCollectionProvider m_collectionProvider;
@@ -21,6 +20,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public ObjMtlExporterProvider(IModFileProvider fileProvider)
 		{
 			m_fileProvider = fileProvider;
+			m_exporter = new UnityGoObjExporter();
 		}
 
 		public void SetCollection(IModCollectionProvider collectionProvider)
@@ -59,11 +59,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 					if (lodInfo.material != null)
 					{
-						UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, new[] { lodInfo.material });
+						m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.material);
 					}
 					else
 					{
-						UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, Array.Empty<Material>());
+						m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, null);
 					}
 					m_exportedMeshes.Add(meshPath);
 				}
@@ -72,10 +72,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					string colliderPath = Path.Combine(baseCatalogPath, lodInfo.meshCollider.name);
 
-					UnityGoObjExporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, Array.Empty<Material>());
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null);
 					m_exportedMeshes.Add(colliderPath);
 				}
 			}
+		}
+
+		public void EndPackingSafe(string catalog, object resource)
+		{
+			m_exporter.RebuildAndSafeAll(m_collectionProvider, m_fileProvider);
 		}
 
 		public string GetFileExtension()

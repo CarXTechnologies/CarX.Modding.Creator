@@ -9,5 +9,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public ModProvider[] GetProviders(string version);
 
 		public string PackingModResource<T>(IModCollectionProvider collectionProvider, T resource, string dir, bool useResDirectory = true);
+
+		public string GetModResourcePath<T>(IModCollectionProvider collectionProvider, T resource, string dir, bool useResDirectory = true);
 	}
 }
