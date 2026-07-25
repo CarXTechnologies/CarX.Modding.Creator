@@ -6,7 +6,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
     [System.Serializable]
     public class LodInstance
     {
-        public List<int> prefabIds;
+        public List<LodLevel> lodLevels;
         public LToWorld localToWorld;
         public Vector3 LocalReferencePoint;
         public Vector4 LODDistances0;
@@ -14,16 +14,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
         public LodInstance()
         {
-            prefabIds = new List<int>();
+            lodLevels = new List<LodLevel>();
             localToWorld = default;
             LocalReferencePoint = Vector3.zero;
             LODDistances0 = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             LODDistances1 = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
         }
 
-        public LodInstance(List<int> prefabIds, LToWorld localToWorld)
+        public LodInstance(List<LodLevel> lodLevels, LToWorld localToWorld)
         {
-            this.prefabIds = prefabIds;
+            this.lodLevels = lodLevels;
             this.localToWorld = localToWorld;
             LocalReferencePoint = Vector3.zero;
             LODDistances0 = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);

@@ -12,6 +12,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public Mesh mesh;
 		public Mesh meshCollider;
 		public Material material;
+
+		// Transform of this LOD renderer relative to the owning LODGroup's transform.
+		// Identity when there is no LODGroup (single-instance objects).
+		public Vector3 localPosition;
+		public Quaternion localRotation;
+		public Vector3 localScale;
 	}
 
 	public struct UnityPrefabInstance : IModResourcesVersion

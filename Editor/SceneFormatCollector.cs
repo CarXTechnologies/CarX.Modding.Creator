@@ -88,7 +88,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                         {
                             continue;
                         }
-                        prefab.lods.Add(CollectLodInfo(renderer.gameObject));
+                        prefab.lods.Add(CollectLodInfo(renderer.gameObject, lodGroup.transform));
                     }
                 }
 
@@ -182,7 +182,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
             return false;
         }
 
-        private static LODInfo CollectLodInfo(GameObject o)
+        private static LODInfo CollectLodInfo(GameObject o, Transform relativeTo = null)
         {
             var singleLODInfo = new LODInfo();
             var meshFilter = o.GetComponent<MeshFilter>();
@@ -199,6 +199,25 @@ namespace Plugins.CarX.Modding.Creator.Editor
             if (meshCollider != null)
             {
                 singleLODInfo.meshCollider = meshCollider.sharedMesh;
+            }
+
+            if (relativeTo != null)
+            {
+                var t = o.transform;
+                singleLODInfo.localPosition = relativeTo.InverseTransformPoint(t.position);
+                singleLODInfo.localRotation = Quaternion.Inverse(relativeTo.rotation) * t.rotation;
+                var parentScale = relativeTo.lossyScale;
+                var childScale = t.lossyScale;
+                singleLODInfo.localScale = new Vector3(
+                    parentScale.x != 0f ? childScale.x / parentScale.x : childScale.x,
+                    parentScale.y != 0f ? childScale.y / parentScale.y : childScale.y,
+                    parentScale.z != 0f ? childScale.z / parentScale.z : childScale.z);
+            }
+            else
+            {
+                singleLODInfo.localPosition = Vector3.zero;
+                singleLODInfo.localRotation = Quaternion.identity;
+                singleLODInfo.localScale = Vector3.one;
             }
 
             return singleLODInfo;
@@ -322,7 +341,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                     return;
                 }
 
-                var prefabIds = new List<int>(unityPrefabInstance.lods.Count);
+                var lodLevels = new List<LodLevel>(unityPrefabInstance.lods.Count);
 
                 foreach (var lodInfo in unityPrefabInstance.lods)
                 {
@@ -331,15 +350,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
                         continue;
                     }
 
-                    prefabIds.Add(prefabId);
+                    var localOffset = new LToWorld(lodInfo.localPosition, lodInfo.localRotation, lodInfo.localScale);
+                    lodLevels.Add(new LodLevel(prefabId, localOffset));
                 }
 
-                if (prefabIds.Count < 2)
+                if (lodLevels.Count < 2)
                 {
                     return;
                 }
 
-                lods.Add(new LodInstance(prefabIds, ltoWorld)
+                lods.Add(new LodInstance(lodLevels, ltoWorld)
                 {
                     LocalReferencePoint = unityPrefabInstance.LocalReferencePoint,
                     LODDistances0 = unityPrefabInstance.LODDistances0,
