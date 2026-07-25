@@ -29,8 +29,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
             PopulatePrefabInstances(modResults, unityPrefabInstances, editorPrefabInstances, prefabInstances);
 
-            var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances, modResults, out var lodsRanges);
-            var lodInstances = CollectLodInstances(unityPrefabInstances, lodsRanges);
+            var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances, modResults, out var lodInstances);
 
             modResults.Add(new StaticHierarchyMeta(m_sceneName, version, staticInstances));
             modResults.Add(new PrefabHierarchyMeta(m_sceneName, version, prefabInstances));
@@ -281,10 +280,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
             IReadOnlyDictionary<int, UnityPrefabInstance> unityPrefabInstances,
             IReadOnlyDictionary<PrefabInstance, int> editorPrefabInstances,
             ModResults modResults,
-            out Dictionary<int, List<int>> lodRanges)
+            out List<LodInstance> lodInstances)
         {
             var staticInstances = new List<StaticInstance>();
-            var ranges = new Dictionary<int, List<int>>();
+            var lods = new List<LodInstance>();
 
             m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
             {
@@ -322,7 +321,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
                     staticInstances.Add(new StaticInstance(prefabId, ltoWorld));
                     return;
                 }
-                var indices = new List<int>(unityPrefabInstance.lods.Count);
+
+                var prefabIds = new List<int>(unityPrefabInstance.lods.Count);
 
                 foreach (var lodInfo in unityPrefabInstance.lods)
                 {
@@ -331,53 +331,24 @@ namespace Plugins.CarX.Modding.Creator.Editor
                         continue;
                     }
 
-                    indices.Add(staticInstances.Count);
-                    staticInstances.Add(new StaticInstance(prefabId, ltoWorld));
+                    prefabIds.Add(prefabId);
                 }
 
-                if (indices.Count > 1)
+                if (prefabIds.Count < 2)
                 {
-                    ranges[instanceId] = indices;
-                }
-            });
-
-            lodRanges = ranges;
-            return staticInstances;
-        }
-
-        private static List<LodInstance> CollectLodInstances(
-            IReadOnlyDictionary<int, UnityPrefabInstance> unityPrefabInstances,
-            IReadOnlyDictionary<int, List<int>> lodRanges)
-        {
-            var lodInstances = new List<LodInstance>();
-
-            foreach (var pair in lodRanges)
-            {
-                if (pair.Value == null || pair.Value.Count < 2)
-                {
-                    continue;
+                    return;
                 }
 
-                if (!unityPrefabInstances.TryGetValue(pair.Key, out var unityPrefabInstance))
+                lods.Add(new LodInstance(prefabIds, ltoWorld)
                 {
-                    continue;
-                }
-
-                if (!unityPrefabInstance.HasLODGroup)
-                {
-                    continue;
-                }
-
-                lodInstances.Add(new LodInstance
-                {
-                    instanceLods = new List<int>(pair.Value),
                     LocalReferencePoint = unityPrefabInstance.LocalReferencePoint,
                     LODDistances0 = unityPrefabInstance.LODDistances0,
                     LODDistances1 = unityPrefabInstance.LODDistances1
                 });
-            }
+            });
 
-            return lodInstances;
+            lodInstances = lods;
+            return staticInstances;
         }
 
         private static float GetWorldSpaceScale(Transform transform)
