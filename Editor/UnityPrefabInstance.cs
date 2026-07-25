@@ -27,32 +27,39 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public PrefabInstance CreateInstance()
 		{
-			var newPrefabInstance = new PrefabInstance
+			var instance = new PrefabInstance
 			{
 				prefabId = prefabId,
-				lods = new List<LODInfoData>(),
-				LocalReferencePoint = LocalReferencePoint,
-				LODDistances0 = LODDistances0,
-				LODDistances1 = LODDistances1,
-				HasLODGroup = HasLODGroup
+				mesh = string.Empty,
+				material = string.Empty,
+				collider = string.Empty
 			};
 
 			if (lods == null)
 			{
-				return newPrefabInstance;
+				return instance;
 			}
 
 			foreach (var lod in lods)
 			{
-				newPrefabInstance.lods.Add(new LODInfoData
+				if (instance.mesh == string.Empty && lod.mesh != null)
+					instance.mesh = AssetDatabase.GetAssetPath(lod.mesh);
+
+				if (instance.material == string.Empty && lod.material != null)
+					instance.material = AssetDatabase.GetAssetPath(lod.material);
+
+				if (instance.collider == string.Empty && lod.meshCollider != null)
+					instance.collider = AssetDatabase.GetAssetPath(lod.meshCollider);
+
+				if (instance.mesh != string.Empty ||
+				    instance.material != string.Empty ||
+				    instance.collider != string.Empty)
 				{
-					mesh = lod.mesh != null ? AssetDatabase.GetAssetPath(lod.mesh) : string.Empty,
-					material = lod.material != null ? AssetDatabase.GetAssetPath(lod.material) : string.Empty,
-					collider = lod.meshCollider != null ? AssetDatabase.GetAssetPath(lod.meshCollider) : string.Empty
-				});
+					break;
+				}
 			}
 
-			return newPrefabInstance;
+			return instance;
 		}
 
 		public bool IsNull()

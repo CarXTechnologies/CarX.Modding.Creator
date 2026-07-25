@@ -112,6 +112,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
                     File.WriteAllText(pathToObj, objString, Encoding.UTF8);
                 }
 
+                StringBuilder str = new StringBuilder();
+                str.Append("mat - " + name + "|" + currentMaterial.name + "/" + "obj -");
+                for (int i = 0; i < meshesToProcess.Count; i++)
+                {
+                    str.Append(meshesToProcess[i].name + " | ");
+                }
+                Debug.Log(str.ToString());
+
                 processedCount++;
             }
 
