@@ -13,8 +13,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public Mesh meshCollider;
 		public Material material;
 
-		// Transform of this LOD renderer relative to the owning LODGroup's transform.
-		// Identity when there is no LODGroup (single-instance objects).
 		public Vector3 localPosition;
 		public Quaternion localRotation;
 		public Vector3 localScale;
@@ -49,13 +47,19 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			foreach (var lod in lods)
 			{
 				if (instance.mesh == string.Empty && lod.mesh != null)
+				{
 					instance.mesh = AssetDatabase.GetAssetPath(lod.mesh);
+				}
 
 				if (instance.material == string.Empty && lod.material != null)
+				{
 					instance.material = AssetDatabase.GetAssetPath(lod.material);
+				}
 
 				if (instance.collider == string.Empty && lod.meshCollider != null)
+				{
 					instance.collider = AssetDatabase.GetAssetPath(lod.meshCollider);
+				}
 
 				if (instance.mesh != string.Empty ||
 				    instance.material != string.Empty ||

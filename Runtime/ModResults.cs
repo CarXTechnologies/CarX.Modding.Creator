@@ -69,7 +69,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 #if UNITY_EDITOR
 			try
 			{
-				var listToExecute = new List<Task>(m_results.Count);
 				for (var i = 0; i < m_results.Count; i++)
 				{
 					var item = m_results[i];
@@ -79,17 +78,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({i + 1}/{m_results.Count})", (float)i / m_results.Count);
 
 					var path = Path.Combine(catalog, provider.GetFilePath(modObject) + provider.GetFileExtension());
-					if (provider.IsThread())
-					{
-						listToExecute.Add(Task.Run((() =>
-						{
-							provider.Packing(path, modObject);
-						})));
-					}
-					else
-					{
-						provider.Packing(path, modObject);
-					}
+
+					provider.Packing(path, modObject);
 				}
 
 				for (var i = 0; i < m_results.Count; i++)
@@ -104,8 +94,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 					provider.EndPackingSafe(path, modObject);
 				}
-
-				Task.WaitAll(listToExecute.ToArray());
 			}
 			finally
 			{

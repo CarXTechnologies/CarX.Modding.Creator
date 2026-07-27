@@ -10,373 +10,470 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-    public class UnityGoObjExporter
-    {
-        private static Material s_blitMat;
-        private static RenderTexture s_cachedRenderTexture;
-        private static readonly HashSet<string> s_processedTexturePaths = new HashSet<string>();
-        private static readonly HashSet<int> s_processedMtlInstanceIDs = new HashSet<int>();
+	public class UnityGoObjExporter
+	{
+		private static readonly HashSet<string> s_processedTexturePaths = new ();
+		private static readonly HashSet<int> s_processedMtlInstanceIDs = new ();
+		private static readonly Dictionary<(string, string), (Material, Mesh)> s_pendingObject = new ();
+		private static readonly Dictionary<int, (string, Material, List<Mesh>)> s_pendingObjectByMaterial = new ();
 
-        private static readonly Dictionary<(string, string), (Material, Mesh)> s_pendingObject = new Dictionary<(string, string), (Material, Mesh)>();
-        private static readonly Dictionary<int, (string, Material, List<Mesh>)> s_pendingObjectByMaterial = new Dictionary<int, (string, Material, List<Mesh>)>();
+		private static Material s_blitMat;
+		private static RenderTexture s_cachedRenderTexture;
 
-        public struct ObjOffset
-        {
-            public int vertices;
-            public int uvs;
-            public int normals;
-        }
-        
-        public static void ClearCache()
-        {
-            s_processedTexturePaths.Clear();
-            s_processedMtlInstanceIDs.Clear();
-        }
-        
-        private static Texture2D SetTextureReadable(Texture2D texture)
-        {
-            if (texture == null) return null;
+		public struct ObjOffset
+		{
+			public int vertices;
+			public int uvs;
+			public int normals;
+		}
 
-            string path = AssetDatabase.GetAssetPath(texture);
-            if (string.IsNullOrEmpty(path)) return texture;
+		public enum MaterialBlendMode
+		{
+			Opaque = 0,
+			AlphaBlend = 1,
+			AlphaTest = 2
+		}
 
-            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-            if (importer != null && (!importer.isReadable || importer.textureCompression != TextureImporterCompression.Uncompressed))
-            {
-                importer.isReadable = true;
-                importer.textureCompression = TextureImporterCompression.Uncompressed;
-                importer.SaveAndReimport();
-                return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            }
-            return texture;
-        }
+		public static void ClearCache()
+		{
+			s_processedTexturePaths.Clear();
+			s_processedMtlInstanceIDs.Clear();
+		}
 
-        public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material materials)
-        {
-            if (materials == null)
-            {
-                s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), "empty")] = (null, mesh);
-            }
-            else
-            {
-                s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), materials.name)] = (materials, mesh);
-            }
-        }
+		private static Texture2D SetTextureReadable(Texture2D texture)
+		{
+			if (texture == null) return null;
 
-        public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
-        {
-            foreach (var valueTuple in s_pendingObject)
-            {
-                var idMaterial = -1;
+			string path = AssetDatabase.GetAssetPath(texture);
+			if (string.IsNullOrEmpty(path)) return texture;
 
-                if (valueTuple.Value.Item1 != null)
-                {
-                    idMaterial = valueTuple.Value.Item1.GetInstanceID();
-                }
+			var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+			if (importer != null && (!importer.isReadable ||
+			                         importer.textureCompression != TextureImporterCompression.Uncompressed))
+			{
+				importer.isReadable = true;
+				importer.textureCompression = TextureImporterCompression.Uncompressed;
+				importer.SaveAndReimport();
+				return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+			}
 
-                if (!s_pendingObjectByMaterial.TryGetValue(idMaterial, out var value))
-                {
-                    s_pendingObjectByMaterial.Add(idMaterial, (Path.GetDirectoryName(valueTuple.Key.Item1), valueTuple.Value.Item1, new List<Mesh>()));
-                }
+			return texture;
+		}
 
-                s_pendingObjectByMaterial[idMaterial].Item3.Add(valueTuple.Value.Item2);
-            }
+		private static MaterialBlendMode DetectMaterialBlendMode(Material material)
+		{
+			if (material == null)
+			{
+				return MaterialBlendMode.Opaque;
+			}
 
-            int processedCount = 0; // Initialize counter for callback
-            foreach (KeyValuePair<int, (string, Material, List<Mesh>)> pen in s_pendingObjectByMaterial)
-            {
-                Material currentMaterial = pen.Value.Item2;
-                List<Mesh> meshesToProcess = pen.Value.Item3;
+			int renderQueue = material.renderQueue;
+			string renderType = material.GetTag("RenderType", false, "Opaque");
 
-                string name = "empty";
-                if (currentMaterial != null)
-                {
-                    name = currentMaterial.GetHashCode().ToString();
-                }
+			// Transparent queue is typically >= 3000, AlphaTest is 2450-2500
+			if (renderQueue >= 3000 || renderType == "Transparent" || renderType == "TransparentCutout")
+			{
+				if (renderType == "TransparentCutout" || renderQueue == 2450)
+				{
+					return MaterialBlendMode.AlphaTest;
+				}
+				return MaterialBlendMode.AlphaBlend;
+			}
 
-                string mtlPath = Path.Combine(pen.Value.Item1, name + ".mtl");
+			if (material.HasProperty("_Surface"))
+			{
+				float surface = material.GetFloat("_Surface");
+				if (surface > 0.5f) // 1 = Transparent
+				{
+					return MaterialBlendMode.AlphaBlend;
+				}
+			}
 
-                if (pen.Key != -1)
-                {
-                    BuildAllMaterial(collectionProvider, pen.Value.Item1, mtlPath, currentMaterial); // Pass currentMaterial
-                }
+			return MaterialBlendMode.Opaque;
+		}
 
-                EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({processedCount + 1}/{s_pendingObjectByMaterial.Count})", (float)processedCount / s_pendingObjectByMaterial.Count);
+		private static bool HasAlphaChannel(Texture2D texture)
+		{
+			if (texture == null) return false;
 
-                string pathToObj = Path.Combine(pen.Value.Item1, name + ".obj");
+			TextureFormat format = texture.format;
+			return format == TextureFormat.RGBA32 || format == TextureFormat.ARGB32 ||
+				   format == TextureFormat.BGRA32 || format == TextureFormat.RGBAFloat ||
+				   format == TextureFormat.RGBAHalf || format == TextureFormat.DXT5 ||
+				   format == TextureFormat.BC7 || format == TextureFormat.Alpha8;
+		}
 
-                if (!File.Exists(pathToObj))
-                {
-                    string objString = BuildFullObj(meshesToProcess, name); // Pass objStats and currentMaterial
-                    Directory.CreateDirectory(Path.GetDirectoryName(pathToObj));
-                    File.WriteAllText(pathToObj, objString, Encoding.UTF8);
-                }
+		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material materials)
+		{
+			if (materials == null)
+			{
+				s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), "empty")] = (null, mesh);
+			}
+			else
+			{
+				s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), materials.name)] = (materials, mesh);
+			}
+		}
 
-                StringBuilder str = new StringBuilder();
-                str.Append("mat - " + name + "|" + currentMaterial.name + "/" + "obj -");
-                for (int i = 0; i < meshesToProcess.Count; i++)
-                {
-                    str.Append(meshesToProcess[i].name + " | ");
-                }
-                Debug.Log(str.ToString());
+		public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
+		{
+			foreach (var valueTuple in s_pendingObject)
+			{
+				var idMaterial = -1;
 
-                processedCount++;
-            }
+				if (valueTuple.Value.Item1 != null)
+				{
+					idMaterial = valueTuple.Value.Item1.GetInstanceID();
+				}
 
-            s_pendingObject.Clear();
-            s_pendingObjectByMaterial.Clear();
-            s_processedTexturePaths.Clear();
-            s_processedMtlInstanceIDs.Clear();
-        }
+				if (!s_pendingObjectByMaterial.TryGetValue(idMaterial, out var value))
+				{
+					s_pendingObjectByMaterial.Add(idMaterial,
+						(Path.GetDirectoryName(valueTuple.Key.Item1), valueTuple.Value.Item1, new List<Mesh>()));
+				}
 
-        private static void BuildAllMaterial(IModCollectionProvider collectionProvider, string path, string mtlPath, params Material[] materials)
-        {
-            if (materials.Length > 0)
-            {
-                string newMtlContent = BuildMtl(collectionProvider, materials, path);
+				s_pendingObjectByMaterial[idMaterial].Item3.Add(valueTuple.Value.Item2);
+			}
 
-                if (!File.Exists(mtlPath))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(mtlPath));
-                    File.WriteAllText(mtlPath, newMtlContent, Encoding.UTF8);
-                }
-                else
-                {
-                    File.AppendAllText(mtlPath, newMtlContent, Encoding.UTF8);
-                }
-            }
-        }
+			int processedCount = 0; // Initialize counter for callback
+			foreach (KeyValuePair<int, (string, Material, List<Mesh>)> pen in s_pendingObjectByMaterial)
+			{
+				Material currentMaterial = pen.Value.Item2;
+				List<Mesh> meshesToProcess = pen.Value.Item3;
 
-        private static string BuildFullObj(List<Mesh> mesh, string material)
-        {
-            ObjOffset offset = new ObjOffset();
+				string name = "empty";
+				if (currentMaterial != null)
+				{
+					name = currentMaterial.GetHashCode().ToString();
+				}
 
-            var sb = new StringBuilder();
-            sb.AppendFormat("mtllib {0}.mtl", material).AppendLine();
+				string mtlPath = Path.Combine(pen.Value.Item1, name + ".mtl");
 
-            for (int i = 0; i < mesh.Count; i++)
-            {
-                var currentMesh = mesh[i];
-                var currentUvs = currentMesh.uv;
-                var currentNormals = currentMesh.normals;
+				if (pen.Key != -1)
+				{
+					BuildAllMaterial(collectionProvider, pen.Value.Item1, mtlPath, currentMaterial); // Pass currentMaterial
+				}
 
-                BuildAppendableObjData(sb, offset, currentMesh, material);
-                offset.vertices += currentMesh.vertexCount;
-                offset.uvs += currentUvs != null ? currentUvs.Length : 0;
-                offset.normals += currentNormals != null ? currentNormals.Length : 0;
-            }
+				EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({processedCount + 1}/{s_pendingObjectByMaterial.Count})", (float)processedCount / s_pendingObjectByMaterial.Count);
 
-            return sb.ToString();
-        }
+				string pathToObj = Path.Combine(pen.Value.Item1, name + ".obj");
 
-        private static string BuildFullObj(string name, Mesh mesh)
-        {
-            var sb = new StringBuilder();
-            sb.AppendFormat("mtllib {0}.mtl", name).AppendLine();
-            BuildAppendableObjData(sb, new ObjOffset(), mesh, name);
-            return sb.ToString();
-        }
+				if (!File.Exists(pathToObj))
+				{
+					string objString = BuildFullObj(meshesToProcess, name); // Pass objStats and currentMaterial
+					Directory.CreateDirectory(Path.GetDirectoryName(pathToObj));
+					File.WriteAllText(pathToObj, objString, Encoding.UTF8);
+				}
 
-        private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, string material)
-        {
-            sb.AppendFormat("o {0}", mesh.GetHashCode()).AppendLine();
+				StringBuilder str = new StringBuilder();
+				str.Append("mat - " + name + "|" + currentMaterial.name + "/" + "obj -");
+				for (int i = 0; i < meshesToProcess.Count; i++)
+				{
+					str.Append(meshesToProcess[i].name + " | ");
+				}
 
-            foreach (var v in mesh.vertices)
-            {
-                sb.AppendFormat(CultureInfo.InvariantCulture, "v {0:F6} {1:F6} {2:F6}", v.x, v.y, v.z).AppendLine();
-            }
-            foreach (var vn in mesh.normals)
-            {
-                sb.AppendFormat(CultureInfo.InvariantCulture, "vn {0:F6} {1:F6} {2:F6}", vn.x, vn.y, vn.z).AppendLine();
-            }
-            foreach (var uv in mesh.uv)
-            {
-                sb.AppendFormat(CultureInfo.InvariantCulture, "vt {0:F6} {1:F6}", uv.x, uv.y).AppendLine();
-            }
+				Debug.Log(str.ToString());
 
-            for (var u = 0; u < mesh.subMeshCount; u++)
-            {
-                sb.AppendFormat("usemtl {0}", material).AppendLine();
+				processedCount++;
+			}
 
-                var tr = mesh.GetTriangles(u);
-                for (var k = 0; k < tr.Length; k += 3)
-                {
-                    int i1 = tr[k] + 1;
-                    int i2 = tr[k + 1] + 1;
-                    int i3 = tr[k + 2] + 1;
+			s_pendingObject.Clear();
+			s_pendingObjectByMaterial.Clear();
+			s_processedTexturePaths.Clear();
+			s_processedMtlInstanceIDs.Clear();
+		}
 
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "f {0}/{1}/{2} {3}/{4}/{5} {6}/{7}/{8}",
-                        i1 + offsets.vertices, i1 + offsets.uvs, i1 + offsets.normals,
-                        i2 + offsets.vertices, i2 + offsets.uvs, i2 + offsets.normals,
-                        i3 + offsets.vertices, i3 + offsets.uvs, i3 + offsets.normals).AppendLine();
-                }
-            }
+		private static void BuildAllMaterial(IModCollectionProvider collectionProvider, string path, string mtlPath,
+			params Material[] materials)
+		{
+			if (materials.Length > 0)
+			{
+				string newMtlContent = BuildMtl(collectionProvider, materials, path);
 
-            return sb;
-        }
+				if (!File.Exists(mtlPath))
+				{
+					Directory.CreateDirectory(Path.GetDirectoryName(mtlPath));
+					File.WriteAllText(mtlPath, newMtlContent, Encoding.UTF8);
+				}
+				else
+				{
+					File.AppendAllText(mtlPath, newMtlContent, Encoding.UTF8);
+				}
+			}
+		}
 
-        private static string BuildMtl(IModCollectionProvider collectionProvider, Material[] mats, string dir)
-        {
-            var mtl = new StringBuilder();
-            foreach (Material m in mats)
-            {
-                if (m == null) continue;
-                mtl.AppendFormat("newmtl {0}", m.GetHashCode()).AppendLine();
-                if (m.HasProperty("_BaseColor"))
-                {
-                    var c = m.GetColor("_BaseColor");
-                    mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
-                }
-                else if (m.HasProperty("_BaseColor0"))
-                {
-                    var c = m.GetColor("_BaseColor0");
-                    mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
-                }
+		private static string BuildFullObj(List<Mesh> mesh, string material)
+		{
+			ObjOffset offset = new ObjOffset();
 
-                ProcessBaseTexture(collectionProvider, m, dir, mtl);
-                ProcessNormalMap(collectionProvider, m, dir, mtl);
-                ProcessMaskMap(collectionProvider, m, dir, mtl);
-            }
+			var sb = new StringBuilder();
+			sb.AppendFormat("mtllib {0}.mtl", material).AppendLine();
 
-            return mtl.ToString();
-        }
+			for (int i = 0; i < mesh.Count; i++)
+			{
+				var currentMesh = mesh[i];
+				var currentUvs = currentMesh.uv;
+				var currentNormals = currentMesh.normals;
 
-        private static void ProcessBaseTexture(IModCollectionProvider collectionProvider, Material m, string dir,
-            StringBuilder mtl)
-        {
-            Texture2D baseMap = null;
-            if (m.HasProperty("_BaseColorMap")) baseMap = (Texture2D)m.GetTexture("_BaseColorMap");
-            if (baseMap == null && m.HasProperty("_BaseColorMap0")) baseMap = (Texture2D)m.GetTexture("_BaseColorMap0");
-            if (baseMap == null && m.HasProperty("_MainTex")) baseMap = (Texture2D)m.GetTexture("_MainTex");
+				BuildAppendableObjData(sb, offset, currentMesh, material);
+				offset.vertices += currentMesh.vertexCount;
+				offset.uvs += currentUvs?.Length ?? 0;
+				offset.normals += currentNormals?.Length ?? 0;
+			}
 
-            if (baseMap != null)
-            {
-                var hash = baseMap.GetHashCode();
-                // Устанавливаем имя ДО вычисления пути, чтобы путь был стабильным
-                baseMap.name = hash + "_base";
-                var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
+			return sb.ToString();
+		}
 
-                mtl.AppendFormat("map_Kd {0}", baseMap.name).AppendLine();
-                mtl.AppendFormat("map_d {0}", hash + "_dissolve").AppendLine();
+		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, string material)
+		{
+			sb.AppendFormat("o {0}", mesh.GetHashCode()).AppendLine();
 
-                if (s_processedTexturePaths.Contains(pathModRes))
-                {
-                    return;
-                }
+			foreach (var v in mesh.vertices)
+			{
+				sb.AppendFormat(CultureInfo.InvariantCulture, "v {0:F6} {1:F6} {2:F6}", v.x, v.y, v.z).AppendLine();
+			}
 
-                baseMap = SetTextureReadable(baseMap);
-                baseMap.name = hash + "_base";
+			foreach (var vn in mesh.normals)
+			{
+				sb.AppendFormat(CultureInfo.InvariantCulture, "vn {0:F6} {1:F6} {2:F6}", vn.x, vn.y, vn.z).AppendLine();
+			}
 
-                var alpha = Blit(baseMap, 1);
-                alpha.name = hash + "_dissolve";
+			foreach (var uv in mesh.uv)
+			{
+				sb.AppendFormat(CultureInfo.InvariantCulture, "vt {0:F6} {1:F6}", uv.x, uv.y).AppendLine();
+			}
 
-                collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
-                collectionProvider.PackingModResource(collectionProvider, alpha, dir, false);
-                s_processedTexturePaths.Add(pathModRes);
-            }
-        }
+			for (var u = 0; u < mesh.subMeshCount; u++)
+			{
+				sb.AppendFormat("usemtl {0}", material).AppendLine();
 
-        private static void ProcessNormalMap(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
-        {
-            Texture2D normalMap = null;
-            float normalScale = 1f;
+				var tr = mesh.GetTriangles(u);
+				for (var k = 0; k < tr.Length; k += 3)
+				{
+					int i1 = tr[k] + 1;
+					int i2 = tr[k + 1] + 1;
+					int i3 = tr[k + 2] + 1;
 
-            if (m.HasProperty("_NormalMap0"))
-            {
-                normalMap = (Texture2D)m.GetTexture("_NormalMap0");
-                normalScale = m.GetFloat("_NormalScale0");
-            }
+					sb.AppendFormat(CultureInfo.InvariantCulture, "f {0}/{1}/{2} {3}/{4}/{5} {6}/{7}/{8}",
+							i1 + offsets.vertices, i1 + offsets.uvs, i1 + offsets.normals, i2 + offsets.vertices,
+							i2 + offsets.uvs, i2 + offsets.normals, i3 + offsets.vertices, i3 + offsets.uvs,
+							i3 + offsets.normals)
+						.AppendLine();
+				}
+			}
 
-            if (normalMap == null && m.HasProperty("_NormalMap"))
-            {
-                normalMap = (Texture2D)m.GetTexture("_NormalMap");
-                normalScale = m.GetFloat("_NormalScale");
-            }
+			return sb;
+		}
 
-            if (normalMap != null)
-            {
-                // Устанавливаем финальное имя ДО вычисления пути
-                normalMap.name = normalMap.GetHashCode() + "_normal";
-                var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, normalMap, dir, false);
+		private static string BuildMtl(IModCollectionProvider collectionProvider, Material[] mats, string dir)
+		{
+			var mtl = new StringBuilder();
+			foreach (Material m in mats)
+			{
+				if (m == null)
+				{
+					continue;
+				}
 
-                if (s_processedTexturePaths.Contains(pathModRes))
-                {
-                    mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(pathModRes)}").AppendLine();
-                }
-                else
-                {
-                    normalMap = SetTextureReadable(normalMap);
-                    normalMap.name = normalMap.GetHashCode() + "_normal";
-                    mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, normalMap, dir, false))}").AppendLine();
-                    s_processedTexturePaths.Add(pathModRes);
-                }
-            }
-        }
+				mtl.AppendFormat("newmtl {0}", m.GetHashCode()).AppendLine();
 
-        private static void ProcessMaskMap(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
-        {
-            Texture2D maskMap = null;
-            if (m.HasProperty("_MaskMap0")) maskMap = (Texture2D)m.GetTexture("_MaskMap0");
-            if (maskMap == null && m.HasProperty("_MaskMap")) maskMap = (Texture2D)m.GetTexture("_MaskMap");
+				MaterialBlendMode blendMode = DetectMaterialBlendMode(m);
+				int illuminationModel = blendMode == MaterialBlendMode.Opaque ? 2 : 4;
+				mtl.AppendFormat("illum {0}", illuminationModel).AppendLine();
 
-            if (maskMap != null)
-            {
-                maskMap = SetTextureReadable(maskMap);
+				if (m.HasProperty("_BaseColor"))
+				{
+					var c = m.GetColor("_BaseColor");
+					mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
 
-                var roughnessTex = Blit(maskMap, 1);
-                roughnessTex.name = maskMap.GetHashCode() + "_roughness";
-                var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
+					if (blendMode != MaterialBlendMode.Opaque)
+					{
+						mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", c.a).AppendLine();
+					}
+				}
+				else if (m.HasProperty("_BaseColor0"))
+				{
+					var c = m.GetColor("_BaseColor0");
+					mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
 
-                if (s_processedTexturePaths.Contains(roughnessPath))
-                {
-                    mtl.AppendFormat("map_Pr {0}", Path.GetFileName(roughnessPath)).AppendLine();
-                }
-                else
-                {
-                    mtl.AppendFormat("map_Pr {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, roughnessTex, dir, false))).AppendLine();
-                    s_processedTexturePaths.Add(roughnessPath);
-                }
+					if (blendMode != MaterialBlendMode.Opaque)
+					{
+						mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", c.a).AppendLine();
+					}
+				}
+				else
+				{
+					if (blendMode != MaterialBlendMode.Opaque)
+					{
+						mtl.AppendFormat(CultureInfo.InvariantCulture, "d 1.0").AppendLine();
+					}
+				}
 
-                var metallicTex = Blit(maskMap, 0);
-                metallicTex.name = maskMap.GetHashCode() + "_metallic";
-                var metallicPath = collectionProvider.GetModResourcePath(collectionProvider, metallicTex, dir, false);
+				ProcessBaseTexture(collectionProvider, m, dir, mtl, blendMode);
+				ProcessNormalMap(collectionProvider, m, dir, mtl);
+				ProcessMaskMap(collectionProvider, m, dir, mtl);
+			}
 
-                if (s_processedTexturePaths.Contains(metallicPath))
-                {
-                    mtl.AppendFormat("map_Pm {0}", Path.GetFileName(metallicPath)).AppendLine();
-                }
-                else
-                {
-                    mtl.AppendFormat("map_Pm {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, metallicTex, dir, false))).AppendLine();
-                    s_processedTexturePaths.Add(metallicPath);
-                }
-            }
-        }
+			return mtl.ToString();
+		}
 
-        private static Texture2D Blit(Texture2D texture, int pass)
-        {
-            if (s_blitMat == null)
-            {
-                s_blitMat = new Material(Shader.Find("Hidden/ConvertingEx"));
-            }
+		private static void ProcessBaseTexture(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl, MaterialBlendMode blendMode)
+		{
+			Texture2D baseMap = null;
+			if (m.HasProperty("_BaseColorMap"))
+			{
+				baseMap = (Texture2D)m.GetTexture("_BaseColorMap");
+			}
+			if (baseMap == null && m.HasProperty("_BaseColorMap0"))
+			{
+				baseMap = (Texture2D)m.GetTexture("_BaseColorMap0");
+			}
+			if (baseMap == null && m.HasProperty("_MainTex"))
+			{
+				baseMap = (Texture2D)m.GetTexture("_MainTex");
+			}
 
-            texture = SetTextureReadable(texture);
-            var readableTexture = texture;
+			if (baseMap != null)
+			{
+				var hash = baseMap.GetHashCode();
+				baseMap.name = hash + "_base";
+				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
 
-            if (s_cachedRenderTexture == null || s_cachedRenderTexture.width != readableTexture.width || s_cachedRenderTexture.height != readableTexture.height)
-            {
-                if (s_cachedRenderTexture != null) RenderTexture.ReleaseTemporary(s_cachedRenderTexture);
-                s_cachedRenderTexture = RenderTexture.GetTemporary(readableTexture.width, readableTexture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
-            }
+				mtl.AppendFormat("map_Kd {0}", Path.GetFileName(pathModRes)).AppendLine();
 
-            s_blitMat.SetVector("_MainTex_ST", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-            Graphics.Blit(readableTexture, s_cachedRenderTexture, s_blitMat, pass);
+				if (s_processedTexturePaths.Contains(pathModRes))
+				{
+					return;
+				}
 
-            var resultTexture = new Texture2D(readableTexture.width, readableTexture.height, TextureFormat.RGBA32, false);
-            resultTexture.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
-            resultTexture.Apply(false, false);
+				baseMap = SetTextureReadable(baseMap);
+				baseMap.name = hash + "_base";
 
-            return resultTexture;
-        }
-    }
+				collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
+
+				if (blendMode != MaterialBlendMode.Opaque && HasAlphaChannel(baseMap))
+				{
+					var alpha = Blit(baseMap, 1);
+					alpha.name = hash + "_dissolve";
+
+					mtl.AppendFormat("map_d {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, alpha, dir, false))).AppendLine();
+				}
+
+				s_processedTexturePaths.Add(pathModRes);
+			}
+		}
+
+		private static void ProcessNormalMap(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
+		{
+			Texture2D normalMap = null;
+			float normalScale = 1f;
+
+			if (m.HasProperty("_NormalMap0"))
+			{
+				normalMap = (Texture2D)m.GetTexture("_NormalMap0");
+				normalScale = m.GetFloat("_NormalScale0");
+			}
+
+			if (normalMap == null && m.HasProperty("_NormalMap"))
+			{
+				normalMap = (Texture2D)m.GetTexture("_NormalMap");
+				normalScale = m.GetFloat("_NormalScale");
+			}
+
+			if (normalMap != null)
+			{
+				normalMap.name = normalMap.GetHashCode() + "_normal";
+				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, normalMap, dir, false);
+
+				if (s_processedTexturePaths.Contains(pathModRes))
+				{
+					mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(pathModRes)}").AppendLine();
+				}
+				else
+				{
+					normalMap = SetTextureReadable(normalMap);
+					normalMap.name = normalMap.GetHashCode() + "_normal";
+					mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, normalMap, dir, false))}").AppendLine();
+					s_processedTexturePaths.Add(pathModRes);
+				}
+			}
+		}
+
+		private static void ProcessMaskMap(IModCollectionProvider collectionProvider, Material m, string dir,
+			StringBuilder mtl)
+		{
+			Texture2D maskMap = null;
+			if (m.HasProperty("_MaskMap0"))
+			{
+				maskMap = (Texture2D)m.GetTexture("_MaskMap0");
+			}
+			if (maskMap == null && m.HasProperty("_MaskMap"))
+			{
+				maskMap = (Texture2D)m.GetTexture("_MaskMap");
+			}
+
+			if (maskMap != null)
+			{
+				maskMap = SetTextureReadable(maskMap);
+
+				var roughnessTex = Blit(maskMap, 1);
+				roughnessTex.name = maskMap.GetHashCode() + "_roughness";
+				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
+
+				if (s_processedTexturePaths.Contains(roughnessPath))
+				{
+					mtl.AppendFormat("map_Pr {0}", Path.GetFileName(roughnessPath)).AppendLine();
+				}
+				else
+				{
+					mtl.AppendFormat("map_Pr {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, roughnessTex, dir, false))).AppendLine();
+					s_processedTexturePaths.Add(roughnessPath);
+				}
+
+				var metallicTex = Blit(maskMap, 0);
+				metallicTex.name = maskMap.GetHashCode() + "_metallic";
+				var metallicPath = collectionProvider.GetModResourcePath(collectionProvider, metallicTex, dir, false);
+
+				if (s_processedTexturePaths.Contains(metallicPath))
+				{
+					mtl.AppendFormat("map_Pm {0}", Path.GetFileName(metallicPath)).AppendLine();
+				}
+				else
+				{
+					mtl.AppendFormat("map_Pm {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, metallicTex, dir, false))).AppendLine();
+					s_processedTexturePaths.Add(metallicPath);
+				}
+			}
+		}
+
+		private static Texture2D Blit(Texture2D texture, int pass)
+		{
+			if (s_blitMat == null)
+			{
+				s_blitMat = new Material(Shader.Find("Hidden/ConvertingEx"));
+			}
+
+			texture = SetTextureReadable(texture);
+			var readableTexture = texture;
+
+			if (s_cachedRenderTexture == null || s_cachedRenderTexture.width != readableTexture.width || s_cachedRenderTexture.height != readableTexture.height)
+			{
+				if (s_cachedRenderTexture != null)
+				{
+					RenderTexture.ReleaseTemporary(s_cachedRenderTexture);
+				}
+
+				s_cachedRenderTexture = RenderTexture.GetTemporary(readableTexture.width, readableTexture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+			}
+
+			s_blitMat.SetVector("_MainTex_ST", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+			Graphics.Blit(readableTexture, s_cachedRenderTexture, s_blitMat, pass);
+
+			var resultTexture = new Texture2D(readableTexture.width, readableTexture.height, TextureFormat.RGBA32, false);
+			resultTexture.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
+			resultTexture.Apply(false, false);
+
+			return resultTexture;
+		}
+	}
 }

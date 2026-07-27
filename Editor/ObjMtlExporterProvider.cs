@@ -28,11 +28,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			m_collectionProvider = collectionProvider;
 		}
 
-		public bool IsThread()
-		{
-			return false;
-		}
-
 		public virtual Task<object> Unpacking<T>(string catalog)
 		{
 			return null;
@@ -56,22 +51,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				if (lodInfo.mesh != null)
 				{
 					string meshPath = Path.Combine(baseCatalogPath, lodInfo.mesh.name);
-
-					if (lodInfo.material != null)
-					{
-						m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.material);
-					}
-					else
-					{
-						m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, null);
-					}
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.material);
 					m_exportedMeshes.Add(meshPath);
 				}
 
 				if (lodInfo.meshCollider != null && lodInfo.mesh != lodInfo.meshCollider)
 				{
 					string colliderPath = Path.Combine(baseCatalogPath, lodInfo.meshCollider.name);
-
 					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null);
 					m_exportedMeshes.Add(colliderPath);
 				}
