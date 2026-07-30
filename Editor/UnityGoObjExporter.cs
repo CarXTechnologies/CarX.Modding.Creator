@@ -166,10 +166,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 
 				StringBuilder str = new StringBuilder();
-				str.Append("mat - " + name + "|" + currentMaterial.name + "/" + "obj -");
+				str.Append("mat - " + name + "|" + currentMaterial?.name + "/" + "obj -");
 				for (int i = 0; i < meshesToProcess.Count; i++)
 				{
-					str.Append(meshesToProcess[i].name + " | ");
+					str.Append(meshesToProcess[i].name + $"{meshesToProcess[i].GetHashCode()} | ");
 				}
 
 				Debug.Log(str.ToString());

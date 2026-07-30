@@ -367,8 +367,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					lodLevels.Add(new LodLevel(prefabId, localOffset, lodInfo.lodLevel));
 				}
 
-				if (lodLevels.Count < 1)
+				if (lodLevels.Count < 2)
 				{
+					if (lodLevels.Count == 1)
+					{
+						staticInstances.Add(new StaticInstance(lodLevels[0].prefabId, ltoWorld));
+					}
+
 					return;
 				}
 
