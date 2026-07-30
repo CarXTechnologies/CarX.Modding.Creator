@@ -414,8 +414,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (maskMap != null)
 			{
-				maskMap = SetTextureReadable(maskMap);
-
 				var roughnessTex = Blit(maskMap, 1);
 				roughnessTex.name = maskMap.GetHashCode() + "_roughness";
 				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);

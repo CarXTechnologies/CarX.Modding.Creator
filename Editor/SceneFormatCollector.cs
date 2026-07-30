@@ -203,7 +203,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			var meshRenderer = o.GetComponent<MeshRenderer>();
 			if (meshRenderer != null)
 			{
-				singleLODInfo.material = meshRenderer.sharedMaterial;
+				var sharedMaterials = meshRenderer.sharedMaterials;
+				foreach (var sharedMaterial in sharedMaterials)
+				{
+					if (sharedMaterial != null)
+					{
+						singleLODInfo.material = sharedMaterial;
+						break;
+					}
+				}
 			}
 
 			var meshCollider = o.GetComponent<MeshCollider>();
@@ -344,13 +352,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (!unityPrefabInstance.HasLODGroup)
 				{
-					var lodInfo = unityPrefabInstance.lods[0];
-					if (!editorPrefabInstances.TryGetValue(CreatePrefabInstanceWithPath(lodInfo, provider), out var prefabId))
+					foreach (var lodInfo in unityPrefabInstance.lods)
 					{
-						return;
+						if (!editorPrefabInstances.TryGetValue(CreatePrefabInstanceWithPath(lodInfo, provider), out var prefabId))
+						{
+							continue;
+						}
+
+						var worldTransform = CombineLocalToWorld(ltoWorld, lodInfo.localPosition, lodInfo.localRotation, lodInfo.localScale);
+						staticInstances.Add(new StaticInstance(prefabId, worldTransform));
 					}
 
-					staticInstances.Add(new StaticInstance(prefabId, ltoWorld));
 					return;
 				}
 
@@ -371,7 +383,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					if (lodLevels.Count == 1)
 					{
-						staticInstances.Add(new StaticInstance(lodLevels[0].prefabId, ltoWorld));
+						var worldTransform = CombineLocalToWorld(ltoWorld, lodLevels[0].localOffset.position,
+							lodLevels[0].localOffset.rotation, lodLevels[0].localOffset.scale);
+						staticInstances.Add(new StaticInstance(lodLevels[0].prefabId, worldTransform));
 					}
 
 					return;
@@ -393,6 +407,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			var lossyScale = transform.lossyScale;
 			return Mathf.Max(Mathf.Abs(lossyScale.x), Mathf.Abs(lossyScale.y), Mathf.Abs(lossyScale.z));
+		}
+
+		private static LToWorld CombineLocalToWorld(LToWorld parent, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+		{
+			var worldPosition = parent.position + parent.rotation * Vector3.Scale(parent.scale, localPosition);
+			var worldRotation = parent.rotation * localRotation;
+			var worldScale = Vector3.Scale(parent.scale, localScale);
+			return new LToWorld(worldPosition, worldRotation, worldScale);
 		}
 	}
 }
