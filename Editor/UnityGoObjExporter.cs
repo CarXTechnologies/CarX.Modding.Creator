@@ -278,7 +278,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				mtl.AppendFormat("newmtl {0}", m.GetHashCode()).AppendLine();
 
 				MaterialBlendMode blendMode = DetectMaterialBlendMode(m);
-				int illuminationModel = blendMode == MaterialBlendMode.Opaque ? 2 : 4;
+				int illuminationModel = blendMode switch
+				{
+					MaterialBlendMode.Opaque => 2,
+					MaterialBlendMode.AlphaTest => 1,
+					_ => 4
+				};
+
 				mtl.AppendFormat("illum {0}", illuminationModel).AppendLine();
 
 				if (m.HasProperty("_BaseColor"))
