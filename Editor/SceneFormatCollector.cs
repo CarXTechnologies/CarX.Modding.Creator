@@ -68,7 +68,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				FillLodDistances(lodGroup, ref prefab);
 
-				foreach (var lod in lodGroup.GetLODs())
+				var lodGroupLods = lodGroup.GetLODs();
+
+				foreach (var lod in lodGroupLods)
 				{
 					foreach (var renderer in lod.renderers)
 					{
@@ -81,16 +83,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					}
 				}
 
-				foreach (var lod in lodGroup.GetLODs())
+				for (var lodIndex = 0; lodIndex < lodGroupLods.Length; lodIndex++)
 				{
-					foreach (var renderer in lod.renderers)
+					foreach (var renderer in lodGroupLods[lodIndex].renderers)
 					{
 						if (renderer == null)
 						{
 							continue;
 						}
 
-						prefab.lods.Add(CollectLodInfo(renderer.gameObject, lodGroup.transform));
+						var lodInfo = CollectLodInfo(renderer.gameObject, lodGroup.transform);
+						lodInfo.lodLevel = lodIndex;
+						prefab.lods.Add(lodInfo);
 					}
 				}
 
@@ -360,7 +364,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					}
 
 					var localOffset = new LToWorld(lodInfo.localPosition, lodInfo.localRotation, lodInfo.localScale);
-					lodLevels.Add(new LodLevel(prefabId, localOffset));
+					lodLevels.Add(new LodLevel(prefabId, localOffset, lodInfo.lodLevel));
 				}
 
 				if (lodLevels.Count < 1)
