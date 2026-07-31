@@ -67,6 +67,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return MaterialBlendMode.Opaque;
 			}
 
+			if (material.HasProperty("_AlphaCutoffEnable") && (material.GetFloat("_AlphaCutoffEnable") > 0f))
+			{
+				return MaterialBlendMode.AlphaTest;
+			}
+
 			int renderQueue = material.renderQueue;
 			string renderType = material.GetTag("RenderType", false, "Opaque");
 
@@ -90,17 +95,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			return MaterialBlendMode.Opaque;
-		}
-
-		private static bool HasAlphaChannel(Texture2D texture)
-		{
-			if (texture == null) return false;
-
-			TextureFormat format = texture.format;
-			return format == TextureFormat.RGBA32 || format == TextureFormat.ARGB32 ||
-				   format == TextureFormat.BGRA32 || format == TextureFormat.RGBAFloat ||
-				   format == TextureFormat.RGBAHalf || format == TextureFormat.DXT5 ||
-				   format == TextureFormat.BC7 || format == TextureFormat.Alpha8;
 		}
 
 		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material materials)
@@ -347,25 +341,32 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				mtl.AppendFormat("map_Kd {0}", Path.GetFileName(pathModRes)).AppendLine();
 
-				if (s_processedTexturePaths.Contains(pathModRes))
+				if (blendMode != MaterialBlendMode.Opaque)
 				{
-					return;
+					baseMap.name = hash + "_dissolve";
+					mtl.AppendFormat("map_d {0}", Path.GetFileName(collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false))).AppendLine();
 				}
 
-				baseMap = SetTextureReadable(baseMap);
-				baseMap.name = hash + "_base";
+				if (!s_processedTexturePaths.Contains(pathModRes))
+				{
+					baseMap = SetTextureReadable(baseMap);
+					baseMap.name = hash + "_base";
 
-				collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
+					collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
+					s_processedTexturePaths.Add(pathModRes);
+				}
 
-				if (blendMode != MaterialBlendMode.Opaque && HasAlphaChannel(baseMap))
+				baseMap.name = hash + "_dissolve";
+				pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
+
+				if (!s_processedTexturePaths.Contains(pathModRes) && blendMode != MaterialBlendMode.Opaque)
 				{
 					var alpha = Blit(baseMap, 1);
 					alpha.name = hash + "_dissolve";
 
-					mtl.AppendFormat("map_d {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, alpha, dir, false))).AppendLine();
+					collectionProvider.PackingModResource(collectionProvider, alpha, dir, false);
+					s_processedTexturePaths.Add(pathModRes);
 				}
-
-				s_processedTexturePaths.Add(pathModRes);
 			}
 		}
 
