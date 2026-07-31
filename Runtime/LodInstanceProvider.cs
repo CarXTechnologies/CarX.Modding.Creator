@@ -10,4 +10,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public override string GetPath(string catalog, IModResources resource) => Path.Combine(catalog, resource.Id);
 	}
+
+	public class GameMarkerInstanceProvider<T> : MetaProvider<T> where T : IModResources
+	{
+		public GameMarkerInstanceProvider(IModFileProvider provider) : base(provider, "markers/")
+		{
+		}
+
+		public override string GetPath(string catalog, IModResources resource) => Path.Combine(catalog, resource.Id);
+	}
 }

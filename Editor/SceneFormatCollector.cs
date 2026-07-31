@@ -30,11 +30,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			PopulatePrefabInstances(modResults, unityPrefabInstances, editorPrefabInstances, prefabInstances);
 
 			var staticInstances = CollectStaticInstances(unityPrefabInstances, editorPrefabInstances, modResults,
-				out var lodInstances);
+				out var lodInstances, out var markerInstances);
 
 			modResults.Add(new StaticHierarchyMeta(m_sceneName, version, staticInstances));
 			modResults.Add(new PrefabHierarchyMeta(m_sceneName, version, prefabInstances));
 			modResults.Add(new LodHierarchyMeta(m_sceneName, version, lodInstances));
+			modResults.Add(new GameMarkerMeta(m_sceneName, version, markerInstances));
 			return modResults;
 		}
 
@@ -320,10 +321,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private List<StaticInstance> CollectStaticInstances(
 			IReadOnlyDictionary<int, UnityPrefabInstance> unityPrefabInstances,
 			IReadOnlyDictionary<PrefabInstance, int> editorPrefabInstances, ModResults modResults,
-			out List<LodInstance> lodInstances)
+			out List<LodInstance> lodInstances, out List<MarkerInstance> markerInstances)
 		{
 			var staticInstances = new List<StaticInstance>();
 			var lods = new List<LodInstance>();
+			var markers = new List<MarkerInstance>();
+
+			// Maps GameObject instance id -> index of its StaticInstance entry (if it produced one).
+			var objectToStaticIndex = new Dictionary<int, int>();
 
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
@@ -361,6 +366,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 						var worldTransform = CombineLocalToWorld(ltoWorld, lodInfo.localPosition, lodInfo.localRotation, lodInfo.localScale);
 						staticInstances.Add(new StaticInstance(prefabId, worldTransform));
+						objectToStaticIndex[instanceId] = staticInstances.Count - 1;
 					}
 
 					return;
@@ -386,6 +392,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 						var worldTransform = CombineLocalToWorld(ltoWorld, lodLevels[0].localOffset.position,
 							lodLevels[0].localOffset.rotation, lodLevels[0].localOffset.scale);
 						staticInstances.Add(new StaticInstance(lodLevels[0].prefabId, worldTransform));
+						objectToStaticIndex[instanceId] = staticInstances.Count - 1;
 					}
 
 					return;
@@ -399,7 +406,28 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				});
 			});
 
+			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
+			{
+				if (component is not IMarkerDataSource markerData)
+				{
+					return;
+				}
+
+				var instanceId = o.GetInstanceID();
+				if (!objectToStaticIndex.TryGetValue(instanceId, out var staticInstanceId))
+				{
+					var transform = o.transform;
+					var ltoWorld = new LToWorld(transform.position, transform.rotation, transform.lossyScale);
+					staticInstances.Add(new StaticInstance(-1, ltoWorld));
+					staticInstanceId = staticInstances.Count - 1;
+					objectToStaticIndex[instanceId] = staticInstanceId;
+				}
+
+				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam));
+			});
+
 			lodInstances = lods;
+			markerInstances = markers;
 			return staticInstances;
 		}
 
