@@ -33,11 +33,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				if (component != null)
 				{
 					componentCall?.Invoke(go, component);
-					//EditorUtility.DisplayProgressBar("Building mod result", component.name, index / (float)allComponents.Length);
 				}
 			}
-
-			//EditorUtility.ClearProgressBar();
 		}
 	}
 }

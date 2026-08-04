@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public class ObjMtlExporterProvider : IModResourcesProvider, IModResourcesCollect
+	public class ObjMtlExporterProvider : ObjMtlProviderBase, IModResourcesCollect
 	{
-		private const string Directory = "models/";
-		private UnityGoObjExporter m_exporter;
+		private readonly UnityGoObjExporter m_exporter;
 
-		private readonly IModFileProvider m_fileProvider;
 		private IModCollectionProvider m_collectionProvider;
 
 		private static readonly HashSet<string> m_exportedMeshes = new HashSet<string>();
 
-		public ObjMtlExporterProvider(IModFileProvider fileProvider)
+		public ObjMtlExporterProvider(IModFileProvider fileProvider) : base(fileProvider)
 		{
-			m_fileProvider = fileProvider;
 			m_exporter = new UnityGoObjExporter();
 		}
 
@@ -28,12 +23,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			m_collectionProvider = collectionProvider;
 		}
 
-		public virtual Task<object> Unpacking<T>(string catalog)
-		{
-			return null;
-		}
-
-		public void Packing(string catalog, object resource)
+		public override void Packing(string catalog, object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
 			var baseCatalogPath = Path.GetDirectoryName(catalog);
@@ -51,38 +41,28 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				if (lodInfo.mesh != null)
 				{
 					string meshPath = Path.Combine(baseCatalogPath, lodInfo.mesh.name);
-					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials);
+					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials);
 					m_exportedMeshes.Add(meshPath);
 				}
 
 				if (lodInfo.meshCollider != null)
 				{
 					string colliderPath = Path.Combine(baseCatalogPath, lodInfo.meshCollider.name);
-					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
+					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
 					m_exportedMeshes.Add(colliderPath);
 				}
 			}
 		}
 
-		public void EndPackingSafe(string catalog, object resource)
+		public override void EndPackingSafe(string catalog, object resource)
 		{
-			m_exporter.RebuildAndSafeAll(m_collectionProvider, m_fileProvider);
+			m_exporter.RebuildAndSafeAll(m_collectionProvider, fileProvider);
 		}
 
-		public string GetFileExtension()
-		{
-			return ".obj";
-		}
-
-		public string GetSubCatalog()
-		{
-			return Directory;
-		}
-
-		public string GetFilePath(object resource)
+		public override string GetFilePath(object resource)
 		{
 			var unityInstance = (UnityPrefabInstance)resource;
-			return Path.Combine(Directory, unityInstance.prefabId.ToString());
+			return Path.Combine(GetSubCatalog(), unityInstance.prefabId.ToString());
 		}
 	}
 }

@@ -1,0 +1,19 @@
+{
+    "name": "CarX.Modding.Creator.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:db3100163910fbb47893097d9a08adc7"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

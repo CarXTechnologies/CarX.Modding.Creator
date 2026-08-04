@@ -1,26 +1,28 @@
 ﻿using System;
-using UnityEngine;
 
-[Serializable]
-public struct PrefabInstance : IEquatable<PrefabInstance>
+namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public int prefabId;
-	public string mesh;
-	public string material;
-	public string collider;
-
-	public bool Equals(PrefabInstance other)
+	[Serializable]
+	public struct PrefabInstance : IEquatable<PrefabInstance>
 	{
-		return mesh == other.mesh && material == other.material && collider == other.collider;
-	}
+		public int prefabId;
+		public string mesh;
+		public string material;
+		public string collider;
 
-	public override bool Equals(object obj)
-	{
-		return obj is PrefabInstance other && Equals(other);
-	}
+		public bool Equals(PrefabInstance other)
+		{
+			return mesh == other.mesh && material == other.material && collider == other.collider;
+		}
 
-	public override int GetHashCode()
-	{
-		return HashCode.Combine(mesh, material, collider);
+		public override bool Equals(object obj)
+		{
+			return obj is PrefabInstance other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(mesh, material, collider);
+		}
 	}
 }
