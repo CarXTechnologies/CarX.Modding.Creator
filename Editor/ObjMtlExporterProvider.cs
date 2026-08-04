@@ -51,14 +51,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				if (lodInfo.mesh != null)
 				{
 					string meshPath = Path.Combine(baseCatalogPath, lodInfo.mesh.name);
-					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.material);
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials);
 					m_exportedMeshes.Add(meshPath);
 				}
 
-				if (lodInfo.meshCollider != null && lodInfo.mesh != lodInfo.meshCollider)
+				if (lodInfo.meshCollider != null)
 				{
 					string colliderPath = Path.Combine(baseCatalogPath, lodInfo.meshCollider.name);
-					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null);
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
 					m_exportedMeshes.Add(colliderPath);
 				}
 			}

@@ -13,9 +13,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class UnityGoObjExporter
 	{
 		private static readonly HashSet<string> s_processedTexturePaths = new ();
-		private static readonly HashSet<int> s_processedMtlInstanceIDs = new ();
-		private static readonly Dictionary<(string, string), (Material, Mesh)> s_pendingObject = new ();
-		private static readonly Dictionary<int, (string, Material, List<Mesh>)> s_pendingObjectByMaterial = new ();
+		private static readonly Dictionary<(string, int, int), (Material[] materials, Mesh mesh, bool isCollider)> s_pendingObject = new ();
+		private static readonly Dictionary<(string path, int materialGroupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider)> meshes)> s_pendingObjectByMaterial = new ();
 
 		private static Material s_blitMat;
 		private static RenderTexture s_cachedRenderTexture;
@@ -37,7 +36,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public static void ClearCache()
 		{
 			s_processedTexturePaths.Clear();
-			s_processedMtlInstanceIDs.Clear();
+		}
+
+		public static Texture2D EnsureTextureIsReadableAndUncompressed(Texture2D texture)
+		{
+			return SetTextureReadable(texture);
 		}
 
 		private static Texture2D SetTextureReadable(Texture2D texture)
@@ -45,7 +48,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (texture == null) return null;
 
 			string path = AssetDatabase.GetAssetPath(texture);
-			if (string.IsNullOrEmpty(path)) return texture;
+			if (string.IsNullOrEmpty(path))
+			{
+				return EnsureTextureIsDecompressed(texture);
+			}
 
 			var importer = AssetImporter.GetAtPath(path) as TextureImporter;
 			if (importer != null && (!importer.isReadable ||
@@ -54,10 +60,87 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				importer.isReadable = true;
 				importer.textureCompression = TextureImporterCompression.Uncompressed;
 				importer.SaveAndReimport();
-				return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+				texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 			}
 
-			return texture;
+			return EnsureTextureIsDecompressed(texture);
+		}
+
+		private static Texture2D EnsureTextureIsDecompressed(Texture2D texture)
+		{
+			if (texture == null)
+			{
+				return null;
+			}
+
+			if (texture.isReadable && !IsCompressedFormat(texture.format))
+			{
+				return texture;
+			}
+
+			return DecompressTexture(texture);
+		}
+
+		private static bool IsCompressedFormat(TextureFormat format)
+		{
+			switch (format)
+			{
+				case TextureFormat.RGBA32:
+				case TextureFormat.ARGB32:
+				case TextureFormat.RGB24:
+				case TextureFormat.RGBAHalf:
+				case TextureFormat.RFloat:
+				case TextureFormat.RGFloat:
+				case TextureFormat.RGBAFloat:
+				case TextureFormat.YUY2:
+				case TextureFormat.RGBA4444:
+				case TextureFormat.BGRA32:
+					return false;
+				default:
+					return true;
+			}
+		}
+
+		private static Texture2D DecompressTexture(Texture2D compressedTexture)
+		{
+			if (compressedTexture == null)
+			{
+				return null;
+			}
+
+			string originalName = compressedTexture.name;
+
+			RenderTexture tempRT = RenderTexture.GetTemporary(
+				compressedTexture.width,
+				compressedTexture.height,
+				0,
+				RenderTextureFormat.Default,
+				RenderTextureReadWrite.Linear);
+
+			try
+			{
+				Graphics.Blit(compressedTexture, tempRT);
+
+				Texture2D uncompressedTexture = new Texture2D(
+					compressedTexture.width,
+					compressedTexture.height,
+					TextureFormat.RGBA32,
+					false);
+
+				RenderTexture.active = tempRT;
+				uncompressedTexture.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
+				uncompressedTexture.Apply(false, false);
+				RenderTexture.active = null;
+
+				uncompressedTexture.name = originalName;
+
+				return uncompressedTexture;
+			}
+			finally
+			{
+				RenderTexture.active = null;
+				RenderTexture.ReleaseTemporary(tempRT);
+			}
 		}
 
 		private static MaterialBlendMode DetectMaterialBlendMode(Material material)
@@ -75,7 +158,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			int renderQueue = material.renderQueue;
 			string renderType = material.GetTag("RenderType", false, "Opaque");
 
-			// Transparent queue is typically >= 3000, AlphaTest is 2450-2500
 			if (renderQueue >= 3000 || renderType == "Transparent" || renderType == "TransparentCutout")
 			{
 				if (renderType == "TransparentCutout" || renderQueue == 2450)
@@ -97,73 +179,74 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return MaterialBlendMode.Opaque;
 		}
 
-		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material materials)
+		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials, bool isCollider = false)
 		{
-			if (materials == null)
+			if (mesh == null)
 			{
-				s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), "empty")] = (null, mesh);
+				return;
 			}
-			else
-			{
-				s_pendingObject[(Path.Combine(path, mesh.name + ".obj"), materials.name)] = (materials, mesh);
-			}
+
+			var meshId = mesh.GetInstanceID();
+			var materialGroupId = MeshExportUtility.GetMaterialGroupId(materials);
+
+			s_pendingObject[(path, meshId, materialGroupId)] = (materials, mesh, isCollider);
 		}
 
 		public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
 		{
 			foreach (var valueTuple in s_pendingObject)
 			{
-				var idMaterial = -1;
+				var path = valueTuple.Key.Item1;
+				var meshId = valueTuple.Key.Item2;
+				var isCollider = valueTuple.Value.isCollider;
+				var groupId = isCollider ? meshId : MeshExportUtility.GetMaterialGroupId(valueTuple.Value.materials);
+				var key = (path, groupId, isCollider);
 
-				if (valueTuple.Value.Item1 != null)
+				if (!s_pendingObjectByMaterial.TryGetValue(key, out var value))
 				{
-					idMaterial = valueTuple.Value.Item1.GetInstanceID();
+					s_pendingObjectByMaterial.Add(key, (path, valueTuple.Value.materials, new List<(Mesh mesh, Material[] materials, bool isCollider)>()));
+					value = s_pendingObjectByMaterial[key];
 				}
 
-				if (!s_pendingObjectByMaterial.TryGetValue(idMaterial, out var value))
-				{
-					s_pendingObjectByMaterial.Add(idMaterial,
-						(Path.GetDirectoryName(valueTuple.Key.Item1), valueTuple.Value.Item1, new List<Mesh>()));
-				}
-
-				s_pendingObjectByMaterial[idMaterial].Item3.Add(valueTuple.Value.Item2);
+				value.meshes.Add((valueTuple.Value.mesh, valueTuple.Value.materials, valueTuple.Value.isCollider));
 			}
 
-			int processedCount = 0; // Initialize counter for callback
-			foreach (KeyValuePair<int, (string, Material, List<Mesh>)> pen in s_pendingObjectByMaterial)
+			int processedCount = 0;
+			foreach (KeyValuePair<(string path, int groupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider)> meshes)> pen in s_pendingObjectByMaterial)
 			{
-				Material currentMaterial = pen.Value.Item2;
-				List<Mesh> meshesToProcess = pen.Value.Item3;
+				Material[] currentMaterials = pen.Value.materials;
+				List<(Mesh mesh, Material[] materials, bool isCollider)> meshesToProcess = pen.Value.meshes;
 
-				string name = "empty";
-				if (currentMaterial != null)
+				string name = pen.Key.isCollider
+					? "collider_" + pen.Key.groupId
+					: (pen.Key.groupId == -1 ? "empty" : pen.Key.groupId.ToString());
+
+				string mtlPath = Path.Combine(pen.Value.path, name + ".mtl");
+
+				if (pen.Key.groupId != -1 && !pen.Key.isCollider)
 				{
-					name = currentMaterial.GetHashCode().ToString();
-				}
-
-				string mtlPath = Path.Combine(pen.Value.Item1, name + ".mtl");
-
-				if (pen.Key != -1)
-				{
-					BuildAllMaterial(collectionProvider, pen.Value.Item1, mtlPath, currentMaterial); // Pass currentMaterial
+					BuildAllMaterial(collectionProvider, pen.Value.path, mtlPath, currentMaterials); // Pass currentMaterials
 				}
 
 				EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({processedCount + 1}/{s_pendingObjectByMaterial.Count})", (float)processedCount / s_pendingObjectByMaterial.Count);
 
-				string pathToObj = Path.Combine(pen.Value.Item1, name + ".obj");
+				string pathToObj = Path.Combine(pen.Value.path, name + ".obj");
 
 				if (!File.Exists(pathToObj))
 				{
-					string objString = BuildFullObj(meshesToProcess, name); // Pass objStats and currentMaterial
+					string objString = BuildFullObj(meshesToProcess, name);
 					Directory.CreateDirectory(Path.GetDirectoryName(pathToObj));
 					File.WriteAllText(pathToObj, objString, Encoding.UTF8);
 				}
 
 				StringBuilder str = new StringBuilder();
-				str.Append("mat - " + name + "|" + currentMaterial?.name + "/" + "obj -");
+				string materialNames = currentMaterials != null
+					? string.Join(",", currentMaterials.Where(m => m != null).Select(m => m.name))
+					: string.Empty;
+				str.Append("mat - " + name + "|" + materialNames + "/" + "obj -");
 				for (int i = 0; i < meshesToProcess.Count; i++)
 				{
-					str.Append(meshesToProcess[i].name + $"{meshesToProcess[i].GetHashCode()} | ");
+					str.Append(meshesToProcess[i].mesh.name + $"{meshesToProcess[i].mesh.GetHashCode()} | ");
 				}
 
 				Debug.Log(str.ToString());
@@ -174,7 +257,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			s_pendingObject.Clear();
 			s_pendingObjectByMaterial.Clear();
 			s_processedTexturePaths.Clear();
-			s_processedMtlInstanceIDs.Clear();
 		}
 
 		private static void BuildAllMaterial(IModCollectionProvider collectionProvider, string path, string mtlPath,
@@ -196,20 +278,20 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		private static string BuildFullObj(List<Mesh> mesh, string material)
+		private static string BuildFullObj(List<(Mesh mesh, Material[] materials, bool isCollider)> mesh, string groupName)
 		{
 			ObjOffset offset = new ObjOffset();
 
 			var sb = new StringBuilder();
-			sb.AppendFormat("mtllib {0}.mtl", material).AppendLine();
+			sb.AppendFormat("mtllib {0}.mtl", groupName).AppendLine();
 
 			for (int i = 0; i < mesh.Count; i++)
 			{
-				var currentMesh = mesh[i];
+				var currentMesh = mesh[i].mesh;
 				var currentUvs = currentMesh.uv;
 				var currentNormals = currentMesh.normals;
 
-				BuildAppendableObjData(sb, offset, currentMesh, material);
+				BuildAppendableObjData(sb, offset, currentMesh, mesh[i].materials, mesh[i].isCollider);
 				offset.vertices += currentMesh.vertexCount;
 				offset.uvs += currentUvs?.Length ?? 0;
 				offset.normals += currentNormals?.Length ?? 0;
@@ -218,9 +300,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return sb.ToString();
 		}
 
-		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, string material)
+		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, Material[] materials, bool isCollider = false)
 		{
-			sb.AppendFormat("o {0}", mesh.GetHashCode()).AppendLine();
+			var objectId = isCollider ? MeshExportUtility.GetColliderObjectId(mesh) : MeshExportUtility.GetMeshObjectId(mesh);
+			sb.AppendFormat("o {0}", objectId).AppendLine();
 
 			foreach (var v in mesh.vertices)
 			{
@@ -239,7 +322,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			for (var u = 0; u < mesh.subMeshCount; u++)
 			{
-				sb.AppendFormat("usemtl {0}", material).AppendLine();
+				string materialName = "empty";
+				if (materials != null && materials.Length > 0)
+				{
+					var mat = materials[Mathf.Min(u, materials.Length - 1)];
+					if (mat != null)
+					{
+						materialName = mat.GetHashCode().ToString();
+					}
+				}
+
+				sb.AppendFormat("usemtl {0}", materialName).AppendLine();
 
 				var tr = mesh.GetTriangles(u);
 				for (var k = 0; k < tr.Length; k += 3)
@@ -262,9 +355,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static string BuildMtl(IModCollectionProvider collectionProvider, Material[] mats, string dir)
 		{
 			var mtl = new StringBuilder();
+			var writtenInThisFile = new HashSet<int>();
+
 			foreach (Material m in mats)
 			{
 				if (m == null)
+				{
+					continue;
+				}
+
+				if (!writtenInThisFile.Add(m.GetInstanceID()))
 				{
 					continue;
 				}
@@ -335,6 +435,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (baseMap != null)
 			{
+				baseMap = SetTextureReadable(baseMap);
+
 				var hash = baseMap.GetHashCode();
 				baseMap.name = hash + "_base";
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
@@ -349,8 +451,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (!s_processedTexturePaths.Contains(pathModRes))
 				{
-					baseMap = SetTextureReadable(baseMap);
 					baseMap.name = hash + "_base";
+					baseMap = SetTextureReadable(baseMap);
 
 					collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
 					s_processedTexturePaths.Add(pathModRes);
@@ -363,6 +465,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					var alpha = Blit(baseMap, 1);
 					alpha.name = hash + "_dissolve";
+					alpha = SetTextureReadable(alpha);
 
 					collectionProvider.PackingModResource(collectionProvider, alpha, dir, false);
 					s_processedTexturePaths.Add(pathModRes);
@@ -389,6 +492,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (normalMap != null)
 			{
+				normalMap = SetTextureReadable(normalMap);
 				normalMap.name = normalMap.GetHashCode() + "_normal";
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, normalMap, dir, false);
 
@@ -422,6 +526,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (maskMap != null)
 			{
 				var roughnessTex = Blit(maskMap, 1);
+				roughnessTex = SetTextureReadable(roughnessTex);
 				roughnessTex.name = maskMap.GetHashCode() + "_roughness";
 				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
 
@@ -436,6 +541,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 
 				var metallicTex = Blit(maskMap, 0);
+				metallicTex = SetTextureReadable(metallicTex);
 				metallicTex.name = maskMap.GetHashCode() + "_metallic";
 				var metallicPath = collectionProvider.GetModResourcePath(collectionProvider, metallicTex, dir, false);
 
@@ -475,7 +581,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			Graphics.Blit(readableTexture, s_cachedRenderTexture, s_blitMat, pass);
 
 			var resultTexture = new Texture2D(readableTexture.width, readableTexture.height, TextureFormat.RGBA32, false);
+			resultTexture.hideFlags = HideFlags.HideAndDontSave;
+
+			RenderTexture.active = s_cachedRenderTexture;
 			resultTexture.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
+			RenderTexture.active = null;
 			resultTexture.Apply(false, false);
 
 			return resultTexture;

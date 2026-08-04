@@ -11,7 +11,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public int lodLevel;
 		public Mesh mesh;
 		public Mesh meshCollider;
-		public Material material;
+		public Material[] materials;
 
 		public Vector3 localPosition;
 		public Quaternion localRotation;
@@ -51,9 +51,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					instance.mesh = AssetDatabase.GetAssetPath(lod.mesh);
 				}
 
-				if (instance.material == string.Empty && lod.material != null)
+				if (instance.material == string.Empty && lod.materials != null)
 				{
-					instance.material = AssetDatabase.GetAssetPath(lod.material);
+					var firstMaterial = lod.materials.FirstOrDefault(m => m != null);
+					if (firstMaterial != null)
+					{
+						instance.material = AssetDatabase.GetAssetPath(firstMaterial);
+					}
 				}
 
 				if (instance.collider == string.Empty && lod.meshCollider != null)
@@ -74,7 +78,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public bool IsNull()
 		{
-			return lods == null || !lods.Any(lod => lod.mesh != null || lod.material != null || lod.meshCollider != null);
+			return lods == null || !lods.Any(lod => lod.mesh != null || (lod.materials != null && lod.materials.Any(m => m != null)) || lod.meshCollider != null);
 		}
 	}
 }

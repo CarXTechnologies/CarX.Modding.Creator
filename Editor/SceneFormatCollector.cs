@@ -99,6 +99,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					}
 				}
 
+				if (!consumedByLodGroup.Contains(lodGroup.gameObject.GetInstanceID()))
+				{
+					var ownInfo = CollectLodInfo(lodGroup.gameObject, lodGroup.transform);
+					if (ownInfo.mesh != null || (ownInfo.materials != null && ownInfo.materials.Any(m => m != null)) || ownInfo.meshCollider != null)
+					{
+						prefab.lods.Add(ownInfo);
+					}
+				}
+
 				if (prefab.lods.Count == 0)
 				{
 					continue;
@@ -127,7 +136,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 
 				var info = CollectLodInfo(o);
-				if (info.mesh == null && info.material == null && info.meshCollider == null)
+				if (info.mesh == null && (info.materials == null || info.materials.All(m => m == null)) && info.meshCollider == null)
 				{
 					return;
 				}
@@ -204,15 +213,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			var meshRenderer = o.GetComponent<MeshRenderer>();
 			if (meshRenderer != null)
 			{
-				var sharedMaterials = meshRenderer.sharedMaterials;
-				foreach (var sharedMaterial in sharedMaterials)
-				{
-					if (sharedMaterial != null)
-					{
-						singleLODInfo.material = sharedMaterial;
-						break;
-					}
-				}
+				singleLODInfo.materials = meshRenderer.sharedMaterials;
 			}
 
 			var meshCollider = o.GetComponent<MeshCollider>();
@@ -265,17 +266,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (lodInfo.mesh != null)
 			{
-				prefabInstance.mesh = Path.Combine(provider.GetSubCatalog(), lodInfo.mesh.GetHashCode().ToString());
+				prefabInstance.mesh = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetMeshObjectId(lodInfo.mesh).ToString());
 			}
 
-			if (lodInfo.material != null)
+			if (lodInfo.materials != null && lodInfo.materials.Length > 0)
 			{
-				prefabInstance.material = Path.Combine(provider.GetSubCatalog(), lodInfo.material.GetHashCode().ToString());
+				var materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.materials);
+				if (materialGroupId != -1)
+				{
+					prefabInstance.material = Path.Combine(provider.GetSubCatalog(), materialGroupId.ToString());
+				}
 			}
 
 			if (lodInfo.meshCollider != null)
 			{
-				prefabInstance.collider = Path.Combine(provider.GetSubCatalog(), lodInfo.meshCollider.GetHashCode().ToString());
+				prefabInstance.collider = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetColliderObjectId(lodInfo.meshCollider).ToString());
 			}
 
 			return prefabInstance;
@@ -327,7 +332,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			var lods = new List<LodInstance>();
 			var markers = new List<MarkerInstance>();
 
-			// Maps GameObject instance id -> index of its StaticInstance entry (if it produced one).
 			var objectToStaticIndex = new Dictionary<int, int>();
 
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
