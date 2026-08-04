@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public static class ModingVersion
+	public static class ModdingVersion
 	{
 		private const string Uploader = "3.0";
 		private const string FormatVersion = "1.0";

@@ -8,14 +8,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	{
 		private static readonly IModFileProvider DefaultFileProvider = new DefaultFileProvider(Path.Combine(Application.dataPath, "Mods"));
 
-		public EditorCollectionProvider() : base(ModingVersion.GetDefaultFullVersionFormat())
+		public EditorCollectionProvider() : base(ModdingVersion.GetDefaultFullVersionFormat())
 		{
 
 		}
 
 		protected override VersionProvider[] providers { get; set; } =
 		{
-			new(ModingVersion.GetFullVersionFormat(),
+			new(ModdingVersion.GetFullVersionFormat(),
 				new ModProvider(typeof(ModMeta), new MetaProvider<ModMeta>(DefaultFileProvider, string.Empty)),
 				new ModProvider(typeof(StaticHierarchyMeta), new HierarchiesMetaProvider<StaticHierarchyMeta>(DefaultFileProvider)),
 				new ModProvider(typeof(PrefabHierarchyMeta), new PrefabsMetaProvider<PrefabHierarchyMeta>(DefaultFileProvider)),
