@@ -426,8 +426,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					staticInstanceId = staticInstances.Count - 1;
 					objectToStaticIndex[instanceId] = staticInstanceId;
 				}
-
-				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam));
+				var markerDataJson = JsonUtility.ToJson(markerData.MarkerData);
+				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam, markerDataJson));
 			});
 
 			lodInstances = lods;

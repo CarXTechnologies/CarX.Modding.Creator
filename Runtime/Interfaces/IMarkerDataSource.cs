@@ -4,6 +4,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		string MarkerHead { get; }
 		string MarkerParam { get; }
+		object MarkerData { get; }
 	}
 }
 

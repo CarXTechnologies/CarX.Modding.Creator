@@ -8,12 +8,14 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public int staticInstanceId;
 		public string head;
 		public string param;
+		public string data;
 
-		public MarkerInstance(int staticInstanceId, string head, string param)
+		public MarkerInstance(int staticInstanceId, string head, string param, string data)
 		{
 			this.staticInstanceId = staticInstanceId;
 			this.head = head;
 			this.param = param;
+			this.data = data;
 		}
 	}
 }
