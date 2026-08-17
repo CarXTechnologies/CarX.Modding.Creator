@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	[Serializable]
 	public struct PhysicMaterialProperties

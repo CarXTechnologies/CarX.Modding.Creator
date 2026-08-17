@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public enum SurfaceType
 	{
