@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
@@ -426,7 +427,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					staticInstanceId = staticInstances.Count - 1;
 					objectToStaticIndex[instanceId] = staticInstanceId;
 				}
-				var markerDataJson = JsonUtility.ToJson(markerData.MarkerData);
+				var markerValue = markerData.MarkerData;
+				if (markerData.MarkerHead == "SpawnPoint")
+				{
+					var spawnPointProperties = markerValue is SpawnPointProperties existing ? existing : new SpawnPointProperties();
+					spawnPointProperties.name = o.name;
+					markerValue = spawnPointProperties;
+				}
+				var markerDataJson = JsonUtility.ToJson(markerValue);
 				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam, markerDataJson));
 			});
 
@@ -439,6 +447,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			var lossyScale = transform.lossyScale;
 			return Mathf.Max(Mathf.Abs(lossyScale.x), Mathf.Abs(lossyScale.y), Mathf.Abs(lossyScale.z));
+		}
+
+		[Serializable]
+		private struct SpawnPointProperties
+		{
+			public string name;
 		}
 
 		private static LToWorld CombineLocalToWorld(LToWorld parent, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
