@@ -1,0 +1,22 @@
+{
+    "name": "CarX.Modding.Creator.Publishing.ModIo",
+    "rootNamespace": "Plugins.CarX.Modding.Creator.Publishing.ModIo",
+    "references": [
+        "CarX.Modding.Creator",
+        "Modio",
+        "Modio.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CARX_MODDING_MODIO"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

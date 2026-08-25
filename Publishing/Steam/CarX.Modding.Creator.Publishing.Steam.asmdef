@@ -1,0 +1,20 @@
+{
+    "name": "CarX.Modding.Creator.Publishing.Steam",
+    "rootNamespace": "Plugins.CarX.Modding.Creator.Publishing.Steam",
+    "references": [
+        "CarX.Modding.Creator"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CARX_MODDING_STEAM"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
