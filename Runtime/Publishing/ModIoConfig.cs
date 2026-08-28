@@ -58,6 +58,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 			[Tooltip("Public page of the game on mod.io, e.g. https://mod.io/g/your-game. Used for item links.")]
 			public string profileUrl;
+
+			[Tooltip("Uncheck to take this game out of the picker without deleting the entry and its credentials.")]
+			public bool available = true;
 		}
 
 		[Header("Games")]
@@ -103,31 +106,29 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		[SerializeField] [HideInInspector] private string m_apiKey;
 		[SerializeField] [HideInInspector] private string m_serverUrl;
 
-		public IReadOnlyList<GameEntry> Games
+		public IReadOnlyList<GameEntry> Games => AvailableGames();
+
+		private List<GameEntry> AvailableGames()
 		{
-			get
-			{
-				MigrateLegacyGame();
-				return m_games;
-			}
+			MigrateLegacyGame();
+			return m_games.FindAll(game => game != null && game.available);
 		}
 
-		public int SelectedGameIndex
-		{
-			get
-			{
-				MigrateLegacyGame();
-				return m_games.Count == 0 ? -1 : Mathf.Clamp(m_selectedGame, 0, m_games.Count - 1);
-			}
-		}
+		public int SelectedGameIndex => ClampSelection(AvailableGames().Count);
 
 		public GameEntry SelectedGame
 		{
 			get
 			{
-				var index = SelectedGameIndex;
-				return index < 0 ? null : m_games[index];
+				var games = AvailableGames();
+				var index = ClampSelection(games.Count);
+				return index < 0 ? null : games[index];
 			}
+		}
+
+		private int ClampSelection(int count)
+		{
+			return count == 0 ? -1 : Mathf.Clamp(m_selectedGame, 0, count - 1);
 		}
 
 		public long GameId => SelectedGame?.gameId ?? 0;
@@ -174,7 +175,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		public bool TrySelectGame(int index)
 		{
-			if (index < 0 || index >= m_games.Count || index == m_selectedGame)
+			if (index < 0 || index >= AvailableGames().Count || index == m_selectedGame)
 			{
 				return false;
 			}
@@ -221,9 +222,12 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		{
 			MigrateLegacyGame();
 
-			if (m_games.Count == 0)
+			if (AvailableGames().Count == 0)
 			{
-				reason = $"No games listed on '{name}'. Add one with its mod.io game id and api key.";
+				reason = m_games.Count == 0
+					? $"No games listed on '{name}'. Add one with its mod.io game id and api key."
+					: $"Every game on '{name}' is marked unavailable. Tick one to publish to it.";
+
 				return false;
 			}
 
