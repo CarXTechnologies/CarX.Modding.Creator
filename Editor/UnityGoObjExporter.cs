@@ -417,20 +417,37 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return mtl.ToString();
 		}
 
+		private static Texture2D GetTexture2D(Material m, string property)
+		{
+			var texture = m.GetTexture(property);
+			if (texture == null)
+			{
+				return null;
+			}
+
+			var texture2D = texture as Texture2D;
+			if (texture2D == null)
+			{
+				Debug.LogWarning($"[ObjExporter] Material '{m.name}' property '{property}' holds a {texture.GetType().Name}, only Texture2D can be exported. Skipped.", m);
+			}
+
+			return texture2D;
+		}
+
 		private static void ProcessBaseTexture(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl, MaterialBlendMode blendMode)
 		{
 			Texture2D baseMap = null;
 			if (m.HasProperty("_BaseColorMap"))
 			{
-				baseMap = (Texture2D)m.GetTexture("_BaseColorMap");
+				baseMap = GetTexture2D(m, "_BaseColorMap");
 			}
 			if (baseMap == null && m.HasProperty("_BaseColorMap0"))
 			{
-				baseMap = (Texture2D)m.GetTexture("_BaseColorMap0");
+				baseMap = GetTexture2D(m, "_BaseColorMap0");
 			}
 			if (baseMap == null && m.HasProperty("_MainTex"))
 			{
-				baseMap = (Texture2D)m.GetTexture("_MainTex");
+				baseMap = GetTexture2D(m, "_MainTex");
 			}
 
 			if (baseMap != null)
@@ -480,13 +497,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (m.HasProperty("_NormalMap0"))
 			{
-				normalMap = (Texture2D)m.GetTexture("_NormalMap0");
+				normalMap = GetTexture2D(m, "_NormalMap0");
 				normalScale = m.GetFloat("_NormalScale0");
 			}
 
 			if (normalMap == null && m.HasProperty("_NormalMap"))
 			{
-				normalMap = (Texture2D)m.GetTexture("_NormalMap");
+				normalMap = GetTexture2D(m, "_NormalMap");
 				normalScale = m.GetFloat("_NormalScale");
 			}
 
@@ -516,11 +533,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			Texture2D maskMap = null;
 			if (m.HasProperty("_MaskMap0"))
 			{
-				maskMap = (Texture2D)m.GetTexture("_MaskMap0");
+				maskMap = GetTexture2D(m, "_MaskMap0");
 			}
 			if (maskMap == null && m.HasProperty("_MaskMap"))
 			{
-				maskMap = (Texture2D)m.GetTexture("_MaskMap");
+				maskMap = GetTexture2D(m, "_MaskMap");
 			}
 
 			if (maskMap != null)
