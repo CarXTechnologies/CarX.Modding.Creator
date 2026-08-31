@@ -43,6 +43,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return SetTextureReadable(texture);
 		}
 
+		private static string GetStableObjectId(UnityEngine.Object obj)
+		{
+			if (obj == null)
+			{
+				return "0";
+			}
+
+			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out string guid, out long localId))
+			{
+				return guid + "_" + localId.ToString(CultureInfo.InvariantCulture);
+			}
+
+			return obj.GetInstanceID().ToString(CultureInfo.InvariantCulture);
+		}
+
 		private static Texture2D SetTextureReadable(Texture2D texture)
 		{
 			if (texture == null) return null;
@@ -328,7 +343,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					var mat = materials[Mathf.Min(u, materials.Length - 1)];
 					if (mat != null)
 					{
-						materialName = mat.GetHashCode().ToString();
+						materialName = GetStableObjectId(mat);
 					}
 				}
 
@@ -369,7 +384,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					continue;
 				}
 
-				mtl.AppendFormat("newmtl {0}", m.GetHashCode()).AppendLine();
+				mtl.AppendFormat("newmtl {0}", GetStableObjectId(m)).AppendLine();
 
 				MaterialBlendMode blendMode = DetectMaterialBlendMode(m);
 				int illuminationModel = blendMode switch
@@ -452,9 +467,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (baseMap != null)
 			{
+				string hash = GetStableObjectId(baseMap);
 				baseMap = SetTextureReadable(baseMap);
-
-				var hash = baseMap.GetHashCode();
 				baseMap.name = hash + "_base";
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
 
@@ -509,8 +523,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (normalMap != null)
 			{
+				string stableId = GetStableObjectId(normalMap);
 				normalMap = SetTextureReadable(normalMap);
-				normalMap.name = normalMap.GetHashCode() + "_normal";
+				normalMap.name = stableId + "_normal";
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, normalMap, dir, false);
 
 				if (s_processedTexturePaths.Contains(pathModRes))
@@ -519,8 +534,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 				else
 				{
-					normalMap = SetTextureReadable(normalMap);
-					normalMap.name = normalMap.GetHashCode() + "_normal";
 					mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, normalMap, dir, false))}").AppendLine();
 					s_processedTexturePaths.Add(pathModRes);
 				}
@@ -542,9 +555,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (maskMap != null)
 			{
+				string stableId = GetStableObjectId(maskMap);
+
 				var roughnessTex = Blit(maskMap, 1);
 				roughnessTex = SetTextureReadable(roughnessTex);
-				roughnessTex.name = maskMap.GetHashCode() + "_roughness";
+				roughnessTex.name = stableId + "_roughness";
 				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
 
 				if (s_processedTexturePaths.Contains(roughnessPath))
@@ -559,7 +574,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				var metallicTex = Blit(maskMap, 0);
 				metallicTex = SetTextureReadable(metallicTex);
-				metallicTex.name = maskMap.GetHashCode() + "_metallic";
+				metallicTex.name = stableId + "_metallic";
 				var metallicPath = collectionProvider.GetModResourcePath(collectionProvider, metallicTex, dir, false);
 
 				if (s_processedTexturePaths.Contains(metallicPath))

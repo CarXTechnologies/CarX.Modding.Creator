@@ -206,14 +206,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			var singleLODInfo = new LODInfo();
 			var meshFilter = o.GetComponent<MeshFilter>();
-			if (meshFilter != null)
+			var meshRenderer = o.GetComponent<MeshRenderer>();
+
+			if (meshFilter != null && meshRenderer != null)
 			{
 				singleLODInfo.mesh = meshFilter.sharedMesh;
-			}
-
-			var meshRenderer = o.GetComponent<MeshRenderer>();
-			if (meshRenderer != null)
-			{
 				singleLODInfo.materials = meshRenderer.sharedMaterials;
 			}
 
