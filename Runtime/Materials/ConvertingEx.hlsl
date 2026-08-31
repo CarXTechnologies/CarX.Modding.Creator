@@ -40,3 +40,13 @@ fixed4 CopyFourthInvertedChannel(v2f i) : SV_Target
 	fixed4 col = fixed4(1.0 - tex2D(_MainTex, i.uv).a, 1.0 - tex2D(_MainTex, i.uv).a, 1.0 - tex2D(_MainTex, i.uv).a, 1.0);
 	return col;
 }
+
+// r*a handles both plain RGB(A) normals (a=1) and DXT5nm-swizzled ones (r=1, x in a); z is always rebuilt
+fixed4 UnpackNormalMap(v2f i) : SV_Target
+{
+	fixed4 col = tex2D(_MainTex, i.uv);
+	float3 n;
+	n.xy = float2(col.r * col.a, col.g) * 2.0 - 1.0;
+	n.z = sqrt(saturate(1.0 - dot(n.xy, n.xy)));
+	return fixed4(n * 0.5 + 0.5, 1.0);
+}

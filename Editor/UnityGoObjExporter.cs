@@ -427,9 +427,29 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				ProcessBaseTexture(collectionProvider, m, dir, mtl, blendMode);
 				ProcessNormalMap(collectionProvider, m, dir, mtl);
 				ProcessMaskMap(collectionProvider, m, dir, mtl);
+				ProcessEmission(collectionProvider, m, dir, mtl);
 			}
 
 			return mtl.ToString();
+		}
+
+		private static string GetTilingOptions(Material m, string property)
+		{
+			if (string.IsNullOrEmpty(property) || !m.HasProperty(property))
+			{
+				return string.Empty;
+			}
+
+			var scale = m.GetTextureScale(property);
+			var offset = m.GetTextureOffset(property);
+
+			if (scale == Vector2.one && offset == Vector2.zero)
+			{
+				return string.Empty;
+			}
+
+			return string.Format(CultureInfo.InvariantCulture, "-s {0:F6} {1:F6} 1 -o {2:F6} {3:F6} 0 ",
+				scale.x, scale.y, offset.x, offset.y);
 		}
 
 		private static Texture2D GetTexture2D(Material m, string property)
@@ -452,32 +472,37 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static void ProcessBaseTexture(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl, MaterialBlendMode blendMode)
 		{
 			Texture2D baseMap = null;
+			string baseProperty = null;
 			if (m.HasProperty("_BaseColorMap"))
 			{
 				baseMap = GetTexture2D(m, "_BaseColorMap");
+				baseProperty = "_BaseColorMap";
 			}
 			if (baseMap == null && m.HasProperty("_BaseColorMap0"))
 			{
 				baseMap = GetTexture2D(m, "_BaseColorMap0");
+				baseProperty = "_BaseColorMap0";
 			}
 			if (baseMap == null && m.HasProperty("_MainTex"))
 			{
 				baseMap = GetTexture2D(m, "_MainTex");
+				baseProperty = "_MainTex";
 			}
 
 			if (baseMap != null)
 			{
 				string hash = GetStableObjectId(baseMap);
+				string tilingOptions = GetTilingOptions(m, baseProperty);
 				baseMap = SetTextureReadable(baseMap);
 				baseMap.name = hash + "_base";
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
 
-				mtl.AppendFormat("map_Kd {0}", Path.GetFileName(pathModRes)).AppendLine();
+				mtl.AppendFormat("map_Kd {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
 
 				if (blendMode != MaterialBlendMode.Opaque)
 				{
 					baseMap.name = hash + "_dissolve";
-					mtl.AppendFormat("map_d {0}", Path.GetFileName(collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false))).AppendLine();
+					mtl.AppendFormat("map_d {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false))).AppendLine();
 				}
 
 				if (!s_processedTexturePaths.Contains(pathModRes))
@@ -507,36 +532,39 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static void ProcessNormalMap(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
 		{
 			Texture2D normalMap = null;
+			string normalProperty = null;
 			float normalScale = 1f;
 
 			if (m.HasProperty("_NormalMap0"))
 			{
 				normalMap = GetTexture2D(m, "_NormalMap0");
+				normalProperty = "_NormalMap0";
 				normalScale = m.GetFloat("_NormalScale0");
 			}
 
 			if (normalMap == null && m.HasProperty("_NormalMap"))
 			{
 				normalMap = GetTexture2D(m, "_NormalMap");
+				normalProperty = "_NormalMap";
 				normalScale = m.GetFloat("_NormalScale");
 			}
 
 			if (normalMap != null)
 			{
 				string stableId = GetStableObjectId(normalMap);
-				normalMap = SetTextureReadable(normalMap);
-				normalMap.name = stableId + "_normal";
-				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, normalMap, dir, false);
+				string tilingOptions = GetTilingOptions(m, normalProperty);
 
-				if (s_processedTexturePaths.Contains(pathModRes))
+				var unpackedNormal = Blit(normalMap, 3);
+				unpackedNormal.name = stableId + "_normal";
+				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, unpackedNormal, dir, false);
+
+				if (!s_processedTexturePaths.Contains(pathModRes))
 				{
-					mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(pathModRes)}").AppendLine();
-				}
-				else
-				{
-					mtl.AppendFormat($"map_Bump -bm {normalScale} {Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, normalMap, dir, false))}").AppendLine();
+					collectionProvider.PackingModResource(collectionProvider, unpackedNormal, dir, false);
 					s_processedTexturePaths.Add(pathModRes);
 				}
+
+				mtl.AppendFormat(CultureInfo.InvariantCulture, "map_Bump -bm {0:F6} {1}{2}", normalScale, tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
 			}
 		}
 
@@ -544,31 +572,36 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			StringBuilder mtl)
 		{
 			Texture2D maskMap = null;
+			string maskProperty = null;
 			if (m.HasProperty("_MaskMap0"))
 			{
 				maskMap = GetTexture2D(m, "_MaskMap0");
+				maskProperty = "_MaskMap0";
 			}
 			if (maskMap == null && m.HasProperty("_MaskMap"))
 			{
 				maskMap = GetTexture2D(m, "_MaskMap");
+				maskProperty = "_MaskMap";
 			}
 
 			if (maskMap != null)
 			{
 				string stableId = GetStableObjectId(maskMap);
+				string tilingOptions = GetTilingOptions(m, maskProperty);
 
-				var roughnessTex = Blit(maskMap, 1);
+				// HDRP mask map alpha is smoothness, map_Pr expects roughness — use the inverted-alpha pass
+				var roughnessTex = Blit(maskMap, 2);
 				roughnessTex = SetTextureReadable(roughnessTex);
 				roughnessTex.name = stableId + "_roughness";
 				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
 
 				if (s_processedTexturePaths.Contains(roughnessPath))
 				{
-					mtl.AppendFormat("map_Pr {0}", Path.GetFileName(roughnessPath)).AppendLine();
+					mtl.AppendFormat("map_Pr {0}{1}", tilingOptions, Path.GetFileName(roughnessPath)).AppendLine();
 				}
 				else
 				{
-					mtl.AppendFormat("map_Pr {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, roughnessTex, dir, false))).AppendLine();
+					mtl.AppendFormat("map_Pr {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, roughnessTex, dir, false))).AppendLine();
 					s_processedTexturePaths.Add(roughnessPath);
 				}
 
@@ -579,13 +612,64 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (s_processedTexturePaths.Contains(metallicPath))
 				{
-					mtl.AppendFormat("map_Pm {0}", Path.GetFileName(metallicPath)).AppendLine();
+					mtl.AppendFormat("map_Pm {0}{1}", tilingOptions, Path.GetFileName(metallicPath)).AppendLine();
 				}
 				else
 				{
-					mtl.AppendFormat("map_Pm {0}", Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, metallicTex, dir, false))).AppendLine();
+					mtl.AppendFormat("map_Pm {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, metallicTex, dir, false))).AppendLine();
 					s_processedTexturePaths.Add(metallicPath);
 				}
+			}
+		}
+
+		private static void ProcessEmission(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
+		{
+			Color emissiveColor = Color.black;
+			if (m.HasProperty("_EmissiveColor"))
+			{
+				emissiveColor = m.GetColor("_EmissiveColor");
+			}
+			else if (m.HasProperty("_EmissionColor"))
+			{
+				emissiveColor = m.GetColor("_EmissionColor");
+			}
+
+			// HDRP multiplies the emissive map by _EmissiveColor, so a black color means no emission either way
+			if (emissiveColor.maxColorComponent <= 0f)
+			{
+				return;
+			}
+
+			mtl.AppendFormat(CultureInfo.InvariantCulture, "Ke {0:F6} {1:F6} {2:F6}", emissiveColor.r, emissiveColor.g, emissiveColor.b).AppendLine();
+
+			Texture2D emissiveMap = null;
+			string emissiveProperty = null;
+			if (m.HasProperty("_EmissiveColorMap"))
+			{
+				emissiveMap = GetTexture2D(m, "_EmissiveColorMap");
+				emissiveProperty = "_EmissiveColorMap";
+			}
+			if (emissiveMap == null && m.HasProperty("_EmissionMap"))
+			{
+				emissiveMap = GetTexture2D(m, "_EmissionMap");
+				emissiveProperty = "_EmissionMap";
+			}
+
+			if (emissiveMap != null)
+			{
+				string hash = GetStableObjectId(emissiveMap);
+				string tilingOptions = GetTilingOptions(m, emissiveProperty);
+				emissiveMap = SetTextureReadable(emissiveMap);
+				emissiveMap.name = hash + "_emissive";
+				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, emissiveMap, dir, false);
+
+				if (!s_processedTexturePaths.Contains(pathModRes))
+				{
+					collectionProvider.PackingModResource(collectionProvider, emissiveMap, dir, false);
+					s_processedTexturePaths.Add(pathModRes);
+				}
+
+				mtl.AppendFormat("map_Ke {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
 			}
 		}
 

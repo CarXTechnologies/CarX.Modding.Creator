@@ -36,6 +36,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		         "workshop calls and the Local Test folder.")]
 		[SerializeField] private List<GameEntry> m_games = new();
 
+		[SerializeField] [HideInInspector] private uint m_selectedAppId;
+
 		[SerializeField] [HideInInspector] private int m_selectedGame;
 
 		/// <summary>
@@ -66,24 +68,36 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		private List<GameEntry> AvailableGames()
 		{
 			MigrateLegacyAppId();
+			MigrateLegacySelection();
 			return m_games.FindAll(game => game != null && game.available);
 		}
 
-		public int SelectedGameIndex => ClampSelection(AvailableGames().Count);
+		public int SelectedGameIndex => ResolveSelection(AvailableGames());
 
 		public GameEntry SelectedGame
 		{
 			get
 			{
 				var games = AvailableGames();
-				var index = ClampSelection(games.Count);
+				var index = ResolveSelection(games);
 				return index < 0 ? null : games[index];
 			}
 		}
 
-		private int ClampSelection(int count)
+		private int ResolveSelection(List<GameEntry> games)
 		{
-			return count == 0 ? -1 : Mathf.Clamp(m_selectedGame, 0, count - 1);
+			if (games.Count == 0)
+			{
+				return -1;
+			}
+
+			if (m_selectedAppId == 0)
+			{
+				return 0;
+			}
+
+			var index = games.FindIndex(game => game.appId == m_selectedAppId);
+			return index < 0 ? 0 : index;
 		}
 
 		public uint AppId => SelectedGame?.appId ?? 0;
@@ -103,12 +117,14 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		public bool TrySelectGame(int index)
 		{
-			if (index < 0 || index >= AvailableGames().Count || index == m_selectedGame)
+			var games = AvailableGames();
+
+			if (index < 0 || index >= games.Count || index == ResolveSelection(games))
 			{
 				return false;
 			}
 
-			m_selectedGame = index;
+			m_selectedAppId = games[index].appId;
 			return true;
 		}
 
@@ -125,17 +141,34 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			if (!m_games.Exists(game => game != null && game.appId == m_appId))
 			{
 				m_games.Insert(0, new GameEntry { displayName = $"App {m_appId}", appId = m_appId });
-				m_selectedGame = 0;
+				m_selectedAppId = m_appId;
 			}
 
 			m_appId = 0;
+		}
+
+		private void MigrateLegacySelection()
+		{
+			if (m_selectedGame <= 0)
+			{
+				return;
+			}
+
+			if (m_selectedAppId == 0 && m_selectedGame < m_games.Count && m_games[m_selectedGame] != null)
+			{
+				m_selectedAppId = m_games[m_selectedGame].appId;
+			}
+
+			m_selectedGame = 0;
 		}
 
 		public override bool IsConfigured(out string reason)
 		{
 			MigrateLegacyAppId();
 
-			if (AvailableGames().Count == 0)
+			var games = AvailableGames();
+
+			if (games.Count == 0)
 			{
 				reason = m_games.Count == 0
 					? $"No games listed on '{name}'. Add one with its Steam app id."

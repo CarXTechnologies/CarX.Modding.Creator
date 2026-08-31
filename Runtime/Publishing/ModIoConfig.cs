@@ -68,6 +68,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		         "goes to.")]
 		[SerializeField] private List<GameEntry> m_games = new();
 
+		[SerializeField] [HideInInspector] private long m_selectedGameId;
 		[SerializeField] [HideInInspector] private int m_selectedGame;
 
 		[Header("Api")]
@@ -111,24 +112,36 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		private List<GameEntry> AvailableGames()
 		{
 			MigrateLegacyGame();
+			MigrateLegacySelection();
 			return m_games.FindAll(game => game != null && game.available);
 		}
 
-		public int SelectedGameIndex => ClampSelection(AvailableGames().Count);
+		public int SelectedGameIndex => ResolveSelection(AvailableGames());
 
 		public GameEntry SelectedGame
 		{
 			get
 			{
 				var games = AvailableGames();
-				var index = ClampSelection(games.Count);
+				var index = ResolveSelection(games);
 				return index < 0 ? null : games[index];
 			}
 		}
 
-		private int ClampSelection(int count)
+		private int ResolveSelection(List<GameEntry> games)
 		{
-			return count == 0 ? -1 : Mathf.Clamp(m_selectedGame, 0, count - 1);
+			if (games.Count == 0)
+			{
+				return -1;
+			}
+
+			if (m_selectedGameId == 0)
+			{
+				return 0;
+			}
+
+			var index = games.FindIndex(game => game.gameId == m_selectedGameId);
+			return index < 0 ? 0 : index;
 		}
 
 		public long GameId => SelectedGame?.gameId ?? 0;
@@ -175,12 +188,14 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		public bool TrySelectGame(int index)
 		{
-			if (index < 0 || index >= AvailableGames().Count || index == m_selectedGame)
+			var games = AvailableGames();
+
+			if (index < 0 || index >= games.Count || index == ResolveSelection(games))
 			{
 				return false;
 			}
 
-			m_selectedGame = index;
+			m_selectedGameId = games[index].gameId;
 			return true;
 		}
 
@@ -209,7 +224,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 					profileUrl = m_profileUrl,
 				});
 
-				m_selectedGame = 0;
+				m_selectedGameId = m_gameId;
 			}
 
 			m_gameId = 0;
@@ -218,11 +233,28 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			m_profileUrl = null;
 		}
 
+		private void MigrateLegacySelection()
+		{
+			if (m_selectedGame <= 0)
+			{
+				return;
+			}
+
+			if (m_selectedGameId == 0 && m_selectedGame < m_games.Count && m_games[m_selectedGame] != null)
+			{
+				m_selectedGameId = m_games[m_selectedGame].gameId;
+			}
+
+			m_selectedGame = 0;
+		}
+
 		public override bool IsConfigured(out string reason)
 		{
 			MigrateLegacyGame();
 
-			if (AvailableGames().Count == 0)
+			var games = AvailableGames();
+
+			if (games.Count == 0)
 			{
 				reason = m_games.Count == 0
 					? $"No games listed on '{name}'. Add one with its mod.io game id and api key."
