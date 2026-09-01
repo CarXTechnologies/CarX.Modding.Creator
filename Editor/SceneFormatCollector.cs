@@ -42,8 +42,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return modResults;
 		}
 
-		private const float CandelaToGameIntensity = 0.02f;
-		private const float MaxGameIntensity = 500f;
+		private const float CandelaToGameIntensity = 0.1f;
+		private const float MaxGameIntensity = 5000f;
 
 		private static float ConvertToGameIntensity(Light light)
 		{
