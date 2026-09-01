@@ -3,6 +3,8 @@
 sampler2D _MainTex;
 float4 _MainTex_ST;
 
+float _NormalScale;
+
 struct appdata
 {
 	float4 vertex : POSITION;
@@ -46,7 +48,7 @@ fixed4 UnpackNormalMap(v2f i) : SV_Target
 {
 	fixed4 col = tex2D(_MainTex, i.uv);
 	float3 n;
-	n.xy = float2(col.r * col.a, col.g) * 2.0 - 1.0;
+	n.xy = (float2(col.r * col.a, col.g) * 2.0 - 1.0) * _NormalScale;
 	n.z = sqrt(saturate(1.0 - dot(n.xy, n.xy)));
 	return fixed4(n * 0.5 + 0.5, 1.0);
 }

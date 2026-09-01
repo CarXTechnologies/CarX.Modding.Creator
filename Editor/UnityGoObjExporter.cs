@@ -569,8 +569,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				string stableId = GetStableObjectId(normalMap);
 				string tilingOptions = GetTilingOptions(m, normalProperty);
 
-				var unpackedNormal = Blit(normalMap, 3);
-				unpackedNormal.name = stableId + "_normal";
+				var unpackedNormal = Blit(normalMap, 3, normalScale);
+				string scaleSuffix = Mathf.Approximately(normalScale, 1f)
+					? string.Empty
+					: "_x" + normalScale.ToString("F2", CultureInfo.InvariantCulture).Replace('.', '_');
+				unpackedNormal.name = stableId + "_normal" + scaleSuffix;
 				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, unpackedNormal, dir, false);
 
 				if (!s_processedTexturePaths.Contains(pathModRes))
@@ -579,7 +582,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					s_processedTexturePaths.Add(pathModRes);
 				}
 
-				mtl.AppendFormat(CultureInfo.InvariantCulture, "map_Bump -bm {0:F6} {1}{2}", normalScale, tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
+				mtl.AppendFormat("map_Bump {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
 			}
 		}
 
@@ -635,6 +638,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					s_processedTexturePaths.Add(metallicPath);
 				}
 			}
+			else
+			{
+				float smoothness = 0.0f;
+				if (m.HasProperty("_Smoothness"))
+				{
+					smoothness = m.GetFloat("_Smoothness");
+				}
+				else if (m.HasProperty("_Glossiness"))
+				{
+					smoothness = m.GetFloat("_Glossiness");
+				}
+
+				float metallic = m.HasProperty("_Metallic") ? m.GetFloat("_Metallic") : 0.0f;
+
+				mtl.AppendFormat(CultureInfo.InvariantCulture, "Pr {0:F6}", 1.0f - smoothness).AppendLine();
+				mtl.AppendFormat(CultureInfo.InvariantCulture, "Pm {0:F6}", metallic).AppendLine();
+			}
 		}
 
 		private static void ProcessEmission(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
@@ -688,12 +708,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		private static Texture2D Blit(Texture2D texture, int pass)
+		private static Texture2D Blit(Texture2D texture, int pass, float normalScale = 1f)
 		{
 			if (s_blitMat == null)
 			{
 				s_blitMat = new Material(Shader.Find("Hidden/ConvertingEx"));
 			}
+
+			s_blitMat.SetFloat("_NormalScale", normalScale);
 
 			texture = SetTextureReadable(texture);
 			var readableTexture = texture;
