@@ -22,7 +22,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				new ModProvider(typeof(UnityPrefabInstance), new ObjMtlExporterProvider(DefaultFileProvider)),
 				new ModProvider(typeof(Texture2D), new TexturePngProvider(DefaultFileProvider)),
 				new ModProvider(typeof(LodHierarchyMeta), new LodInstanceProvider<LodHierarchyMeta>(DefaultFileProvider)),
-				new ModProvider(typeof(GameMarkerMeta), new GameMarkerInstanceProvider<GameMarkerMeta>(DefaultFileProvider))
+				new ModProvider(typeof(GameMarkerMeta), new GameMarkerInstanceProvider<GameMarkerMeta>(DefaultFileProvider)),
+				new ModProvider(typeof(LightHierarchyMeta), new LightsMetaProvider<LightHierarchyMeta>(DefaultFileProvider))
 			),
 		};
 	}
