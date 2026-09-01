@@ -402,6 +402,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				mtl.AppendFormat("illum {0}", illuminationModel).AppendLine();
 
 				bool isDoubleSided = (m.HasProperty("_DoubleSidedEnable") && m.GetFloat("_DoubleSidedEnable") > 0f)
+					|| (m.HasProperty("_CullMode") && m.GetFloat("_CullMode") == 0f)
 					|| (m.HasProperty("_Cull") && m.GetFloat("_Cull") == 0f);
 
 				if (isDoubleSided)
