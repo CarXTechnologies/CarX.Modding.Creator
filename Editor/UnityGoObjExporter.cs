@@ -13,8 +13,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class UnityGoObjExporter
 	{
 		private static readonly HashSet<string> s_processedTexturePaths = new ();
-		private static readonly Dictionary<(string, int, int), (Material[] materials, Mesh mesh, bool isCollider)> s_pendingObject = new ();
-		private static readonly Dictionary<(string path, int materialGroupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider)> meshes)> s_pendingObjectByMaterial = new ();
+		private static readonly Dictionary<(string, int, int), (Material[] materials, Mesh mesh, bool isCollider, bool castShadows)> s_pendingObject = new ();
+		private static readonly Dictionary<(string path, int materialGroupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshes)> s_pendingObjectByMaterial = new ();
 
 		private static Material s_blitMat;
 		private static RenderTexture s_cachedRenderTexture;
@@ -194,7 +194,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return MaterialBlendMode.Opaque;
 		}
 
-		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials, bool isCollider = false)
+		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials, bool isCollider = false, bool castShadows = true)
 		{
 			if (mesh == null)
 			{
@@ -204,7 +204,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			var meshId = mesh.GetInstanceID();
 			var materialGroupId = MeshExportUtility.GetMaterialGroupId(materials);
 
-			s_pendingObject[(path, meshId, materialGroupId)] = (materials, mesh, isCollider);
+			s_pendingObject[(path, meshId, materialGroupId)] = (materials, mesh, isCollider, castShadows);
 		}
 
 		public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
@@ -219,18 +219,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (!s_pendingObjectByMaterial.TryGetValue(key, out var value))
 				{
-					s_pendingObjectByMaterial.Add(key, (path, valueTuple.Value.materials, new List<(Mesh mesh, Material[] materials, bool isCollider)>()));
+					s_pendingObjectByMaterial.Add(key, (path, valueTuple.Value.materials, new List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)>()));
 					value = s_pendingObjectByMaterial[key];
 				}
 
-				value.meshes.Add((valueTuple.Value.mesh, valueTuple.Value.materials, valueTuple.Value.isCollider));
+				value.meshes.Add((valueTuple.Value.mesh, valueTuple.Value.materials, valueTuple.Value.isCollider, valueTuple.Value.castShadows));
 			}
 
 			int processedCount = 0;
-			foreach (KeyValuePair<(string path, int groupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider)> meshes)> pen in s_pendingObjectByMaterial)
+			foreach (KeyValuePair<(string path, int groupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshes)> pen in s_pendingObjectByMaterial)
 			{
 				Material[] currentMaterials = pen.Value.materials;
-				List<(Mesh mesh, Material[] materials, bool isCollider)> meshesToProcess = pen.Value.meshes;
+				List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshesToProcess = pen.Value.meshes;
 
 				string name = pen.Key.isCollider
 					? "collider_" + pen.Key.groupId
@@ -293,7 +293,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		private static string BuildFullObj(List<(Mesh mesh, Material[] materials, bool isCollider)> mesh, string groupName)
+		private static string BuildFullObj(List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> mesh, string groupName)
 		{
 			ObjOffset offset = new ObjOffset();
 
@@ -306,7 +306,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				var currentUvs = currentMesh.uv;
 				var currentNormals = currentMesh.normals;
 
-				BuildAppendableObjData(sb, offset, currentMesh, mesh[i].materials, mesh[i].isCollider);
+				BuildAppendableObjData(sb, offset, currentMesh, mesh[i].materials, mesh[i].isCollider, mesh[i].castShadows);
 				offset.vertices += currentMesh.vertexCount;
 				offset.uvs += currentUvs?.Length ?? 0;
 				offset.normals += currentNormals?.Length ?? 0;
@@ -315,10 +315,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return sb.ToString();
 		}
 
-		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, Material[] materials, bool isCollider = false)
+		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, Material[] materials, bool isCollider = false, bool castShadows = true)
 		{
 			var objectId = isCollider ? MeshExportUtility.GetColliderObjectId(mesh) : MeshExportUtility.GetMeshObjectId(mesh);
 			sb.AppendFormat("o {0}", objectId).AppendLine();
+
+			if (!castShadows && !isCollider)
+			{
+				sb.AppendLine("#shadow off");
+			}
 
 			foreach (var v in mesh.vertices)
 			{
@@ -395,6 +400,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				};
 
 				mtl.AppendFormat("illum {0}", illuminationModel).AppendLine();
+
+				bool isDoubleSided = (m.HasProperty("_DoubleSidedEnable") && m.GetFloat("_DoubleSidedEnable") > 0f)
+					|| (m.HasProperty("_Cull") && m.GetFloat("_Cull") == 0f);
+
+				if (isDoubleSided)
+				{
+					mtl.AppendLine("ds 1");
+				}
 
 				if (m.HasProperty("_BaseColor"))
 				{
@@ -629,7 +642,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				emissiveColor = m.GetColor("_EmissiveColor");
 			}
-			else if (m.HasProperty("_EmissionColor"))
+			else if (m.HasProperty("_EmissionColor") && m.IsKeywordEnabled("_EMISSION"))
 			{
 				emissiveColor = m.GetColor("_EmissionColor");
 			}

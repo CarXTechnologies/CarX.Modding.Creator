@@ -12,6 +12,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public Mesh mesh;
 		public Mesh meshCollider;
 		public Material[] materials;
+		public bool castShadows;
 
 		public Vector3 localPosition;
 		public Quaternion localRotation;

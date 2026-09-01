@@ -41,7 +41,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				if (lodInfo.mesh != null)
 				{
 					string meshPath = Path.Combine(baseCatalogPath, lodInfo.mesh.name);
-					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials);
+					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials, castShadows: lodInfo.castShadows);
 					m_exportedMeshes.Add(meshPath);
 				}
 

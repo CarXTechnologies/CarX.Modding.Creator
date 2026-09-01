@@ -212,6 +212,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				singleLODInfo.mesh = meshFilter.sharedMesh;
 				singleLODInfo.materials = meshRenderer.sharedMaterials;
+				singleLODInfo.castShadows = meshRenderer.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off;
 			}
 
 			var meshCollider = o.GetComponent<MeshCollider>();
