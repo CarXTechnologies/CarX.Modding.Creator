@@ -37,7 +37,46 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			modResults.Add(new PrefabHierarchyMeta(m_sceneName, version, prefabInstances));
 			modResults.Add(new LodHierarchyMeta(m_sceneName, version, lodInstances));
 			modResults.Add(new GameMarkerMeta(m_sceneName, version, markerInstances));
+			modResults.Add(new LightHierarchyMeta(m_sceneName, version, CollectLightInstances()));
 			return modResults;
+		}
+
+		private List<LightInstance> CollectLightInstances()
+		{
+			var lightInstances = new List<LightInstance>();
+
+			foreach (var light in m_root.GetComponentsInChildren<Light>(false))
+			{
+				if (!light.enabled || IsGarbage(light.transform))
+				{
+					continue;
+				}
+
+				if (light.type != LightType.Point && light.type != LightType.Spot)
+				{
+					Debug.LogWarning($"Light '{light.name}' of type {light.type} is not supported - only Point and Spot lights are exported", light);
+					continue;
+				}
+
+				var t = light.transform;
+
+				lightInstances.Add(new LightInstance
+				{
+					localToWorld = new LToWorld(t.position, t.rotation, t.lossyScale),
+					type = (int)light.type,
+					color = light.color,
+					intensity = light.intensity,
+					range = light.range,
+					spotAngle = light.spotAngle,
+					innerSpotAngle = light.innerSpotAngle,
+					shadows = (int)light.shadows,
+					shadowNearPlane = light.shadowNearPlane,
+					useColorTemperature = light.useColorTemperature,
+					colorTemperature = light.colorTemperature
+				});
+			}
+
+			return lightInstances;
 		}
 
 		private Dictionary<int, UnityPrefabInstance> CollectUnityPrefabInstances(string version)
