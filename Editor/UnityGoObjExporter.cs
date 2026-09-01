@@ -407,7 +407,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (isDoubleSided)
 				{
-					mtl.AppendLine("ds 1");
+					bool flipNormals = m.HasProperty("_DoubleSidedNormalMode") && m.GetFloat("_DoubleSidedNormalMode") < 1.5f;
+					mtl.AppendLine(flipNormals ? "ds 1" : "ds 2");
 				}
 
 				if (m.HasProperty("_BaseColor"))
