@@ -2,7 +2,8 @@
     "name": "CarX.Modding.Creator.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:db3100163910fbb47893097d9a08adc7"
+        "GUID:db3100163910fbb47893097d9a08adc7",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"

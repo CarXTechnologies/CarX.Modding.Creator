@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
@@ -41,6 +42,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return modResults;
 		}
 
+		private const float CandelaToGameIntensity = 0.02f;
+		private const float MaxGameIntensity = 500f;
+
+		private static float ConvertToGameIntensity(Light light)
+		{
+			float candela = LightUnitUtils.ConvertIntensity(light, light.intensity, light.lightUnit, LightUnit.Candela);
+
+			return Mathf.Min(candela * CandelaToGameIntensity, MaxGameIntensity);
+		}
+
 		private List<LightInstance> CollectLightInstances()
 		{
 			var lightInstances = new List<LightInstance>();
@@ -65,7 +76,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					localToWorld = new LToWorld(t.position, t.rotation, t.lossyScale),
 					type = (int)light.type,
 					color = light.color,
-					intensity = light.intensity,
+					intensity = ConvertToGameIntensity(light),
 					range = light.range,
 					spotAngle = light.spotAngle,
 					innerSpotAngle = light.innerSpotAngle,
