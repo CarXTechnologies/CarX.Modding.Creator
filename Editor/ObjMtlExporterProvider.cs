@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
@@ -10,8 +9,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private readonly UnityGoObjExporter m_exporter;
 
 		private IModCollectionProvider m_collectionProvider;
-
-		private static readonly HashSet<string> m_exportedMeshes = new HashSet<string>();
 
 		public ObjMtlExporterProvider(IModFileProvider fileProvider) : base(fileProvider)
 		{
@@ -40,16 +37,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (lodInfo.mesh != null)
 				{
-					string meshPath = Path.Combine(baseCatalogPath, lodInfo.mesh.name);
 					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials, castShadows: lodInfo.castShadows);
-					m_exportedMeshes.Add(meshPath);
 				}
 
 				if (lodInfo.meshCollider != null)
 				{
-					string colliderPath = Path.Combine(baseCatalogPath, lodInfo.meshCollider.name);
 					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
-					m_exportedMeshes.Add(colliderPath);
 				}
 			}
 		}
