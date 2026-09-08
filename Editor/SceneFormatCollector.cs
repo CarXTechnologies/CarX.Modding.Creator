@@ -266,9 +266,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			var meshCollider = o.GetComponent<MeshCollider>();
-			if (meshCollider != null)
+			if (meshCollider != null && meshCollider.sharedMesh != null)
 			{
 				singleLODInfo.meshCollider = meshCollider.sharedMesh;
+			}
+			else if (TryCreatePrimitiveColliderMesh(o, out var primitiveColliderMesh))
+			{
+				singleLODInfo.meshCollider = primitiveColliderMesh;
 			}
 
 			if (relativeTo != null)
@@ -291,6 +295,173 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			return singleLODInfo;
+		}
+
+		private static bool TryCreatePrimitiveColliderMesh(GameObject o, out Mesh mesh)
+		{
+			var vertices = new List<Vector3>();
+			var triangles = new List<int>();
+
+			foreach (var collider in o.GetComponents<Collider>())
+			{
+				if (collider == null || !collider.enabled || collider.isTrigger || collider is MeshCollider)
+				{
+					continue;
+				}
+
+				switch (collider)
+				{
+					case BoxCollider boxCollider:
+						AppendBoxCollider(vertices, triangles, boxCollider);
+						break;
+					case SphereCollider sphereCollider:
+						AppendSphereCollider(vertices, triangles, sphereCollider);
+						break;
+					case CapsuleCollider capsuleCollider:
+						AppendCapsuleCollider(vertices, triangles, capsuleCollider);
+						break;
+				}
+			}
+
+			if (vertices.Count == 0 || triangles.Count == 0)
+			{
+				mesh = null;
+				return false;
+			}
+
+			mesh = new Mesh
+			{
+				name = $"{o.name}_PrimitiveCollider",
+				hideFlags = HideFlags.HideAndDontSave
+			};
+			if (vertices.Count > ushort.MaxValue)
+			{
+				mesh.indexFormat = IndexFormat.UInt32;
+			}
+			mesh.SetVertices(vertices);
+			mesh.SetTriangles(triangles, 0);
+			mesh.SetUVs(0, Enumerable.Repeat(Vector2.zero, vertices.Count).ToList());
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+			return true;
+		}
+
+		private static void AppendBoxCollider(List<Vector3> vertices, List<int> triangles, BoxCollider collider)
+		{
+			var start = vertices.Count;
+			var center = collider.center;
+			var extents = collider.size * 0.5f;
+
+			vertices.Add(center + new Vector3(-extents.x, -extents.y, -extents.z));
+			vertices.Add(center + new Vector3(extents.x, -extents.y, -extents.z));
+			vertices.Add(center + new Vector3(extents.x, -extents.y, extents.z));
+			vertices.Add(center + new Vector3(-extents.x, -extents.y, extents.z));
+			vertices.Add(center + new Vector3(-extents.x, extents.y, -extents.z));
+			vertices.Add(center + new Vector3(extents.x, extents.y, -extents.z));
+			vertices.Add(center + new Vector3(extents.x, extents.y, extents.z));
+			vertices.Add(center + new Vector3(-extents.x, extents.y, extents.z));
+
+			AppendQuad(triangles, start + 0, start + 1, start + 2, start + 3);
+			AppendQuad(triangles, start + 7, start + 6, start + 5, start + 4);
+			AppendQuad(triangles, start + 4, start + 5, start + 1, start + 0);
+			AppendQuad(triangles, start + 5, start + 6, start + 2, start + 1);
+			AppendQuad(triangles, start + 6, start + 7, start + 3, start + 2);
+			AppendQuad(triangles, start + 7, start + 4, start + 0, start + 3);
+		}
+
+		private static void AppendSphereCollider(List<Vector3> vertices, List<int> triangles, SphereCollider collider)
+		{
+			AppendSphericalSection(vertices, triangles, collider.center, collider.radius, 8, 12, -Mathf.PI * 0.5f, Mathf.PI * 0.5f, Vector3.up, Vector3.right, Vector3.forward);
+		}
+
+		private static void AppendCapsuleCollider(List<Vector3> vertices, List<int> triangles, CapsuleCollider collider)
+		{
+			var axes = GetCapsuleAxes(collider.direction);
+			var height = Mathf.Max(collider.height, collider.radius * 2f);
+			var cylinderHalfHeight = Mathf.Max(0f, (height * 0.5f) - collider.radius);
+			var center = collider.center;
+
+			AppendSphericalSection(vertices, triangles, center + axes.height * cylinderHalfHeight, collider.radius, 4, 12, 0f, Mathf.PI * 0.5f, axes.height, axes.right, axes.forward);
+			AppendCylinder(vertices, triangles, center, collider.radius, cylinderHalfHeight, 12, axes.height, axes.right, axes.forward);
+			AppendSphericalSection(vertices, triangles, center - axes.height * cylinderHalfHeight, collider.radius, 4, 12, -Mathf.PI * 0.5f, 0f, axes.height, axes.right, axes.forward);
+		}
+
+		private static (Vector3 height, Vector3 right, Vector3 forward) GetCapsuleAxes(int direction)
+		{
+			return direction switch
+			{
+				0 => (Vector3.right, Vector3.up, Vector3.forward),
+				2 => (Vector3.forward, Vector3.right, Vector3.up),
+				_ => (Vector3.up, Vector3.right, Vector3.forward)
+			};
+		}
+
+		private static void AppendCylinder(List<Vector3> vertices, List<int> triangles, Vector3 center, float radius, float halfHeight, int segments, Vector3 heightAxis, Vector3 rightAxis, Vector3 forwardAxis)
+		{
+			if (halfHeight <= 0f)
+			{
+				return;
+			}
+
+			var start = vertices.Count;
+			for (int i = 0; i <= segments; i++)
+			{
+				var angle = (Mathf.PI * 2f * i) / segments;
+				var radial = rightAxis * Mathf.Cos(angle) + forwardAxis * Mathf.Sin(angle);
+				vertices.Add(center + heightAxis * halfHeight + radial * radius);
+				vertices.Add(center - heightAxis * halfHeight + radial * radius);
+			}
+
+			for (int i = 0; i < segments; i++)
+			{
+				var top0 = start + i * 2;
+				var bottom0 = top0 + 1;
+				var top1 = top0 + 2;
+				var bottom1 = top0 + 3;
+				AppendQuad(triangles, top0, top1, bottom1, bottom0);
+			}
+		}
+
+		private static void AppendSphericalSection(List<Vector3> vertices, List<int> triangles, Vector3 center, float radius, int rings, int segments, float minLatitude, float maxLatitude, Vector3 heightAxis, Vector3 rightAxis, Vector3 forwardAxis)
+		{
+			var start = vertices.Count;
+			for (int ring = 0; ring <= rings; ring++)
+			{
+				var t = ring / (float)rings;
+				var latitude = Mathf.Lerp(minLatitude, maxLatitude, t);
+				var y = Mathf.Sin(latitude);
+				var radialScale = Mathf.Cos(latitude);
+
+				for (int segment = 0; segment <= segments; segment++)
+				{
+					var angle = (Mathf.PI * 2f * segment) / segments;
+					var radial = rightAxis * Mathf.Cos(angle) + forwardAxis * Mathf.Sin(angle);
+					vertices.Add(center + (heightAxis * y + radial * radialScale) * radius);
+				}
+			}
+
+			var stride = segments + 1;
+			for (int ring = 0; ring < rings; ring++)
+			{
+				for (int segment = 0; segment < segments; segment++)
+				{
+					var i0 = start + ring * stride + segment;
+					var i1 = i0 + 1;
+					var i2 = i0 + stride;
+					var i3 = i2 + 1;
+					AppendQuad(triangles, i0, i1, i3, i2);
+				}
+			}
+		}
+
+		private static void AppendQuad(List<int> triangles, int i0, int i1, int i2, int i3)
+		{
+			triangles.Add(i0);
+			triangles.Add(i1);
+			triangles.Add(i2);
+			triangles.Add(i0);
+			triangles.Add(i2);
+			triangles.Add(i3);
 		}
 
 		private static List<PrefabInstance> CreatePrefabInstanceWithPath(UnityPrefabInstance unityPrefabInstance, IModResourcesProvider provider)
