@@ -11,8 +11,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public int lodLevel;
 		public Mesh mesh;
 		public Mesh meshCollider;
+		public PrimitiveColliderInstance[] primitiveColliders;
 		public Material[] materials;
 		public bool castShadows;
+		public bool HasContent => mesh != null || (materials != null && materials.Any(m => m != null)) ||
+			meshCollider != null || (primitiveColliders != null && primitiveColliders.Length > 0);
 
 		public Vector3 localPosition;
 		public Quaternion localRotation;
@@ -47,6 +50,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			foreach (var lod in lods)
 			{
+				if (instance.primitiveColliders == null && lod.primitiveColliders != null)
+					instance.primitiveColliders = lod.primitiveColliders;
 				if (instance.mesh == string.Empty && lod.mesh != null)
 				{
 					instance.mesh = AssetDatabase.GetAssetPath(lod.mesh);
@@ -68,7 +73,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (instance.mesh != string.Empty ||
 				    instance.material != string.Empty ||
-				    instance.collider != string.Empty)
+				    instance.collider != string.Empty || instance.primitiveColliders?.Length > 0)
 				{
 					break;
 				}
@@ -79,7 +84,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public bool IsNull()
 		{
-			return lods == null || !lods.Any(lod => lod.mesh != null || (lod.materials != null && lod.materials.Any(m => m != null)) || lod.meshCollider != null);
+			return lods == null || !lods.Any(lod => lod.HasContent);
 		}
 	}
 }

@@ -9,10 +9,19 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public string mesh;
 		public string material;
 		public string collider;
+		public PrimitiveColliderInstance[] primitiveColliders;
 
 		public bool Equals(PrefabInstance other)
 		{
-			return mesh == other.mesh && material == other.material && collider == other.collider;
+			if (mesh != other.mesh || material != other.material || collider != other.collider)
+				return false;
+			var count = primitiveColliders?.Length ?? 0;
+			if (count != (other.primitiveColliders?.Length ?? 0))
+				return false;
+			for (var i = 0; i < count; i++)
+				if (!primitiveColliders[i].Equals(other.primitiveColliders[i]))
+					return false;
+			return true;
 		}
 
 		public override bool Equals(object obj)
@@ -22,7 +31,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(mesh, material, collider);
+			var hash = HashCode.Combine(mesh, material, collider);
+			if (primitiveColliders != null)
+				foreach (var primitive in primitiveColliders)
+					hash = HashCode.Combine(hash, primitive);
+			return hash;
 		}
 	}
 }
