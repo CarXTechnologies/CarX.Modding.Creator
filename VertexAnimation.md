@@ -1,0 +1,20 @@
+# Animation markers (dro2)
+
+1. In MapUploader, add `GameMarkerData` and select `Animation`.
+2. Assign the source `Animator` (the Animator on the marker object is used when the field is empty). Its controller must contain animation clips.
+3. Choose the initial clip, bake frame rate, playback speed, initial phase and looping. All distinct clips in the controller are baked; each instance can start with a different clip.
+4. Export as `dro2`. Rebuild both MapUploader and the client with the updated Creator module. Older clients cannot display animation resources.
+
+The exporter creates `animations/<scene>.json`: stable mesh indices, material surfaces, per-instance transforms, and linear RGBAHalf position/normal atlases. Animation frames may occupy multiple rows. Clips share an atlas; frame interpolation stays within the selected clip. The existing OBJ path is not used for animated vertices. Matching baked geometry, animation and material data are deduplicated across instances, including objects with different world transforms or selected clips.
+
+The client uses the `ModAnimation/ModVertexAnimation` resource material and `RenderCore/Mod Vertex Animation` shader. Mesh and material registrations are shared. Clip range and playback parameters are DOTS material properties, so instances with different phases/clips can be batched. No Animator, skinning or vertex upload runs on the CPU during playback. Each material/submesh still requires its own draw. Bounds contain every baked pose; forward, ghost, depth and shadow passes use the same deformation. Unloading unregisters the animation meshes/materials and destroys their textures.
+
+## Supported scope
+
+- Skinned mesh, blend-shape and rigid child-transform animation, evaluated as individual clips through Animation Playables. This is baked clip playback, not a runtime Animator state machine: transitions, parameters, events, procedural scripts and IK are not reproduced. Root-motion locomotion is disabled.
+- Multiple renderers and triangle submeshes are combined in Animator space. Source vertex normals are required. Materials support diffuse texture/color, UV scale/offset, smoothness, HDRP alpha cutoff and double-sided rendering. Normal maps, layered material blending, emission and transparent blending are not exported by this material path.
+- One mesh detail level per animation object; nested LODGroups and Animators are rejected. Animated objects are decorative and have no runtime physics collider. Place any fixed collision geometry outside the animated hierarchy.
+- 1–60 bake samples per second. Maximum atlas dimensions: 4096 × 8192 and the target GPU's texture limit; both atlases together are limited to 128 MiB per asset. Reduce clip count, vertices or sampling rate when this is exceeded.
+- GPU instancing shares identical prototypes; this is not MassRenderer's URP-specific multi-draw-indirect implementation. DR3 uses its existing Entities Graphics / RenderCore renderer.
+
+`Tests/Editor/VertexAnimationBakerTests.cs` checks rigid/skinned poses, clip boundaries, source preservation, serialization and shared resources. The client shader tests compile all four game passes with DOTS instancing, for opaque and alpha-cutout variants.

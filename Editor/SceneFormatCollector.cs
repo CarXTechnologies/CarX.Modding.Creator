@@ -13,6 +13,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private readonly Transform m_root;
 		private readonly string m_sceneName;
 		private readonly string m_tagGarbage;
+		private List<Transform> m_animationRoots;
 
 		public SceneFormatCollector(Transform root, string sceneName, string tagGarbage)
 		{
@@ -24,6 +25,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
 			var modResults = new ModResults(collectionProvider);
+			m_animationRoots = VertexAnimationBaker.GetAnimationRoots(m_root, IsGarbage);
+			var animations = VertexAnimationBaker.Collect(m_root, m_sceneName, version, IsGarbage);
+			if (animations.instances.Count > 0) modResults.Add(animations);
 			var unityPrefabInstances = CollectUnityPrefabInstances(version);
 
 			var editorPrefabInstances = new Dictionary<PrefabInstance, int>();
@@ -43,6 +47,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		private const float CandelaToGameIntensity = 0.1f;
+		private bool IsAnimationTransform(Transform transform) => m_animationRoots.Any(t => transform.IsChildOf(t));
 		private const float MaxGameIntensity = 5000f;
 
 		private static float ConvertToGameIntensity(Light light)
@@ -97,7 +102,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			foreach (var lodGroup in m_root.GetComponentsInChildren<LODGroup>(true))
 			{
-				if (IsGarbage(lodGroup.transform))
+				if (IsGarbage(lodGroup.transform) || IsAnimationTransform(lodGroup.transform))
 				{
 					continue;
 				}
@@ -126,7 +131,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					foreach (var renderer in lod.renderers)
 					{
-						if (renderer == null)
+						if (renderer == null || IsAnimationTransform(renderer.transform))
 						{
 							continue;
 						}
@@ -139,7 +144,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					foreach (var renderer in lodGroupLods[lodIndex].renderers)
 					{
-						if (renderer == null)
+						if (renderer == null || IsAnimationTransform(renderer.transform))
 						{
 							continue;
 						}
@@ -186,6 +191,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					return;
 				}
 
+				if (IsAnimationTransform(o.transform)) return;
 				var info = CollectLodInfo(o);
 				if (!info.HasContent)
 				{
@@ -496,7 +502,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			m_root.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
-				if (component is not IMarkerDataSource markerData)
+				if (component is not IMarkerDataSource markerData || markerData.MarkerHead == "Animation")
 				{
 					return;
 				}
