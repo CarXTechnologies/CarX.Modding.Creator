@@ -16,5 +16,3 @@ The client uses the `ModAnimation/ModVertexAnimation` resource material and `Ren
 - One mesh detail level per animation object; nested LODGroups and Animators are rejected. Animated objects can follow a Rigidbody on the Animator root or an ancestor. Add colliders for the rigid parts; the collider shapes do not deform with the animated vertices. See Rigidbody.md. Without Rigidbody, animated hierarchies remain decorative.
 - 1–60 bake samples per second. Maximum atlas dimensions: 4096 × 8192 and the target GPU's texture limit; all three atlases together are limited to 128 MiB per asset. Reduce clip count, vertices or sampling rate when this is exceeded.
 - GPU instancing shares identical prototypes; this is not MassRenderer's URP-specific multi-draw-indirect implementation. DR3 uses its existing Entities Graphics / RenderCore renderer.
-
-`Tests/Editor/VertexAnimationBakerTests.cs` checks rigid/skinned poses, clip boundaries, source preservation, serialization and shared resources. The client shader tests compile all four game passes with DOTS instancing, for opaque and alpha-cutout variants.
