@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public class UnityGoObjExporter
+	public partial class UnityGoObjExporter
 	{
 		private static readonly HashSet<string> s_processedTexturePaths = new ();
 		private static readonly Dictionary<(string, int, int), (Material[] materials, Mesh mesh, bool isCollider, bool castShadows)> s_pendingObject = new ();
@@ -325,9 +325,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				sb.AppendLine("#shadow off");
 			}
 
+			var vertexColors = mesh.colors;
+			int vertexIndex = 0;
 			foreach (var v in mesh.vertices)
 			{
 				sb.AppendFormat(CultureInfo.InvariantCulture, "v {0:F6} {1:F6} {2:F6}", v.x, v.y, v.z).AppendLine();
+				var color = vertexIndex < vertexColors.Length ? vertexColors[vertexIndex] : Color.white;
+				sb.AppendFormat(CultureInfo.InvariantCulture, "vc {0:R} {1:R} {2:R} {3:R}", color.r, color.g, color.b, color.a).AppendLine();
+				vertexIndex++;
 			}
 
 			foreach (var vn in mesh.normals)
@@ -390,6 +395,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 
 				mtl.AppendFormat("newmtl {0}", GetStableObjectId(m)).AppendLine();
+				string layeredPbr = WriteLayeredPbr(m, dir);
+				if (layeredPbr != null) mtl.Append("cx_pbr ").AppendLine(layeredPbr);
 
 				MaterialBlendMode blendMode = DetectMaterialBlendMode(m);
 				int illuminationModel = blendMode switch
