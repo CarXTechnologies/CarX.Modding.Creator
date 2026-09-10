@@ -22,6 +22,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public string id;
 		public string version;
 		public List<StaticInstance> staticObjects;
+		public List<RigidbodyInstance> rigidbodies;
 
 		public StaticHierarchyMeta(string id, string version, List<StaticInstance> staticObjects)
 		{

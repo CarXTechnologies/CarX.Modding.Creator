@@ -7,6 +7,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	public class LodInstance
 	{
 		public List<LodLevel> lodLevels;
+		public int rigidbodyId;
 		public LToWorld localToWorld;
 		public Vector3 LocalReferencePoint;
 		public Vector4 LODDistances0;

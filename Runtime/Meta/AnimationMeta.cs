@@ -35,6 +35,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
         public int width, height, vertexCount;
         // Linear RGBAHalf, row-major; a frame may span multiple texture rows.
         public string positions, normals;
+        public string tangents;
         public Vector3[] vertices;
         public Vector2[] uv;
         public Bounds bounds;
@@ -56,6 +57,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
         public int[] triangles;
         public Color color = Color.white;
         public string diffusePng;
+        public string normalPng, maskPng;
+        public float normalScale = 1;
+        public float metallic;
+        public Vector4 maskRemap = new Vector4(0, 1, 0, 1);
         public Vector2 textureScale = Vector2.one;
         public Vector2 textureOffset;
         public float smoothness = 0.3f;
@@ -67,6 +72,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
     public struct VertexAnimationInstance
     {
         public int asset, clip;
+        public int rigidbodyId;
         public LToWorld localToWorld;
         public float speed, phase;
         public bool loop;

@@ -14,18 +14,22 @@ namespace Plugins.CarX.Modding.Creator.Editor
 {
     public static class VertexAnimationBaker
     {
-        public static AnimationMeta Collect(Transform root, string id, string version, Func<Transform, bool> excluded)
+        public static AnimationMeta Collect(Transform root, string id, string version, Func<Transform, bool> excluded, Func<Transform, int> rigidbodyId = null)
+            => Collect(new[] { root }, id, version, excluded, rigidbodyId);
+
+        public static AnimationMeta Collect(IEnumerable<Transform> roots, string id, string version, Func<Transform, bool> excluded, Func<Transform, int> rigidbodyId = null)
         {
+            var exportRoots = ModsUtility.NormalizeExportRoots(roots);
             var result = new AnimationMeta { id = id, version = version };
             var hashes = new Dictionary<string, int>();
             var animators = new HashSet<Animator>();
-            foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(false))
+            foreach (var component in exportRoots.GetComponentsInChildren<MonoBehaviour>(false))
             {
                 if (component is not IMarkerDataSource marker || marker.MarkerHead != "Animation" || excluded(component.transform))
                     continue;
                 var settings = marker.MarkerData as AnimationMarkerSettings ?? new AnimationMarkerSettings();
                 var animator = settings.animator != null ? settings.animator : component.GetComponent<Animator>();
-                if (animator == null || !animator.transform.IsChildOf(root) || excluded(animator.transform))
+                if (animator == null || !exportRoots.Any(r => animator.transform.IsChildOf(r)) || excluded(animator.transform))
                     throw new InvalidOperationException($"Animation marker '{component.name}' needs an Animator inside the exported map.");
                 if (!animators.Add(animator))
                     throw new InvalidOperationException($"Animator '{animator.name}' has multiple Animation markers.");
@@ -48,7 +52,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                     hashes.Add(hash, index);
                 }
                 var t = animator.transform;
-                result.instances.Add(new VertexAnimationInstance { asset = index, clip = settings.clipIndex,
+                result.instances.Add(new VertexAnimationInstance { asset = index, clip = settings.clipIndex, rigidbodyId = rigidbodyId?.Invoke(t) ?? 0,
                     localToWorld = new LToWorld(t.position, t.rotation, t.lossyScale),
                     speed = settings.speed, phase = settings.phase, loop = settings.loop });
             }
@@ -61,9 +65,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
         }
 
         public static List<Transform> GetAnimationRoots(Transform root, Func<Transform, bool> excluded = null)
+            => GetAnimationRoots(new[] { root }, excluded);
+
+        public static List<Transform> GetAnimationRoots(IEnumerable<Transform> sourceRoots, Func<Transform, bool> excluded = null)
         {
+            var exportRoots = ModsUtility.NormalizeExportRoots(sourceRoots);
             var roots = new List<Transform>();
-            foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(false))
+            foreach (var component in exportRoots.GetComponentsInChildren<MonoBehaviour>(false))
             {
                 if (component is not IMarkerDataSource marker || marker.MarkerHead != "Animation") continue;
                 if (excluded != null && excluded(component.transform)) continue;
@@ -85,7 +93,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 throw new InvalidOperationException($"VAT '{source.name}': nested Animators must be exported as separate animation objects.");
             GameObject copy = null;
             var tempMesh = new Mesh();
-            Texture2D positions = null, normals = null;
+            Texture2D positions = null, normals = null, tangents = null;
             var graph = default(PlayableGraph);
             try
             {
@@ -116,7 +124,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 }).ToArray();
                 int height = checked(rows * frames);
                 long pixels = (long)width * height;
-                if (height > 8192 || width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize || pixels * 16 > 128L * 1024 * 1024)
+                if (height > 8192 || width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize || pixels * 24 > 128L * 1024 * 1024)
                     throw new InvalidOperationException($"VAT for '{source.name}' is too large ({width}x{height}). Reduce vertices, clips or sample rate.");
                 var asset = new VertexAnimationAsset { name = "Animation", width = width, height = height, vertexCount = vertices,
                     vertices = new Vector3[vertices], uv = new Vector2[vertices], clips = infos };
@@ -147,6 +155,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
                                 surface.cutoff = material.GetFloat("_AlphaCutoff");
                             if (material.HasProperty(textureName) && material.GetTexture(textureName) is Texture texture)
                                 surface.diffusePng = ReadPng(texture);
+                            if (material.HasProperty("_Metallic")) surface.metallic = material.GetFloat("_Metallic");
+                            string normalProperty = material.HasProperty("_NormalMap") ? "_NormalMap" : "_BumpMap";
+                            if (material.HasProperty(normalProperty) && material.GetTexture(normalProperty) is Texture normalTexture)
+                                surface.normalPng = ReadPng(normalTexture, true, true);
+                            string scaleProperty = material.HasProperty("_NormalScale") ? "_NormalScale" : "_BumpScale";
+                            if (material.HasProperty(scaleProperty)) surface.normalScale = material.GetFloat(scaleProperty);
+                            if (material.HasProperty("_MaskMap") && material.GetTexture("_MaskMap") is Texture maskTexture)
+                            {
+                                surface.maskPng = ReadPng(maskTexture, true);
+                                surface.maskRemap = new Vector4(material.GetFloat("_AORemapMin"), material.GetFloat("_AORemapMax"),
+                                    material.GetFloat("_SmoothnessRemapMin"), material.GetFloat("_SmoothnessRemapMax"));
+                            }
                         }
                         surfaces.Add(surface);
                     }
@@ -155,6 +175,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 asset.surfaces = surfaces.ToArray();
                 var pos = new Color[(int)pixels];
                 var norm = new Color[(int)pixels];
+                var tan = new Color[(int)pixels];
                 bool hasBounds = false;
                 for (int c = 0; c < clips.Length; c++)
                 {
@@ -174,7 +195,19 @@ namespace Plugins.CarX.Modding.Creator.Editor
                         for (int r = 0; r < renderers.Length; r++)
                         {
                             var mesh = meshes[r];
-                            if (renderers[r] is SkinnedMeshRenderer skinned) { skinned.BakeMesh(tempMesh); mesh = tempMesh; }
+                            if (renderers[r] is SkinnedMeshRenderer skinned) skinned.BakeMesh(tempMesh);
+                            else
+                            {
+                                tempMesh.Clear();
+                                tempMesh.indexFormat = mesh.indexFormat;
+                                tempMesh.vertices = mesh.vertices;
+                                tempMesh.normals = mesh.normals;
+                                tempMesh.uv = mesh.uv;
+                                tempMesh.triangles = mesh.triangles;
+                            }
+                            mesh = tempMesh;
+                            if (mesh.uv.Length == mesh.vertexCount) mesh.RecalculateTangents();
+                            var bakedTangents = mesh.tangents;
                             var matrix = copy.transform.worldToLocalMatrix * renderers[r].transform.localToWorldMatrix;
                             var normalMatrix = matrix.inverse.transpose;
                             var vtx = mesh.vertices;
@@ -189,6 +222,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
                                 int pixel = (infos[c].firstFrame + f) * rows * width + offset + v;
                                 pos[pixel] = new Color(p.x, p.y, p.z, 1);
                                 norm[pixel] = new Color(n.x, n.y, n.z, 1);
+                                var tangent = bakedTangents.Length == vtx.Length ? bakedTangents[v] : new Vector4(1, 0, 0, 1);
+                                var transformedTangent = matrix.MultiplyVector(tangent).normalized;
+                                transformedTangent = (transformedTangent - n * Vector3.Dot(n, transformedTangent)).normalized;
+                                tan[pixel] = new Color(transformedTangent.x, transformedTangent.y, transformedTangent.z,
+                                    tangent.w * Mathf.Sign(matrix.determinant));
                                 if (c == 0 && f == 0) asset.vertices[offset + v] = p;
                                 if (!hasBounds) { asset.bounds = new Bounds(p, Vector3.zero); hasBounds = true; }
                                 else asset.bounds.Encapsulate(p);
@@ -205,6 +243,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 normals.SetPixels(norm); normals.Apply(false);
                 asset.positions = Convert.ToBase64String(positions.GetRawTextureData());
                 asset.normals = Convert.ToBase64String(normals.GetRawTextureData());
+                tangents = new Texture2D(width, height, TextureFormat.RGBAHalf, false, true);
+                tangents.SetPixels(tan); tangents.Apply(false);
+                asset.tangents = Convert.ToBase64String(tangents.GetRawTextureData());
                 return asset;
             }
             finally
@@ -214,19 +255,29 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 Object.DestroyImmediate(tempMesh);
                 if (positions != null) Object.DestroyImmediate(positions);
                 if (normals != null) Object.DestroyImmediate(normals);
+                if (tangents != null) Object.DestroyImmediate(tangents);
             }
         }
 
-        private static string ReadPng(Texture source)
+        private static string ReadPng(Texture source, bool linear = false, bool unpackNormal = false)
         {
             var previous = RenderTexture.active;
-            var rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            var rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32, linear ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.sRGB);
             Texture2D readable = null;
+            Material conversion = null;
             try
             {
-                Graphics.Blit(source, rt);
+                if (unpackNormal)
+                {
+                    var shader = Shader.Find("Hidden/Modding/ExportVatNormal");
+                    if (shader == null) throw new InvalidOperationException("VAT normal export shader is missing.");
+                    conversion = new Material(shader);
+                    UnityEditor.ShaderUtil.CompilePass(conversion, 0, true);
+                    Graphics.Blit(source, rt, conversion);
+                }
+                else Graphics.Blit(source, rt);
                 RenderTexture.active = rt;
-                readable = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+                readable = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false, linear);
                 readable.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
                 readable.Apply();
                 return Convert.ToBase64String(readable.EncodeToPNG());
@@ -236,6 +287,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 RenderTexture.active = previous;
                 RenderTexture.ReleaseTemporary(rt);
                 if (readable != null) Object.DestroyImmediate(readable);
+                if (conversion != null) Object.DestroyImmediate(conversion);
             }
         }
     }
