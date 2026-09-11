@@ -532,7 +532,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			m_roots.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
-				if (component is not IMarkerDataSource markerData || markerData.MarkerHead == "Animation")
+				if (component is not IMarkerDataSource markerData ||
+					(markerData.MarkerHead != "SpawnPoint" && markerData.MarkerHead != "Road"))
 				{
 					return;
 				}
