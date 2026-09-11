@@ -8,10 +8,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	{
 		private static readonly IModFileProvider DefaultFileProvider = new DefaultFileProvider(Path.Combine(Application.dataPath, "Mods"));
 
-		public EditorCollectionProvider() : base(ModdingVersion.GetDefaultFullVersionFormat())
-		{
-
-		}
+		public EditorCollectionProvider(bool binary = false) : base(ModdingVersion.GetDefaultFullVersionFormat())
+        {
+            if (binary)
+            {
+                var entries = providers[0].providers;
+                for (int i = 0; i < entries.Length; i++)
+                    if (entries[i].type == typeof(UnityPrefabInstance))
+                        entries[i] = new ModProvider(typeof(UnityPrefabInstance), new ObjMtlExporterProvider(DefaultFileProvider, true));
+            }
+        }
 
 		protected override VersionProvider[] providers { get; set; } =
 		{

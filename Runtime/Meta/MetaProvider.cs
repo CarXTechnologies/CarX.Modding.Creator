@@ -13,8 +13,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public override Task<IModResources> Unpack(byte[] bytes)
 		{
-			string str = Encoding.UTF8.GetString(bytes);
-			IModResources res = JsonUtility.FromJson<T>(str);
+            if (BinaryModData.IsBinary(bytes)) return Task.Run<IModResources>(() => BinaryModData.Read<T>(bytes));
+			IModResources res = JsonUtility.FromJson<T>(Encoding.UTF8.GetString(bytes));
 
 			return Task.FromResult(res);
 		}

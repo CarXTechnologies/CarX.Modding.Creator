@@ -34,8 +34,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
         public string name;
         public int width, height, vertexCount;
         // Linear RGBAHalf, row-major; a frame may span multiple texture rows.
-        public string positions, normals;
-        public string tangents;
+        [BinaryBlob(nameof(positionsBytes))] public string positions;
+        [BinaryBlob(nameof(normalsBytes))] public string normals;
+        [BinaryBlob(nameof(tangentsBytes))] public string tangents;
+        [NonSerialized] public byte[] positionsBytes, normalsBytes, tangentsBytes;
         public Vector3[] vertices;
         public Vector2[] uv;
         public Bounds bounds;
@@ -56,8 +58,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
     {
         public int[] triangles;
         public Color color = Color.white;
-        public string diffusePng;
-        public string normalPng, maskPng;
+        [BinaryBlob(nameof(diffuseBytes))] public string diffusePng;
+        [BinaryBlob(nameof(normalBytes))] public string normalPng;
+        [BinaryBlob(nameof(maskBytes))] public string maskPng;
+        [NonSerialized] public byte[] diffuseBytes, normalBytes, maskBytes;
         public float normalScale = 1;
         public float metallic;
         public Vector4 maskRemap = new Vector4(0, 1, 0, 1);

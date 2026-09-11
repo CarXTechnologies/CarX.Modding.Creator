@@ -23,7 +23,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 		}
 
-		public string GetFileExtension() => ".obj";
+		public virtual string GetFileExtension() => ".obj";
 
 		public string GetSubCatalog() => ModelsSubCatalog;
 

@@ -9,13 +9,14 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public override bool IsThread() => false;
 
-		public TexturePngProvider(IModFileProvider provider) : base(provider, "textures/", ".png", ".png", ".jpg")
+		public TexturePngProvider(IModFileProvider provider) : base(provider, "textures/", ".png", BinaryTexture.Extension, ".png", ".jpg")
 		{
 
 		}
 
 		public override Task<Texture2D> Unpack(byte[] objectBytes)
 		{
+            if (BinaryTexture.IsBinary(objectBytes)) return Task.FromResult(BinaryTexture.Load(objectBytes));
 			var loadedTexture = new Texture2D(2, 2, GraphicsFormat.B8G8R8A8_SRGB, TextureCreationFlags.MipChain);
 			loadedTexture.LoadImage(objectBytes);
 			return Task.FromResult(loadedTexture);

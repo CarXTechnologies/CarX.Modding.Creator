@@ -28,13 +28,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
+            RigidbodyExporter.EnsureMeshReadability(m_roots);
 			var modResults = new ModResults(collectionProvider);
 			m_animationRoots = VertexAnimationBaker.GetAnimationRoots(m_roots, IsGarbage);
 			var bodies = m_roots.GetComponentsInChildren<Rigidbody>(false).Where(b => !IsGarbage(b.transform)).ToArray();
-            if (bodies.Any(b => m_animationRoots.Any(a => b.transform != a && b.transform.IsChildOf(a))))
+            m_rigidbodyIds = new Dictionary<Rigidbody, int>();
+            var rigidbodies = new List<RigidbodyInstance>();
+            foreach (var body in bodies)
+            {
+                var instance = RigidbodyExporter.Collect(body, IsGarbage);
+                if (instance == null) continue;
+                rigidbodies.Add(instance);
+                m_rigidbodyIds.Add(body, rigidbodies.Count);
+            }
+            if (m_rigidbodyIds.Keys.Any(b => m_animationRoots.Any(a => b.transform != a && b.transform.IsChildOf(a))))
                 throw new InvalidOperationException("Put Rigidbody on the Animator root or above it; a baked animation cannot contain independent moving bodies.");
-            m_rigidbodyIds = bodies.Select((b, i) => (b, i)).ToDictionary(x => x.b, x => x.i + 1);
-            var rigidbodies = bodies.Select(b => RigidbodyExporter.Collect(b, IsGarbage)).ToList();
             var animations = VertexAnimationBaker.Collect(m_roots, m_sceneName, version, IsGarbage, t =>
             {
                 var body = t.GetComponentInParent<Rigidbody>();

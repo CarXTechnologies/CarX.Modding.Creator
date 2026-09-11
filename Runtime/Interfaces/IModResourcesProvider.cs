@@ -2,6 +2,10 @@
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
+    public interface IAsyncModPacking
+    {
+        Task EndPackingAsync(string catalog, object resource, System.Action<float> progress, System.Threading.CancellationToken cancellationToken);
+    }
 	public interface IModResourcesProvider
 	{
 		public Task<object> Unpacking<TResource>(string catalog);

@@ -1,4 +1,6 @@
-﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -35,6 +37,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public static void ClearCache()
 		{
+			s_pendingObject.Clear();
+			s_pendingObjectByMaterial.Clear();
 			s_processedTexturePaths.Clear();
 		}
 
@@ -208,7 +212,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
-		{
+            => RebuildAndSaveAsync(collectionProvider, fileProvider, null, CancellationToken.None, false).GetAwaiter().GetResult();
+
+        public async Task RebuildAndSaveAsync(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, Action<float> progress, CancellationToken token, bool cooperative = true)
+        {
+            try
+            {
 			foreach (var valueTuple in s_pendingObject)
 			{
 				var path = valueTuple.Key.Item1;
@@ -243,15 +252,27 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					BuildAllMaterial(collectionProvider, pen.Value.path, mtlPath, currentMaterials); // Pass currentMaterials
 				}
 
-				EditorUtility.DisplayProgressBar("Uploading Catalog", $"Packing... ({processedCount + 1}/{s_pendingObjectByMaterial.Count})", (float)processedCount / s_pendingObjectByMaterial.Count);
+				token.ThrowIfCancellationRequested();
+                progress?.Invoke((float)processedCount / s_pendingObjectByMaterial.Count);
+                if (cooperative) await Task.Delay(1, token);
 
-				string pathToObj = Path.Combine(pen.Value.path, name + ".obj");
+				string pathToObj = Path.Combine(pen.Value.path, name + (Binary ? BinaryModModelCodec.Extension : ".obj"));
 
 				if (!File.Exists(pathToObj))
 				{
+					if (Binary)
+                    {
+                        var model = CollectBinary(name, meshesToProcess);
+                        if (cooperative) await Task.Run(() => BinaryModModelCodec.Write(pathToObj, model), token);
+                        else BinaryModModelCodec.Write(pathToObj, model);
+                    }
+                    else
+                    {
 					string objString = BuildFullObj(meshesToProcess, name);
 					Directory.CreateDirectory(Path.GetDirectoryName(pathToObj));
-					File.WriteAllText(pathToObj, objString, Encoding.UTF8);
+					if (cooperative) await Task.Run(() => File.WriteAllText(pathToObj, objString, Encoding.UTF8), token);
+                        else File.WriteAllText(pathToObj, objString, Encoding.UTF8);
+                    }
 				}
 
 				StringBuilder str = new StringBuilder();
@@ -269,9 +290,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				processedCount++;
 			}
 
+			foreach (string directory in s_pendingObjectByMaterial.Keys.Select(key => key.path).Distinct())
+				DeduplicatePbrTextures(directory);
+
+            }
+            finally
+            {
 			s_pendingObject.Clear();
 			s_pendingObjectByMaterial.Clear();
 			s_processedTexturePaths.Clear();
+            }
 		}
 
 		private static void BuildAllMaterial(IModCollectionProvider collectionProvider, string path, string mtlPath,

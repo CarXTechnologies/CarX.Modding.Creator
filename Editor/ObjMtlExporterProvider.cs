@@ -4,15 +4,17 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public class ObjMtlExporterProvider : ObjMtlProviderBase, IModResourcesCollect
+	public class ObjMtlExporterProvider : ObjMtlProviderBase, IModResourcesCollect, IAsyncModPacking
 	{
 		private readonly UnityGoObjExporter m_exporter;
 
 		private IModCollectionProvider m_collectionProvider;
 
-		public ObjMtlExporterProvider(IModFileProvider fileProvider) : base(fileProvider)
+		public override string GetFileExtension() => m_exporter.Binary ? BinaryModModelCodec.Extension : base.GetFileExtension();
+
+		public ObjMtlExporterProvider(IModFileProvider fileProvider, bool binary = false) : base(fileProvider)
 		{
-			m_exporter = new UnityGoObjExporter();
+			m_exporter = new UnityGoObjExporter { Binary = binary };
 		}
 
 		public void SetCollection(IModCollectionProvider collectionProvider)
@@ -51,6 +53,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			m_exporter.RebuildAndSafeAll(m_collectionProvider, fileProvider);
 		}
+        public System.Threading.Tasks.Task EndPackingAsync(string catalog, object resource, System.Action<float> progress, System.Threading.CancellationToken token)
+            => m_exporter.RebuildAndSaveAsync(m_collectionProvider, fileProvider, progress, token);
 
 		public override string GetFilePath(object resource)
 		{

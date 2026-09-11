@@ -28,8 +28,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			set => version = value;
 		}
 
+		public const string MapContentType = "map";
+		public string contentType = MapContentType;
+
 		public string id;
 		public string version;
+		/// <summary>Author's release version, independent of the SDK data format version.</summary>
+		public string contentVersion;
 		public string name;
 		public string description;
 		public string icon;

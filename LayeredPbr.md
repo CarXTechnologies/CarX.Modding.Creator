@@ -1,4 +1,4 @@
-# Layered Lit materials (DRO2)
+# Layered PBR material resources
 
 The SDK exports 2–4 UV0 layers to a versioned `.pbr.json` beside the OBJ/MTL files. The MTL `cx_pbr` entry references that material. Each layer preserves base color, texture scale and offset, tangent-space normals and strength, metallic, smoothness and ambient-occlusion remapping. Mask maps retain the HDRP channel layout. Texture paths use asset identity rather than object names.
 

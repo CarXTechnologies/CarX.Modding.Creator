@@ -2,17 +2,41 @@ using System;
 using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
+using UnityEditor;
+using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
     public static class RigidbodyExporter
     {
+        public static void EnsureMeshReadability(IEnumerable<Transform> roots)
+        {
+            var paths = new HashSet<string>();
+            void Add(Mesh mesh)
+            {
+                if (mesh == null || mesh.isReadable) return;
+                var path = AssetDatabase.GetAssetPath(mesh);
+                if (!string.IsNullOrEmpty(path) && AssetImporter.GetAtPath(path) is ModelImporter) paths.Add(path);
+            }
+            foreach (var root in roots)
+            {
+                foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true)) Add(filter.sharedMesh);
+                foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true)) Add(renderer.sharedMesh);
+                foreach (var collider in root.GetComponentsInChildren<MeshCollider>(true)) Add(collider.sharedMesh);
+            }
+            foreach (var path in paths)
+            {
+                var importer = (ModelImporter)AssetImporter.GetAtPath(path);
+                if (importer.isReadable) continue;
+                importer.isReadable = true;
+                importer.SaveAndReimport();
+                Debug.Log($"Map build: enabled mesh Read/Write for '{path}'.");
+            }
+        }
         public static RigidbodyInstance Collect(Rigidbody body, Func<Transform, bool> excluded)
         {
             var parentLod = body.GetComponentInParent<LODGroup>();
             if (parentLod && parentLod.GetComponentInParent<Rigidbody>() != body)
                 throw new InvalidOperationException($"Rigidbody '{body.name}' cannot split an enclosing LODGroup. Put the Rigidbody on the LODGroup root.");
-            if (body.GetComponents<Joint>().Length > 0)
-                throw new InvalidOperationException($"Rigidbody '{body.name}': Joint components are not supported by the mod format.");
             if (body.collisionDetectionMode != CollisionDetectionMode.Discrete)
                 Debug.LogWarning($"Rigidbody '{body.name}': the client uses Unity Physics discrete collision detection; PhysX CCD modes are not exported.", body);
             var rotation = Quaternion.Inverse(body.rotation);
@@ -53,7 +77,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
                         shape.mesh = true; shape.convex = mesh.convex;
                         shape.vertices = mesh.sharedMesh.vertices; shape.triangles = mesh.sharedMesh.triangles;
                         break;
-                    default: throw new InvalidOperationException($"Rigidbody '{body.name}': {collider.GetType().Name} is not supported.");
+                    default: continue;
                 }
                 if (collider.sharedMaterial)
                 {
@@ -66,7 +90,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
                 result.colliders.Add(shape);
             }
             if (result.colliders.Count == 0)
-                throw new InvalidOperationException($"Rigidbody '{body.name}' needs at least one enabled supported collider.");
+            {
+                Debug.LogWarning($"Rigidbody '{body.name}' was skipped: no enabled supported colliders. Geometry and animation will still be exported.", body);
+                return null;
+            }
             return result;
         }
     }

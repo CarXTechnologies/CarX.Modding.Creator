@@ -374,7 +374,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				ModVisibility.Unknown,
 				DescribeStatus(mod),
 				// mod.io installs subscribed mods for the game, not for an editor tool - there is no local copy here.
-				string.Empty);
+				string.Empty, mod.File?.Version);
 		}
 
 		/// <summary>

@@ -103,5 +103,28 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			m_results.Clear();
 		}
+#if UNITY_EDITOR
+        public async Task UploadInCatalogAsync(string catalog, Action<float> progress, CancellationToken token)
+        {
+            for (int phase = 0; phase < 2; phase++)
+                for (int i = 0; i < m_results.Count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    int index = i;
+                    progress?.Invoke((phase + (float)i / m_results.Count) * 0.5f);
+                    await Task.Delay(1, token);
+                    var item = m_results[i];
+                    var path = Path.Combine(catalog, item.provider.GetFilePath(item.modObject) + item.provider.GetFileExtension());
+                    if (phase == 0) item.provider.Packing(path, item.modObject);
+                    else if (item.provider is IAsyncModPacking asynchronous)
+                        await asynchronous.EndPackingAsync(path, item.modObject,
+                            value => progress?.Invoke(0.5f + (index + value) / m_results.Count * 0.5f), token);
+                    else item.provider.EndPackingSafe(path, item.modObject);
+                }
+            token.ThrowIfCancellationRequested();
+            progress?.Invoke(1);
+            m_results.Clear();
+        }
+#endif
 	}
 }

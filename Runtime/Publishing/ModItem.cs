@@ -21,6 +21,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		/// <summary>Size of the currently published payload in bytes, or 0 when nothing has been published yet.</summary>
 		public long PayloadSizeBytes { get; }
+        /// <summary>Version label of the vendor's currently active file, never the local build version.</summary>
+        public string PublishedVersion { get; }
 
 		public ModVisibility Visibility { get; }
 
@@ -48,7 +50,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			long payloadSizeBytes,
 			ModVisibility visibility,
 			string statusLabel,
-			string localInstallDirectory)
+			string localInstallDirectory, string publishedVersion = null)
 		{
 			Key = key;
 			Title = title ?? string.Empty;
@@ -56,6 +58,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			Tags = tags ?? Array.Empty<string>();
 			PreviewUrl = previewUrl ?? string.Empty;
 			PayloadSizeBytes = payloadSizeBytes;
+            PublishedVersion = publishedVersion ?? string.Empty;
 			Visibility = visibility;
 			StatusLabel = statusLabel ?? string.Empty;
 			LocalInstallDirectory = localInstallDirectory ?? string.Empty;

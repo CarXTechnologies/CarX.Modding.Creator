@@ -1,0 +1,6 @@
+<linker>
+  <!-- BinaryModData reads only these known DTO fields, including in IL2CPP builds. -->
+  <assembly fullname="CarX.Modding.Creator">
+    <type fullname="Plugins.CarX.Modding.Creator.Runtime.*" preserve="all" />
+  </assembly>
+</linker>
