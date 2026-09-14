@@ -11,6 +11,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class SceneFormatCollector : IModResultCollector
 	{
 		private readonly Transform[] m_roots;
+        public SceneExportOptimization Optimization { get; set; }
 		private readonly string m_sceneName;
 		private readonly string m_tagGarbage;
 		private List<Transform> m_animationRoots;
@@ -285,13 +286,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return false;
 		}
 
-		private static LODInfo CollectLodInfo(GameObject o, Transform relativeTo = null)
+		private LODInfo CollectLodInfo(GameObject o, Transform relativeTo = null)
 		{
 			var singleLODInfo = new LODInfo();
 			var meshFilter = o.GetComponent<MeshFilter>();
 			var meshRenderer = o.GetComponent<MeshRenderer>();
 
-			if (meshFilter != null && meshRenderer != null)
+			if (meshFilter != null && meshRenderer != null && !(Optimization?.SuppressRenderer(o) ?? false))
 			{
 				singleLODInfo.mesh = meshFilter.sharedMesh;
 				singleLODInfo.materials = meshRenderer.sharedMaterials;
@@ -303,7 +304,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				singleLODInfo.meshCollider = meshCollider.sharedMesh;
 			}
-			singleLODInfo.primitiveColliders = CollectPrimitiveColliders(o);
+			singleLODInfo.meshCollider = Optimization != null ? Optimization.ColliderMesh(o, singleLODInfo.meshCollider) : singleLODInfo.meshCollider;
+            singleLODInfo.primitiveColliders = CollectPrimitiveColliders(o);
 
 			if (relativeTo != null)
 			{
