@@ -196,7 +196,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					continue;
 				}
 
-				prefab.HasLODGroup = lodGroup.lodCount > 1;
+				// Даже один LOD хранит расстояние перехода в Culled.
+				prefab.HasLODGroup = true;
 				unityPrefabInstances[lodGroup.gameObject.GetInstanceID()] = prefab;
 			}
 
@@ -510,16 +511,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					lodLevels.Add(new LodLevel(prefabId, localOffset, lodInfo.lodLevel));
 				}
 
-				if (lodLevels.Count < 2)
+				if (lodLevels.Count == 0)
 				{
-					if (lodLevels.Count == 1)
-					{
-						var worldTransform = CombineLocalToWorld(ltoWorld, lodLevels[0].localOffset.position,
-							lodLevels[0].localOffset.rotation, lodLevels[0].localOffset.scale);
-						staticInstances.Add(new StaticInstance(lodLevels[0].prefabId, worldTransform) { rigidbodyId = bodyId });
-						objectToStaticIndex[instanceId] = staticInstances.Count - 1;
-					}
-
 					return;
 				}
 
