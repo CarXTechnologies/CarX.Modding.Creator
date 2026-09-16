@@ -8,7 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
     }
 	public interface IModResourcesProvider
 	{
-		public Task<object> Unpacking<TResource>(string catalog);
+		public Task<object> UnpackingAsync<TResource>(string catalog);
 		public void Packing(string catalog, object resource);
 
 		public void EndPackingSafe(string catalog, object resource)

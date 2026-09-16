@@ -6,14 +6,14 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		protected const string ModelsSubCatalog = "models/";
 
-		protected readonly IModFileProvider fileProvider;
+		protected readonly IModFileProvider m_fileProvider;
 
 		protected ObjMtlProviderBase(IModFileProvider fileProvider)
 		{
-			this.fileProvider = fileProvider;
+			this.m_fileProvider = fileProvider;
 		}
 
-		public virtual Task<object> Unpacking<TResource>(string catalog) => Task.FromResult<object>(null);
+		public virtual Task<object> UnpackingAsync<TResource>(string catalog) => Task.FromResult<object>(null);
 
 		public virtual void Packing(string catalog, object resource)
 		{

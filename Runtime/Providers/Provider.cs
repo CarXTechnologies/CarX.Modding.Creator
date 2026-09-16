@@ -24,7 +24,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			m_loadFormat = loadFormat;
 		}
 
-		public async Task<object> Unpacking<TResource>(string catalog)
+		public async Task<object> UnpackingAsync<TResource>(string catalog)
 		{
 			byte[] bytes = Array.Empty<byte>();
 

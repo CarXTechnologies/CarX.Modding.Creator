@@ -39,22 +39,22 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (lodInfo.mesh != null)
 				{
-					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials, castShadows: lodInfo.castShadows);
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.mesh, lodInfo.materials, castShadows: lodInfo.castShadows);
 				}
 
 				if (lodInfo.meshCollider != null)
 				{
-					m_exporter.ExportMesh(m_collectionProvider, fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
+					m_exporter.ExportMesh(m_collectionProvider, m_fileProvider, baseCatalogPath, lodInfo.meshCollider, null, isCollider: true);
 				}
 			}
 		}
 
 		public override void EndPackingSafe(string catalog, object resource)
 		{
-			m_exporter.RebuildAndSafeAll(m_collectionProvider, fileProvider);
+			m_exporter.RebuildAndSafeAll(m_collectionProvider, m_fileProvider);
 		}
         public System.Threading.Tasks.Task EndPackingAsync(string catalog, object resource, System.Action<float> progress, System.Threading.CancellationToken token)
-            => m_exporter.RebuildAndSaveAsync(m_collectionProvider, fileProvider, progress, token);
+            => m_exporter.RebuildAndSaveAsync(m_collectionProvider, m_fileProvider, progress, token);
 
 		public override string GetFilePath(object resource)
 		{

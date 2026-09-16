@@ -11,7 +11,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private readonly string m_loadDirectory;
         private readonly BinaryModArchive m_archive;
 
-		public string Catalog => m_loadDirectory;
+		public string catalog => m_loadDirectory;
 
 		public DefaultFileProvider(string loadDirectory)
 		{
