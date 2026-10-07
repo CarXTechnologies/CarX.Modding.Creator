@@ -1,201 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
-using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	public partial class UnityGoObjExporter
+	/// <summary>
+	/// Экспорт мешей сцены в группы по набору материалов: .obj или бинарная модель плюс .mtl с текстурами.
+	/// Имена файлов и объектов строятся из стабильных id (<see cref="MeshExportUtility"/>), поэтому повторный экспорт
+	/// той же сцены даёт те же имена. Существующие файлы перезаписываются, а не пропускаются и не дописываются.
+	/// </summary>
+	public class UnityGoObjExporter
 	{
-		private static readonly HashSet<string> s_processedTexturePaths = new ();
-		private static readonly Dictionary<(string, int, int), (Material[] materials, Mesh mesh, bool isCollider, bool castShadows)> s_pendingObject = new ();
-		private static readonly Dictionary<(string path, int materialGroupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshes)> s_pendingObjectByMaterial = new ();
+		private const string EmptyGroupName = "empty";
 
-		private static Material s_blitMat;
-		private static RenderTexture s_cachedRenderTexture;
+		private static readonly Dictionary<PendingKey, ExportMeshEntry> s_pendingObjects = new();
 
-		public struct ObjOffset
-		{
-			public int vertices;
-			public int uvs;
-			public int normals;
-		}
+		public bool Binary { get; set; }
 
-		public enum MaterialBlendMode
-		{
-			Opaque = 0,
-			AlphaBlend = 1,
-			AlphaTest = 2
-		}
-
+		/// <summary>
+		/// Сбрасывает состояние экспорта: очереди, кэши id и текстур, GPU-ресурсы Blit,
+		/// и возвращает настройки импорта исходных ассетов. Вызывается в конце сборки мода.
+		/// </summary>
 		public static void ClearCache()
 		{
-			s_pendingObject.Clear();
-			s_pendingObjectByMaterial.Clear();
-			s_processedTexturePaths.Clear();
+			s_pendingObjects.Clear();
+			ExportTextureUtility.ClearCache();
+			MeshExportUtility.ClearCache();
+			ExportImporterSettings.RestoreAll();
 		}
 
+		/// <summary>
+		/// Читаемая несжатая версия текстуры (ассет с временно изменённым импортёром или временная копия).
+		/// Импортёр возвращается в <see cref="ClearCache"/>.
+		/// </summary>
 		public static Texture2D EnsureTextureIsReadableAndUncompressed(Texture2D texture)
 		{
-			return SetTextureReadable(texture);
+			return ExportTextureUtility.AcquireReadable(texture);
 		}
 
-		private static string GetStableObjectId(UnityEngine.Object obj)
+		public static long DeduplicatePbrTextures(string directory)
 		{
-			if (obj == null)
-			{
-				return "0";
-			}
-
-			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out string guid, out long localId))
-			{
-				return guid + "_" + localId.ToString(CultureInfo.InvariantCulture);
-			}
-
-			return obj.GetInstanceID().ToString(CultureInfo.InvariantCulture);
-		}
-
-		private static Texture2D SetTextureReadable(Texture2D texture)
-		{
-			if (texture == null) return null;
-
-			string path = AssetDatabase.GetAssetPath(texture);
-			if (string.IsNullOrEmpty(path))
-			{
-				return EnsureTextureIsDecompressed(texture);
-			}
-
-			var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-			if (importer != null && (!importer.isReadable ||
-			                         importer.textureCompression != TextureImporterCompression.Uncompressed))
-			{
-				importer.isReadable = true;
-				importer.textureCompression = TextureImporterCompression.Uncompressed;
-				importer.SaveAndReimport();
-				texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-			}
-
-			return EnsureTextureIsDecompressed(texture);
-		}
-
-		private static Texture2D EnsureTextureIsDecompressed(Texture2D texture)
-		{
-			if (texture == null)
-			{
-				return null;
-			}
-
-			if (texture.isReadable && !IsCompressedFormat(texture.format))
-			{
-				return texture;
-			}
-
-			return DecompressTexture(texture);
-		}
-
-		private static bool IsCompressedFormat(TextureFormat format)
-		{
-			switch (format)
-			{
-				case TextureFormat.RGBA32:
-				case TextureFormat.ARGB32:
-				case TextureFormat.RGB24:
-				case TextureFormat.RGBAHalf:
-				case TextureFormat.RFloat:
-				case TextureFormat.RGFloat:
-				case TextureFormat.RGBAFloat:
-				case TextureFormat.YUY2:
-				case TextureFormat.RGBA4444:
-				case TextureFormat.BGRA32:
-					return false;
-				default:
-					return true;
-			}
-		}
-
-		private static Texture2D DecompressTexture(Texture2D compressedTexture)
-		{
-			if (compressedTexture == null)
-			{
-				return null;
-			}
-
-			string originalName = compressedTexture.name;
-
-			RenderTexture tempRT = RenderTexture.GetTemporary(
-				compressedTexture.width,
-				compressedTexture.height,
-				0,
-				RenderTextureFormat.Default,
-				RenderTextureReadWrite.Linear);
-
-			try
-			{
-				Graphics.Blit(compressedTexture, tempRT);
-
-				Texture2D uncompressedTexture = new Texture2D(
-					compressedTexture.width,
-					compressedTexture.height,
-					TextureFormat.RGBA32,
-					false);
-
-				RenderTexture.active = tempRT;
-				uncompressedTexture.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);
-				uncompressedTexture.Apply(false, false);
-				RenderTexture.active = null;
-
-				uncompressedTexture.name = originalName;
-
-				return uncompressedTexture;
-			}
-			finally
-			{
-				RenderTexture.active = null;
-				RenderTexture.ReleaseTemporary(tempRT);
-			}
-		}
-
-		private static MaterialBlendMode DetectMaterialBlendMode(Material material)
-		{
-			if (material == null)
-			{
-				return MaterialBlendMode.Opaque;
-			}
-
-			if (material.HasProperty("_AlphaCutoffEnable") && (material.GetFloat("_AlphaCutoffEnable") > 0f))
-			{
-				return MaterialBlendMode.AlphaTest;
-			}
-
-			int renderQueue = material.renderQueue;
-			string renderType = material.GetTag("RenderType", false, "Opaque");
-
-			if (renderQueue >= 3000 || renderType == "Transparent" || renderType == "TransparentCutout")
-			{
-				if (renderType == "TransparentCutout" || renderQueue == 2450)
-				{
-					return MaterialBlendMode.AlphaTest;
-				}
-				return MaterialBlendMode.AlphaBlend;
-			}
-
-			if (material.HasProperty("_Surface"))
-			{
-				float surface = material.GetFloat("_Surface");
-				if (surface > 0.5f) // 1 = Transparent
-				{
-					return MaterialBlendMode.AlphaBlend;
-				}
-			}
-
-			return MaterialBlendMode.Opaque;
+			return PbrTextureDeduplicator.Deduplicate(directory);
 		}
 
 		public void ExportMesh(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, string path, Mesh mesh, Material[] materials, bool isCollider = false, bool castShadows = true)
@@ -205,578 +56,169 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return;
 			}
 
-			var meshId = mesh.GetInstanceID();
-			var materialGroupId = MeshExportUtility.GetMaterialGroupId(materials);
+			string objectId = isCollider ? MeshExportUtility.GetColliderObjectId(mesh) : MeshExportUtility.GetMeshObjectId(mesh);
+			string materialGroupId = isCollider ? null : MeshExportUtility.GetMaterialGroupId(materials);
 
-			s_pendingObject[(path, meshId, materialGroupId)] = (materials, mesh, isCollider, castShadows);
+			s_pendingObjects[new PendingKey(path, objectId, materialGroupId, isCollider)] = new ExportMeshEntry(mesh, materials, isCollider, castShadows);
 		}
 
-		public void RebuildAndSafeAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
-            => RebuildAndSaveAsync(collectionProvider, fileProvider, null, CancellationToken.None, false).GetAwaiter().GetResult();
-
-        public async Task RebuildAndSaveAsync(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, Action<float> progress, CancellationToken token, bool cooperative = true)
-        {
-            try
-            {
-			foreach (var valueTuple in s_pendingObject)
-			{
-				var path = valueTuple.Key.Item1;
-				var meshId = valueTuple.Key.Item2;
-				var isCollider = valueTuple.Value.isCollider;
-				var groupId = isCollider ? meshId : MeshExportUtility.GetMaterialGroupId(valueTuple.Value.materials);
-				var key = (path, groupId, isCollider);
-
-				if (!s_pendingObjectByMaterial.TryGetValue(key, out var value))
-				{
-					s_pendingObjectByMaterial.Add(key, (path, valueTuple.Value.materials, new List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)>()));
-					value = s_pendingObjectByMaterial[key];
-				}
-
-				value.meshes.Add((valueTuple.Value.mesh, valueTuple.Value.materials, valueTuple.Value.isCollider, valueTuple.Value.castShadows));
-			}
-
-			int processedCount = 0;
-			foreach (KeyValuePair<(string path, int groupId, bool isCollider), (string path, Material[] materials, List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshes)> pen in s_pendingObjectByMaterial)
-			{
-				Material[] currentMaterials = pen.Value.materials;
-				List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> meshesToProcess = pen.Value.meshes;
-
-				string name = pen.Key.isCollider
-					? "collider_" + pen.Key.groupId
-					: (pen.Key.groupId == -1 ? "empty" : pen.Key.groupId.ToString());
-
-				string mtlPath = Path.Combine(pen.Value.path, name + ".mtl");
-
-				if (pen.Key.groupId != -1 && !pen.Key.isCollider)
-				{
-					BuildAllMaterial(collectionProvider, pen.Value.path, mtlPath, currentMaterials); // Pass currentMaterials
-				}
-
-				token.ThrowIfCancellationRequested();
-                progress?.Invoke((float)processedCount / s_pendingObjectByMaterial.Count);
-                if (cooperative) await Task.Delay(1, token);
-
-				string pathToObj = Path.Combine(pen.Value.path, name + (Binary ? BinaryModModelCodec.Extension : ".obj"));
-
-				if (!File.Exists(pathToObj))
-				{
-					if (Binary)
-                    {
-                        var model = CollectBinary(name, meshesToProcess);
-                        if (cooperative) await Task.Run(() => BinaryModModelCodec.Write(pathToObj, model), token);
-                        else BinaryModModelCodec.Write(pathToObj, model);
-                    }
-                    else
-                    {
-					string objString = BuildFullObj(meshesToProcess, name);
-					Directory.CreateDirectory(Path.GetDirectoryName(pathToObj));
-					if (cooperative) await Task.Run(() => File.WriteAllText(pathToObj, objString, Encoding.UTF8), token);
-                        else File.WriteAllText(pathToObj, objString, Encoding.UTF8);
-                    }
-				}
-
-				StringBuilder str = new StringBuilder();
-				string materialNames = currentMaterials != null
-					? string.Join(",", currentMaterials.Where(m => m != null).Select(m => m.name))
-					: string.Empty;
-				str.Append("mat - " + name + "|" + materialNames + "/" + "obj -");
-				for (int i = 0; i < meshesToProcess.Count; i++)
-				{
-					str.Append(meshesToProcess[i].mesh.name + $"{meshesToProcess[i].mesh.GetHashCode()} | ");
-				}
-
-				Debug.Log(str.ToString());
-
-				processedCount++;
-			}
-
-			foreach (string directory in s_pendingObjectByMaterial.Keys.Select(key => key.path).Distinct())
-				DeduplicatePbrTextures(directory);
-
-            }
-            finally
-            {
-			s_pendingObject.Clear();
-			s_pendingObjectByMaterial.Clear();
-			s_processedTexturePaths.Clear();
-            }
-		}
-
-		private static void BuildAllMaterial(IModCollectionProvider collectionProvider, string path, string mtlPath,
-			params Material[] materials)
+		public void RebuildAndSaveAll(IModCollectionProvider collectionProvider, IModFileProvider fileProvider)
 		{
-			if (materials.Length > 0)
-			{
-				string newMtlContent = BuildMtl(collectionProvider, materials, path);
+			RebuildAndSaveAsync(collectionProvider, fileProvider, progress: null, cooperative: false, CancellationToken.None).GetAwaiter().GetResult();
+		}
 
-				if (!File.Exists(mtlPath))
+		public async Task RebuildAndSaveAsync(IModCollectionProvider collectionProvider, IModFileProvider fileProvider, Action<float> progress, bool cooperative, CancellationToken cancellationToken)
+		{
+			try
+			{
+				List<ExportGroup> groups = GroupPendingObjects();
+
+				for (int i = 0; i < groups.Count; i++)
 				{
-					Directory.CreateDirectory(Path.GetDirectoryName(mtlPath));
-					File.WriteAllText(mtlPath, newMtlContent, Encoding.UTF8);
+					cancellationToken.ThrowIfCancellationRequested();
+					progress?.Invoke((float)i / groups.Count);
+
+					if (cooperative)
+					{
+						await Task.Delay(1, cancellationToken);
+					}
+
+					await WriteGroupAsync(collectionProvider, groups[i], cooperative, cancellationToken);
+				}
+
+				foreach (string directory in groups.Select(group => group.directory).Distinct())
+				{
+					PbrTextureDeduplicator.Deduplicate(directory);
+				}
+			}
+			finally
+			{
+				s_pendingObjects.Clear();
+				ExportTextureUtility.ClearCache();
+				MeshExportUtility.ClearCache();
+				ExportImporterSettings.RestoreAll();
+			}
+		}
+
+		private static List<ExportGroup> GroupPendingObjects()
+		{
+			var groups = new Dictionary<(string directory, string name), ExportGroup>();
+
+			foreach (KeyValuePair<PendingKey, ExportMeshEntry> pending in s_pendingObjects)
+			{
+				PendingKey key = pending.Key;
+				string name = key.isCollider ? key.objectId : key.materialGroupId ?? EmptyGroupName;
+
+				if (!groups.TryGetValue((key.directory, name), out ExportGroup group))
+				{
+					group = new ExportGroup(key.directory, name, pending.Value.materials, key.isCollider || key.materialGroupId == null);
+					groups.Add((key.directory, name), group);
+				}
+
+				group.meshes.Add(pending.Value);
+			}
+
+			return groups.Values.ToList();
+		}
+
+		private async Task WriteGroupAsync(IModCollectionProvider collectionProvider, ExportGroup group, bool cooperative, CancellationToken cancellationToken)
+		{
+			if (!group.skipMaterials)
+			{
+				WriteMaterials(collectionProvider, group);
+			}
+
+			string modelPath = Path.Combine(group.directory, group.name + (Binary ? BinaryModModelCodec.Extension : ".obj"));
+			Directory.CreateDirectory(group.directory);
+
+			// Файл перезаписывается всегда: при повторном экспорте в тот же каталог изменённая геометрия не должна теряться.
+			if (Binary)
+			{
+				BinaryModModel model = BinaryModelCollector.Collect(group.name, group.meshes);
+
+				if (cooperative)
+				{
+					await Task.Run(() => BinaryModModelCodec.Write(modelPath, model), cancellationToken);
 				}
 				else
 				{
-					File.AppendAllText(mtlPath, newMtlContent, Encoding.UTF8);
-				}
-			}
-		}
-
-		private static string BuildFullObj(List<(Mesh mesh, Material[] materials, bool isCollider, bool castShadows)> mesh, string groupName)
-		{
-			ObjOffset offset = new ObjOffset();
-
-			var sb = new StringBuilder();
-			sb.AppendFormat("mtllib {0}.mtl", groupName).AppendLine();
-
-			for (int i = 0; i < mesh.Count; i++)
-			{
-				var currentMesh = mesh[i].mesh;
-				var currentUvs = currentMesh.uv;
-				var currentNormals = currentMesh.normals;
-
-				BuildAppendableObjData(sb, offset, currentMesh, mesh[i].materials, mesh[i].isCollider, mesh[i].castShadows);
-				offset.vertices += currentMesh.vertexCount;
-				offset.uvs += currentUvs?.Length ?? 0;
-				offset.normals += currentNormals?.Length ?? 0;
-			}
-
-			return sb.ToString();
-		}
-
-		private static StringBuilder BuildAppendableObjData(StringBuilder sb, ObjOffset offsets, Mesh mesh, Material[] materials, bool isCollider = false, bool castShadows = true)
-		{
-			var objectId = isCollider ? MeshExportUtility.GetColliderObjectId(mesh) : MeshExportUtility.GetMeshObjectId(mesh);
-			sb.AppendFormat("o {0}", objectId).AppendLine();
-
-			if (!castShadows && !isCollider)
-			{
-				sb.AppendLine("#shadow off");
-			}
-
-			var vertexColors = mesh.colors;
-			int vertexIndex = 0;
-			foreach (var v in mesh.vertices)
-			{
-				sb.AppendFormat(CultureInfo.InvariantCulture, "v {0:F6} {1:F6} {2:F6}", v.x, v.y, v.z).AppendLine();
-				var color = vertexIndex < vertexColors.Length ? vertexColors[vertexIndex] : Color.white;
-				sb.AppendFormat(CultureInfo.InvariantCulture, "vc {0:R} {1:R} {2:R} {3:R}", color.r, color.g, color.b, color.a).AppendLine();
-				vertexIndex++;
-			}
-
-			foreach (var vn in mesh.normals)
-			{
-				sb.AppendFormat(CultureInfo.InvariantCulture, "vn {0:F6} {1:F6} {2:F6}", vn.x, vn.y, vn.z).AppendLine();
-			}
-
-			foreach (var uv in mesh.uv)
-			{
-				sb.AppendFormat(CultureInfo.InvariantCulture, "vt {0:F6} {1:F6}", uv.x, uv.y).AppendLine();
-			}
-
-			for (var u = 0; u < mesh.subMeshCount; u++)
-			{
-				string materialName = "empty";
-				if (materials != null && materials.Length > 0)
-				{
-					var mat = materials[Mathf.Min(u, materials.Length - 1)];
-					if (mat != null)
-					{
-						materialName = GetStableObjectId(mat);
-					}
-				}
-
-				sb.AppendFormat("usemtl {0}", materialName).AppendLine();
-
-				var tr = mesh.GetTriangles(u);
-				for (var k = 0; k < tr.Length; k += 3)
-				{
-					int i1 = tr[k] + 1;
-					int i2 = tr[k + 1] + 1;
-					int i3 = tr[k + 2] + 1;
-
-					sb.AppendFormat(CultureInfo.InvariantCulture, "f {0}/{1}/{2} {3}/{4}/{5} {6}/{7}/{8}",
-							i1 + offsets.vertices, i1 + offsets.uvs, i1 + offsets.normals, i2 + offsets.vertices,
-							i2 + offsets.uvs, i2 + offsets.normals, i3 + offsets.vertices, i3 + offsets.uvs,
-							i3 + offsets.normals)
-						.AppendLine();
-				}
-			}
-
-			return sb;
-		}
-
-		private static string BuildMtl(IModCollectionProvider collectionProvider, Material[] mats, string dir)
-		{
-			var mtl = new StringBuilder();
-			var writtenInThisFile = new HashSet<int>();
-
-			foreach (Material m in mats)
-			{
-				if (m == null)
-				{
-					continue;
-				}
-
-				if (!writtenInThisFile.Add(m.GetInstanceID()))
-				{
-					continue;
-				}
-
-				mtl.AppendFormat("newmtl {0}", GetStableObjectId(m)).AppendLine();
-				string layeredPbr = WriteLayeredPbr(m, dir);
-				if (layeredPbr != null) mtl.Append("cx_pbr ").AppendLine(layeredPbr);
-
-				MaterialBlendMode blendMode = DetectMaterialBlendMode(m);
-				int illuminationModel = blendMode switch
-				{
-					MaterialBlendMode.Opaque => 2,
-					MaterialBlendMode.AlphaTest => 1,
-					_ => 4
-				};
-
-				mtl.AppendFormat("illum {0}", illuminationModel).AppendLine();
-
-				bool isDoubleSided = (m.HasProperty("_DoubleSidedEnable") && m.GetFloat("_DoubleSidedEnable") > 0f)
-					|| (m.HasProperty("_CullMode") && m.GetFloat("_CullMode") == 0f)
-					|| (m.HasProperty("_Cull") && m.GetFloat("_Cull") == 0f);
-
-				if (isDoubleSided)
-				{
-					bool flipNormals = m.HasProperty("_DoubleSidedNormalMode") && m.GetFloat("_DoubleSidedNormalMode") < 1.5f;
-					mtl.AppendLine(flipNormals ? "ds 1" : "ds 2");
-				}
-
-				if (m.HasProperty("_BaseColor"))
-				{
-					var c = m.GetColor("_BaseColor");
-					mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
-
-					if (blendMode != MaterialBlendMode.Opaque)
-					{
-						mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", c.a).AppendLine();
-					}
-				}
-				else if (m.HasProperty("_BaseColor0"))
-				{
-					var c = m.GetColor("_BaseColor0");
-					mtl.AppendFormat(CultureInfo.InvariantCulture, "Kd {0:F6} {1:F6} {2:F6}", c.r, c.g, c.b).AppendLine();
-
-					if (blendMode != MaterialBlendMode.Opaque)
-					{
-						mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", c.a).AppendLine();
-					}
-				}
-				else
-				{
-					if (blendMode != MaterialBlendMode.Opaque)
-					{
-						mtl.AppendFormat(CultureInfo.InvariantCulture, "d 1.0").AppendLine();
-					}
-				}
-
-				ProcessBaseTexture(collectionProvider, m, dir, mtl, blendMode);
-				ProcessNormalMap(collectionProvider, m, dir, mtl);
-				ProcessMaskMap(collectionProvider, m, dir, mtl);
-				ProcessEmission(collectionProvider, m, dir, mtl);
-			}
-
-			return mtl.ToString();
-		}
-
-		private static string GetTilingOptions(Material m, string property)
-		{
-			if (string.IsNullOrEmpty(property) || !m.HasProperty(property))
-			{
-				return string.Empty;
-			}
-
-			var scale = m.GetTextureScale(property);
-			var offset = m.GetTextureOffset(property);
-
-			if (scale == Vector2.one && offset == Vector2.zero)
-			{
-				return string.Empty;
-			}
-
-			return string.Format(CultureInfo.InvariantCulture, "-s {0:F6} {1:F6} 1 -o {2:F6} {3:F6} 0 ",
-				scale.x, scale.y, offset.x, offset.y);
-		}
-
-		private static Texture2D GetTexture2D(Material m, string property)
-		{
-			var texture = m.GetTexture(property);
-			if (texture == null)
-			{
-				return null;
-			}
-
-			var texture2D = texture as Texture2D;
-			if (texture2D == null)
-			{
-				Debug.LogWarning($"[ObjExporter] Material '{m.name}' property '{property}' holds a {texture.GetType().Name}, only Texture2D can be exported. Skipped.", m);
-			}
-
-			return texture2D;
-		}
-
-		private static void ProcessBaseTexture(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl, MaterialBlendMode blendMode)
-		{
-			Texture2D baseMap = null;
-			string baseProperty = null;
-			if (m.HasProperty("_BaseColorMap"))
-			{
-				baseMap = GetTexture2D(m, "_BaseColorMap");
-				baseProperty = "_BaseColorMap";
-			}
-			if (baseMap == null && m.HasProperty("_BaseColorMap0"))
-			{
-				baseMap = GetTexture2D(m, "_BaseColorMap0");
-				baseProperty = "_BaseColorMap0";
-			}
-			if (baseMap == null && m.HasProperty("_MainTex"))
-			{
-				baseMap = GetTexture2D(m, "_MainTex");
-				baseProperty = "_MainTex";
-			}
-
-			if (baseMap != null)
-			{
-				string hash = GetStableObjectId(baseMap);
-				string tilingOptions = GetTilingOptions(m, baseProperty);
-				baseMap = SetTextureReadable(baseMap);
-				baseMap.name = hash + "_base";
-				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
-
-				mtl.AppendFormat("map_Kd {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
-
-				if (blendMode != MaterialBlendMode.Opaque)
-				{
-					baseMap.name = hash + "_dissolve";
-					mtl.AppendFormat("map_d {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false))).AppendLine();
-				}
-
-				if (!s_processedTexturePaths.Contains(pathModRes))
-				{
-					baseMap.name = hash + "_base";
-					baseMap = SetTextureReadable(baseMap);
-
-					collectionProvider.PackingModResource(collectionProvider, baseMap, dir, false);
-					s_processedTexturePaths.Add(pathModRes);
-				}
-
-				baseMap.name = hash + "_dissolve";
-				pathModRes = collectionProvider.GetModResourcePath(collectionProvider, baseMap, dir, false);
-
-				if (!s_processedTexturePaths.Contains(pathModRes) && blendMode != MaterialBlendMode.Opaque)
-				{
-					var alpha = Blit(baseMap, 1);
-					alpha.name = hash + "_dissolve";
-					alpha = SetTextureReadable(alpha);
-
-					collectionProvider.PackingModResource(collectionProvider, alpha, dir, false);
-					s_processedTexturePaths.Add(pathModRes);
-				}
-			}
-		}
-
-		private static void ProcessNormalMap(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
-		{
-			Texture2D normalMap = null;
-			string normalProperty = null;
-			float normalScale = 1f;
-
-			if (m.HasProperty("_NormalMap0"))
-			{
-				normalMap = GetTexture2D(m, "_NormalMap0");
-				normalProperty = "_NormalMap0";
-				normalScale = m.GetFloat("_NormalScale0");
-			}
-
-			if (normalMap == null && m.HasProperty("_NormalMap"))
-			{
-				normalMap = GetTexture2D(m, "_NormalMap");
-				normalProperty = "_NormalMap";
-				normalScale = m.GetFloat("_NormalScale");
-			}
-
-			if (normalMap != null)
-			{
-				string stableId = GetStableObjectId(normalMap);
-				string tilingOptions = GetTilingOptions(m, normalProperty);
-
-				var unpackedNormal = Blit(normalMap, 3, normalScale);
-				string scaleSuffix = Mathf.Approximately(normalScale, 1f)
-					? string.Empty
-					: "_x" + normalScale.ToString("F2", CultureInfo.InvariantCulture).Replace('.', '_');
-				unpackedNormal.name = stableId + "_normal" + scaleSuffix;
-				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, unpackedNormal, dir, false);
-
-				if (!s_processedTexturePaths.Contains(pathModRes))
-				{
-					collectionProvider.PackingModResource(collectionProvider, unpackedNormal, dir, false);
-					s_processedTexturePaths.Add(pathModRes);
-				}
-
-				mtl.AppendFormat("map_Bump {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
-			}
-		}
-
-		private static void ProcessMaskMap(IModCollectionProvider collectionProvider, Material m, string dir,
-			StringBuilder mtl)
-		{
-			Texture2D maskMap = null;
-			string maskProperty = null;
-			if (m.HasProperty("_MaskMap0"))
-			{
-				maskMap = GetTexture2D(m, "_MaskMap0");
-				maskProperty = "_MaskMap0";
-			}
-			if (maskMap == null && m.HasProperty("_MaskMap"))
-			{
-				maskMap = GetTexture2D(m, "_MaskMap");
-				maskProperty = "_MaskMap";
-			}
-
-			if (maskMap != null)
-			{
-				string stableId = GetStableObjectId(maskMap);
-				string tilingOptions = GetTilingOptions(m, maskProperty);
-
-				// HDRP mask map alpha is smoothness, map_Pr expects roughness — use the inverted-alpha pass
-				var roughnessTex = Blit(maskMap, 2);
-				roughnessTex = SetTextureReadable(roughnessTex);
-				roughnessTex.name = stableId + "_roughness";
-				var roughnessPath = collectionProvider.GetModResourcePath(collectionProvider, roughnessTex, dir, false);
-
-				if (s_processedTexturePaths.Contains(roughnessPath))
-				{
-					mtl.AppendFormat("map_Pr {0}{1}", tilingOptions, Path.GetFileName(roughnessPath)).AppendLine();
-				}
-				else
-				{
-					mtl.AppendFormat("map_Pr {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, roughnessTex, dir, false))).AppendLine();
-					s_processedTexturePaths.Add(roughnessPath);
-				}
-
-				var metallicTex = Blit(maskMap, 0);
-				metallicTex = SetTextureReadable(metallicTex);
-				metallicTex.name = stableId + "_metallic";
-				var metallicPath = collectionProvider.GetModResourcePath(collectionProvider, metallicTex, dir, false);
-
-				if (s_processedTexturePaths.Contains(metallicPath))
-				{
-					mtl.AppendFormat("map_Pm {0}{1}", tilingOptions, Path.GetFileName(metallicPath)).AppendLine();
-				}
-				else
-				{
-					mtl.AppendFormat("map_Pm {0}{1}", tilingOptions, Path.GetFileName(collectionProvider.PackingModResource(collectionProvider, metallicTex, dir, false))).AppendLine();
-					s_processedTexturePaths.Add(metallicPath);
+					BinaryModModelCodec.Write(modelPath, model);
 				}
 			}
 			else
 			{
-				float smoothness = 0.0f;
-				if (m.HasProperty("_Smoothness"))
-				{
-					smoothness = m.GetFloat("_Smoothness");
-				}
-				else if (m.HasProperty("_Glossiness"))
-				{
-					smoothness = m.GetFloat("_Glossiness");
-				}
+				string objText = ObjTextBuilder.Build(group.meshes, group.name);
 
-				float metallic = m.HasProperty("_Metallic") ? m.GetFloat("_Metallic") : 0.0f;
-
-				mtl.AppendFormat(CultureInfo.InvariantCulture, "Pr {0:F6}", 1.0f - smoothness).AppendLine();
-				mtl.AppendFormat(CultureInfo.InvariantCulture, "Pm {0:F6}", metallic).AppendLine();
+				if (cooperative)
+				{
+					await Task.Run(() => File.WriteAllText(modelPath, objText, Encoding.UTF8), cancellationToken);
+				}
+				else
+				{
+					File.WriteAllText(modelPath, objText, Encoding.UTF8);
+				}
 			}
 		}
 
-		private static void ProcessEmission(IModCollectionProvider collectionProvider, Material m, string dir, StringBuilder mtl)
+		private static void WriteMaterials(IModCollectionProvider collectionProvider, ExportGroup group)
 		{
-			Color emissiveColor = Color.black;
-			if (m.HasProperty("_EmissiveColor"))
-			{
-				emissiveColor = m.GetColor("_EmissiveColor");
-			}
-			else if (m.HasProperty("_EmissionColor") && m.IsKeywordEnabled("_EMISSION"))
-			{
-				emissiveColor = m.GetColor("_EmissionColor");
-			}
-
-			// HDRP multiplies the emissive map by _EmissiveColor, so a black color means no emission either way
-			if (emissiveColor.maxColorComponent <= 0f)
+			if (group.materials == null || group.materials.Length == 0)
 			{
 				return;
 			}
 
-			mtl.AppendFormat(CultureInfo.InvariantCulture, "Ke {0:F6} {1:F6} {2:F6}", emissiveColor.r, emissiveColor.g, emissiveColor.b).AppendLine();
+			string mtlPath = Path.Combine(group.directory, group.name + ".mtl");
+			string mtlText = MtlMaterialWriter.Build(collectionProvider, group.materials, group.directory);
+			Directory.CreateDirectory(group.directory);
+			File.WriteAllText(mtlPath, mtlText, Encoding.UTF8);
+		}
 
-			Texture2D emissiveMap = null;
-			string emissiveProperty = null;
-			if (m.HasProperty("_EmissiveColorMap"))
+		private readonly struct PendingKey : IEquatable<PendingKey>
+		{
+			public readonly string directory;
+			public readonly string objectId;
+			public readonly string materialGroupId;
+			public readonly bool isCollider;
+
+			public PendingKey(string directory, string objectId, string materialGroupId, bool isCollider)
 			{
-				emissiveMap = GetTexture2D(m, "_EmissiveColorMap");
-				emissiveProperty = "_EmissiveColorMap";
+				this.directory = directory;
+				this.objectId = objectId;
+				this.materialGroupId = materialGroupId;
+				this.isCollider = isCollider;
 			}
-			if (emissiveMap == null && m.HasProperty("_EmissionMap"))
+
+			public bool Equals(PendingKey other)
 			{
-				emissiveMap = GetTexture2D(m, "_EmissionMap");
-				emissiveProperty = "_EmissionMap";
+				return directory == other.directory && objectId == other.objectId && materialGroupId == other.materialGroupId && isCollider == other.isCollider;
 			}
 
-			if (emissiveMap != null)
+			public override bool Equals(object obj)
 			{
-				string hash = GetStableObjectId(emissiveMap);
-				string tilingOptions = GetTilingOptions(m, emissiveProperty);
-				emissiveMap = SetTextureReadable(emissiveMap);
-				emissiveMap.name = hash + "_emissive";
-				var pathModRes = collectionProvider.GetModResourcePath(collectionProvider, emissiveMap, dir, false);
+				return obj is PendingKey other && Equals(other);
+			}
 
-				if (!s_processedTexturePaths.Contains(pathModRes))
-				{
-					collectionProvider.PackingModResource(collectionProvider, emissiveMap, dir, false);
-					s_processedTexturePaths.Add(pathModRes);
-				}
-
-				mtl.AppendFormat("map_Ke {0}{1}", tilingOptions, Path.GetFileName(pathModRes)).AppendLine();
+			public override int GetHashCode()
+			{
+				return HashCode.Combine(directory, objectId, materialGroupId, isCollider);
 			}
 		}
 
-		private static Texture2D Blit(Texture2D texture, int pass, float normalScale = 1f)
+		private sealed class ExportGroup
 		{
-			if (s_blitMat == null)
+			public readonly string directory;
+			public readonly string name;
+			public readonly Material[] materials;
+			public readonly bool skipMaterials;
+			public readonly List<ExportMeshEntry> meshes = new();
+
+			public ExportGroup(string directory, string name, Material[] materials, bool skipMaterials)
 			{
-				s_blitMat = new Material(Shader.Find("Hidden/ConvertingEx"));
+				this.directory = directory;
+				this.name = name;
+				this.materials = materials;
+				this.skipMaterials = skipMaterials;
 			}
-
-			s_blitMat.SetFloat("_NormalScale", normalScale);
-
-			texture = SetTextureReadable(texture);
-			var readableTexture = texture;
-
-			if (s_cachedRenderTexture == null || s_cachedRenderTexture.width != readableTexture.width || s_cachedRenderTexture.height != readableTexture.height)
-			{
-				if (s_cachedRenderTexture != null)
-				{
-					RenderTexture.ReleaseTemporary(s_cachedRenderTexture);
-				}
-
-				s_cachedRenderTexture = RenderTexture.GetTemporary(readableTexture.width, readableTexture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
-			}
-
-			s_blitMat.SetVector("_MainTex_ST", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-			Graphics.Blit(readableTexture, s_cachedRenderTexture, s_blitMat, pass);
-
-			var resultTexture = new Texture2D(readableTexture.width, readableTexture.height, TextureFormat.RGBA32, false);
-			resultTexture.hideFlags = HideFlags.HideAndDontSave;
-
-			RenderTexture.active = s_cachedRenderTexture;
-			resultTexture.ReadPixels(new Rect(0, 0, s_cachedRenderTexture.width, s_cachedRenderTexture.height), 0, 0);
-			RenderTexture.active = null;
-			resultTexture.Apply(false, false);
-
-			return resultTexture;
 		}
 	}
 }

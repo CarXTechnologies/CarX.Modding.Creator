@@ -40,14 +40,19 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			m_defaultVersion = defaultVersion;
 		}
 
+		public bool SupportsVersion(string version)
+		{
+			return providers.Any(provider => provider.version == version && provider.providers != null);
+		}
+
 		private VersionProvider FindVersionProvider(string version)
 		{
 			VersionProvider versionProvider = providers.FirstOrDefault(provider => provider.version == version);
 
-			if (versionProvider.version == string.Empty || versionProvider.providers == null)
+			if (string.IsNullOrEmpty(versionProvider.version) || versionProvider.providers == null)
 			{
-				Debug.LogError($"Version provider is not found ({version})");
-				return default(VersionProvider);
+				// Понятная ошибка вместо ArgumentNullException ниже по стеку: мод собран более новым SDK.
+				throw new InvalidDataException($"Mod format version '{version}' is not supported by this game client. Update the game.");
 			}
 
 			return versionProvider;

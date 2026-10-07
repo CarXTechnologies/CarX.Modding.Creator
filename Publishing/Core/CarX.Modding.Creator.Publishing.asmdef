@@ -1,0 +1,18 @@
+{
+    "name": "CarX.Modding.Creator.Publishing",
+    "rootNamespace": "Plugins.CarX.Modding.Creator.Runtime.Publishing",
+    "references": [
+        "CarX.Modding.Creator"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

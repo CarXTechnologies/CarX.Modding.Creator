@@ -12,49 +12,69 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 	/// </summary>
 	/// <remarks>
 	/// Each vendor implementation lives behind a define constraint so that a project which only ships one of them
-	/// never has to carry the other's SDK. Asking a person to tick the right define by hand would make dropping the
-	/// submodule into a new project a two step affair with a confusing failure mode, so the defines are derived from
-	/// which vendor assemblies got loaded instead.
+	/// never has to carry the other's SDK. The defines are derived from which vendor assemblies got loaded.
+	/// Синхронизация не выполняется на загрузке домена: её запускает только работа с публикацией
+	/// (<see cref="ModPublisherSession"/>) или пункт меню. Проект, который ничего не публикует (игра),
+	/// дефайны не меняет и задаёт их явно, если они ему нужны.
 	/// </remarks>
-	[InitializeOnLoad]
 	public static class ModPublishingDefines
 	{
 		public const string SteamDefine = "CARX_MODDING_STEAM";
 		public const string ModIoDefine = "CARX_MODDING_MODIO";
 
 		/// <summary>Assembly name prefixes that mean the vendor SDK is present, keyed by the define they enable.</summary>
-		private static readonly (string define, string[] assemblyPrefixes)[] VendorSdks =
+		private static readonly (string define, string[] assemblyPrefixes)[] s_vendorSdks =
 		{
 			(SteamDefine, new[] { "Facepunch.Steamworks" }),
 			(ModIoDefine, new[] { "Modio" }),
 		};
 
-		static ModPublishingDefines()
+		private static bool s_syncScheduled;
+
+		/// <summary>
+		/// Откладывает <see cref="Sync"/> до следующего тика редактора: смена дефайнов запускает перекомпиляцию,
+		/// её нельзя начинать посреди загрузки домена или работы окна.
+		/// </summary>
+		public static void ScheduleSync()
 		{
-			// Deferred: touching PlayerSettings from a static constructor during domain load can race the asset
-			// database, and changing defines here would kick off a second reload before the first one settled.
-			EditorApplication.delayCall += Sync;
+			if (s_syncScheduled)
+			{
+				return;
+			}
+
+			s_syncScheduled = true;
+			EditorApplication.delayCall += () =>
+			{
+				s_syncScheduled = false;
+				Sync();
+			};
+		}
+
+		[MenuItem("ModSystem/Sync Publishing Defines")]
+		private static void SyncFromMenu()
+		{
+			Sync();
 		}
 
 		/// <summary>Recomputes the vendor defines. Triggers a recompile only when something actually changed.</summary>
 		public static void Sync()
 		{
-			var buildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+			NamedBuildTarget buildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
 
-			PlayerSettings.GetScriptingDefineSymbols(buildTarget, out var current);
+			PlayerSettings.GetScriptingDefineSymbols(buildTarget, out string[] current);
 			var defines = new List<string>(current);
-			var changed = false;
+			bool changed = false;
 
-			var loaded = AppDomain.CurrentDomain.GetAssemblies()
+			string[] loaded = AppDomain.CurrentDomain.GetAssemblies()
 				.Select(assembly => assembly.GetName().Name)
 				.ToArray();
 
-			foreach (var (define, prefixes) in VendorSdks)
+			foreach (var (define, prefixes) in s_vendorSdks)
 			{
-				var present = prefixes.Any(prefix => loaded.Any(
+				bool present = prefixes.Any(prefix => loaded.Any(
 					name => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)));
 
-				var defined = defines.Contains(define);
+				bool defined = defines.Contains(define);
 
 				if (present == defined)
 				{

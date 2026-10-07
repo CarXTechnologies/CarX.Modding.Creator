@@ -11,7 +11,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class SceneFormatCollector : IModResultCollector
 	{
 		private readonly Transform[] m_roots;
-        public SceneExportOptimization Optimization { get; set; }
+		public SceneExportOptimization Optimization { get; set; }
 		private readonly string m_sceneName;
 		private readonly string m_tagGarbage;
 		private List<Transform> m_animationRoots;
@@ -20,35 +20,35 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public SceneFormatCollector(Transform root, string sceneName, string tagGarbage)
 		: this(new[] { root }, sceneName, tagGarbage) { }
 
-        public SceneFormatCollector(IEnumerable<Transform> roots, string sceneName, string tagGarbage)
-        {
-            m_roots = ModsUtility.NormalizeExportRoots(roots);
+		public SceneFormatCollector(IEnumerable<Transform> roots, string sceneName, string tagGarbage)
+		{
+			m_roots = ModsUtility.NormalizeExportRoots(roots);
 			m_sceneName = sceneName;
 			m_tagGarbage = tagGarbage;
 		}
 
 		public ModResults CollectModResults(IModCollectionProvider collectionProvider, string version)
 		{
-            RigidbodyExporter.EnsureMeshReadability(m_roots);
+			RigidbodyExporter.EnsureMeshReadability(m_roots);
 			var modResults = new ModResults(collectionProvider);
 			m_animationRoots = VertexAnimationBaker.GetAnimationRoots(m_roots, IsGarbage);
 			var bodies = m_roots.GetComponentsInChildren<Rigidbody>(false).Where(b => !IsGarbage(b.transform)).ToArray();
-            m_rigidbodyIds = new Dictionary<Rigidbody, int>();
-            var rigidbodies = new List<RigidbodyInstance>();
-            foreach (var body in bodies)
-            {
-                var instance = RigidbodyExporter.Collect(body, IsGarbage);
-                if (instance == null) continue;
-                rigidbodies.Add(instance);
-                m_rigidbodyIds.Add(body, rigidbodies.Count);
-            }
-            if (m_rigidbodyIds.Keys.Any(b => m_animationRoots.Any(a => b.transform != a && b.transform.IsChildOf(a))))
-                throw new InvalidOperationException("Put Rigidbody on the Animator root or above it; a baked animation cannot contain independent moving bodies.");
-            var animations = VertexAnimationBaker.Collect(m_roots, m_sceneName, version, IsGarbage, t =>
-            {
-                var body = t.GetComponentInParent<Rigidbody>();
-                return body != null && m_rigidbodyIds.TryGetValue(body, out var id) ? id : 0;
-            });
+			m_rigidbodyIds = new Dictionary<Rigidbody, int>();
+			var rigidbodies = new List<RigidbodyInstance>();
+			foreach (var body in bodies)
+			{
+				var instance = RigidbodyExporter.Collect(body, IsGarbage);
+				if (instance == null) continue;
+				rigidbodies.Add(instance);
+				m_rigidbodyIds.Add(body, rigidbodies.Count);
+			}
+			if (m_rigidbodyIds.Keys.Any(b => m_animationRoots.Any(a => b.transform != a && b.transform.IsChildOf(a))))
+				throw new InvalidOperationException("Put Rigidbody on the Animator root or above it; a baked animation cannot contain independent moving bodies.");
+			var animations = VertexAnimationBaker.Collect(m_roots, m_sceneName, version, IsGarbage, t =>
+			{
+				var body = t.GetComponentInParent<Rigidbody>();
+				return body != null && m_rigidbodyIds.TryGetValue(body, out var id) ? id : 0;
+			});
 			if (animations.instances.Count > 0) modResults.Add(animations);
 			var unityPrefabInstances = CollectUnityPrefabInstances(version);
 
@@ -70,11 +70,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private const float CandelaToGameIntensity = 0.1f;
 		private bool IsAnimationTransform(Transform transform) => m_animationRoots.Any(t => transform.IsChildOf(t));
-        private static bool IsInactiveRigidbodyTransform(Transform t)
-        {
-            var body = t.GetComponentInParent<Rigidbody>(true);
-            return body != null && !t.gameObject.activeInHierarchy;
-        }
+		private static bool IsInactiveRigidbodyTransform(Transform t)
+		{
+			var body = t.GetComponentInParent<Rigidbody>(true);
+			return body != null && !t.gameObject.activeInHierarchy;
+		}
 		private const float MaxGameIntensity = 5000f;
 
 		private static float ConvertToGameIntensity(Light light)
@@ -281,7 +281,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					return true;
 				}
-                if (Array.IndexOf(m_roots, cur) >= 0) break;
+				if (Array.IndexOf(m_roots, cur) >= 0) break;
 			}
 
 			return false;
@@ -306,7 +306,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				singleLODInfo.meshCollider = meshCollider.sharedMesh;
 			}
 			singleLODInfo.meshCollider = Optimization != null ? Optimization.ColliderMesh(o, singleLODInfo.meshCollider) : singleLODInfo.meshCollider;
-            singleLODInfo.primitiveColliders = CollectPrimitiveColliders(o);
+			singleLODInfo.primitiveColliders = CollectPrimitiveColliders(o);
 
 			if (relativeTo != null)
 			{
@@ -386,21 +386,22 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (lodInfo.mesh != null)
 			{
-				prefabInstance.mesh = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetMeshObjectId(lodInfo.mesh).ToString());
+				prefabInstance.mesh = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetMeshObjectId(lodInfo.mesh));
 			}
 
 			if (lodInfo.materials != null && lodInfo.materials.Length > 0)
 			{
-				var materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.materials);
-				if (materialGroupId != -1)
+				string materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.materials);
+
+				if (materialGroupId != null)
 				{
-					prefabInstance.material = Path.Combine(provider.GetSubCatalog(), materialGroupId.ToString());
+					prefabInstance.material = Path.Combine(provider.GetSubCatalog(), materialGroupId);
 				}
 			}
 
 			if (lodInfo.meshCollider != null)
 			{
-				prefabInstance.collider = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetColliderObjectId(lodInfo.meshCollider).ToString());
+				prefabInstance.collider = Path.Combine(provider.GetSubCatalog(), MeshExportUtility.GetColliderObjectId(lodInfo.meshCollider));
 			}
 
 			return prefabInstance;
@@ -462,9 +463,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 
 				var body = transform.GetComponentInParent<Rigidbody>();
-                int bodyId = body != null && m_rigidbodyIds.TryGetValue(body, out var foundBodyId) ? foundBodyId : 0;
-                var instanceId = o.GetInstanceID();
-                if (!unityPrefabInstances.TryGetValue(instanceId, out var unityPrefabInstance))
+				int bodyId = body != null && m_rigidbodyIds.TryGetValue(body, out var foundBodyId) ? foundBodyId : 0;
+				var instanceId = o.GetInstanceID();
+				if (!unityPrefabInstances.TryGetValue(instanceId, out var unityPrefabInstance))
 				{
 					return;
 				}

@@ -3,6 +3,7 @@
     "rootNamespace": "Plugins.CarX.Modding.Creator.Publishing.ModIo",
     "references": [
         "CarX.Modding.Creator",
+        "CarX.Modding.Creator.Publishing",
         "Modio",
         "Modio.Unity"
     ],
