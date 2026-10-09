@@ -252,7 +252,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return new Vector4(remapMin, remapMax, multiplier, 0.0f);
 		}
 
-		private static string GetAlphaRemapSuffix(Vector4 alphaRemap)
+		/// <summary>
+		/// Суффикс имени текстуры с запечённой альфой (x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа);
+		/// пустой для тождественного ремапа. Общий для map_d HDRP Lit и diffuse слоёв Layered Lit.
+		/// </summary>
+		public static string GetAlphaRemapSuffix(Vector4 alphaRemap)
 		{
 			bool isIdentityRange = Mathf.Approximately(alphaRemap.x, 0.0f) && Mathf.Approximately(alphaRemap.y, 1.0f);
 

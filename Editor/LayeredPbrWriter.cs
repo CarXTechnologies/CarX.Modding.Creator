@@ -28,6 +28,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			int count = Mathf.Clamp((int)material.GetFloat("_LayerCount"), 2, 4);
 			Directory.CreateDirectory(directory);
 
+			ModPbrSurfaceType surface = GetSurfaceType(material);
+			float cutoff = GetFloat(material, "_AlphaCutoffEnable", fallback: 0) > 0 ? GetFloat(material, "_AlphaCutoff", fallback: 0.5f) : 0;
+
 			var data = new ModPbrMaterial
 			{
 				layers = new ModPbrLayer[count],
@@ -35,12 +38,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				blendUv = GetUv(material, "_LayerMaskMap"),
 				vertexBlend = GetVertexBlend(material),
 				doubleSided = GetFloat(material, "_DoubleSidedEnable", fallback: 0) > 0,
-				cutoff = GetFloat(material, "_AlphaCutoffEnable", fallback: 0) > 0 ? GetFloat(material, "_AlphaCutoff", fallback: 0.5f) : 0
+				cutoff = cutoff,
+				surface = surface
 			};
+
+			// Альфа слоёв нужна только прозрачному материалу и альфа-тесту: у непрозрачного без cutoff HDRP её не использует.
+			bool usesAlpha = surface != ModPbrSurfaceType.Opaque || cutoff > 0;
 
 			for (int i = 0; i < count; i++)
 			{
-				data.layers[i] = CreateLayer(material, i, directory);
+				data.layers[i] = CreateLayer(material, i, directory, usesAlpha);
 			}
 
 			string fileName = MeshExportUtility.GetStableObjectId(material) + ".pbr.json";
@@ -48,20 +55,39 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return fileName;
 		}
 
-		private static ModPbrLayer CreateLayer(Material material, int index, string directory)
+		/// <summary>
+		/// Слой документа. Alpha Remapping слоя запекается по формуле HDRP 17 (LitDataIndividualLayer):
+		/// альфа слоя = lerp(_AlphaRemapMin, _AlphaRemapMax, _BaseColorMap.a * _BaseColor.a) — в альфу копии diffuse
+		/// (тогда color.a = 1), а без карты — сразу в color.a. Альфа материала, как в HDRP, — сумма альф слоёв по весам.
+		/// </summary>
+		private static ModPbrLayer CreateLayer(Material material, int index, string directory, bool usesAlpha)
 		{
 			if (GetFloat(material, "_UVBase" + index, fallback: 0) != 0)
 			{
 				throw new InvalidDataException($"Layered Lit '{material.name}': layer {index} requires UV0 mapping for mod export.");
 			}
 
+			string baseKey = "_BaseColorMap" + index;
+			Color color = material.GetColor("_BaseColor" + index);
+			string diffuse;
+
+			if (usesAlpha && TryGetAlphaRemap(material, index, out Vector2 alphaRemap))
+			{
+				diffuse = WriteAlphaRemappedTexture(material, baseKey, alphaRemap, color.a, directory);
+				color.a = diffuse != null ? 1.0f : Mathf.Lerp(alphaRemap.x, alphaRemap.y, color.a);
+			}
+			else
+			{
+				diffuse = WriteTexture(material, baseKey, directory, normal: false);
+			}
+
 			return new ModPbrLayer
 			{
-				diffuse = WriteTexture(material, "_BaseColorMap" + index, directory, normal: false),
+				diffuse = diffuse,
 				normal = WriteTexture(material, "_NormalMap" + index, directory, normal: true),
 				mask = WriteTexture(material, "_MaskMap" + index, directory, normal: false),
-				color = material.GetColor("_BaseColor" + index),
-				uv = GetUv(material, "_BaseColorMap" + index),
+				color = color,
+				uv = GetUv(material, baseKey),
 				smoothness = GetFloat(material, "_Smoothness" + index, fallback: 0.5f),
 				metallic = GetFloat(material, "_Metallic" + index, fallback: 0),
 				normalScale = GetFloat(material, "_NormalScale" + index, fallback: 1),
@@ -74,6 +100,33 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					GetFloat(material, "_SmoothnessRemapMin" + index, fallback: 0),
 					GetFloat(material, "_SmoothnessRemapMax" + index, fallback: 1))
 			};
+		}
+
+		/// <summary>HDRP _SurfaceType: 0 — Opaque, 1 — Transparent. Blending Mode Additive/Premultiply клиент не поддерживает — смешивается как Alpha.</summary>
+		private static ModPbrSurfaceType GetSurfaceType(Material material)
+		{
+			if (GetFloat(material, "_SurfaceType", fallback: 0) < 0.5f)
+			{
+				return ModPbrSurfaceType.Opaque;
+			}
+
+			// HDRP _BlendMode: 0 — Alpha, 1 — Additive, 4 — Premultiply.
+			float blendMode = GetFloat(material, "_BlendMode", fallback: 0);
+
+			if (blendMode != 0)
+			{
+				Debug.LogWarning($"Layered Lit '{material.name}': transparent blending mode {blendMode} is not supported by the mod material format, exported as Alpha.");
+			}
+
+			return ModPbrSurfaceType.AlphaBlend;
+		}
+
+		/// <summary>Alpha Remapping слоя HDRP Layered Lit (_AlphaRemapMin{i}/_AlphaRemapMax{i}). false — ремапа нет или он тождественный (0..1).</summary>
+		private static bool TryGetAlphaRemap(Material material, int index, out Vector2 alphaRemap)
+		{
+			alphaRemap = new Vector2(GetFloat(material, "_AlphaRemapMin" + index, fallback: 0), GetFloat(material, "_AlphaRemapMax" + index, fallback: 1));
+
+			return !Mathf.Approximately(alphaRemap.x, 0) || !Mathf.Approximately(alphaRemap.y, 1);
 		}
 
 		private static int GetVertexBlend(Material material)
@@ -127,6 +180,58 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			finally
 			{
+				ExportTextureUtility.Release(readable, source);
+			}
+
+			return name;
+		}
+
+		/// <summary>
+		/// Копия diffuse с альфой lerp(min, max, a * <paramref name="colorAlpha"/>); RGB без изменений. Суффикс ремапа в имени —
+		/// чтобы не схлопнуть с копией той же карты без ремапа или с другим ремапом. null — у слоя нет карты.
+		/// </summary>
+		private static string WriteAlphaRemappedTexture(Material material, string key, Vector2 alphaRemap, float colorAlpha, string directory)
+		{
+			if (!material.HasProperty(key) || material.GetTexture(key) is not Texture2D source)
+			{
+				return null;
+			}
+
+			string suffix = MtlTextureMapWriter.GetAlphaRemapSuffix(new Vector4(alphaRemap.x, alphaRemap.y, colorAlpha, 0));
+			string name = MeshExportUtility.GetStableObjectId(source) + suffix + "_pbr.png";
+			string path = Path.Combine(directory, name);
+
+			if (ExportTextureUtility.IsProcessed(path))
+			{
+				return name;
+			}
+
+			Texture2D readable = ExportTextureUtility.AcquireReadable(source);
+			Texture2D remapped = null;
+
+			try
+			{
+				Color32[] pixels = readable.GetPixels32();
+
+				for (int i = 0; i < pixels.Length; i++)
+				{
+					float alpha = Mathf.Lerp(alphaRemap.x, alphaRemap.y, pixels[i].a / 255f * colorAlpha);
+					pixels[i].a = (byte)Mathf.RoundToInt(Mathf.Clamp01(alpha) * 255f);
+				}
+
+				remapped = new Texture2D(readable.width, readable.height, TextureFormat.RGBA32, mipChain: false);
+				remapped.SetPixels32(pixels);
+				remapped.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+				File.WriteAllBytes(path, remapped.EncodeToPNG());
+				ExportTextureUtility.MarkProcessed(path);
+			}
+			finally
+			{
+				if (remapped != null)
+				{
+					Object.DestroyImmediate(remapped);
+				}
+
 				ExportTextureUtility.Release(readable, source);
 			}
 

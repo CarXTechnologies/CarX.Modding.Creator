@@ -22,6 +22,7 @@
 - Кодстайл модуля: s_/m_ для полей, табы, BinaryTexturePreparation/MtlBinaryMaterialReader/IAsyncModPacking в отдельных файлах (DR3C-4465)
 
 ### Fixed
+- Экспорт прозрачности и Alpha Remapping HDRP Layered Lit: Surface Type Transparent пишется в .pbr.json полем surface (ModPbrSurfaceType.AlphaBlend; Blending Mode Additive/Premultiply — как Alpha с предупреждением), Alpha Remapping слоя (_AlphaRemapMin{i}/_AlphaRemapMax{i}) у прозрачного и альфа-тестового материала запекается по формуле HDRP lerp(min, max, a·_BaseColor{i}.a) в альфу копии diffuse (суффикс _a<min>_<max>[_<a>], color.a = 1), без карты — в color.a слоя; бинарный контейнер получает поле и текстуры тем же путём (DR3C-4465)
 - Экспорт Double-Sided Normal Mode HDRP Lit/Layered Lit: ds 3 — Flip (раньше Flip и Mirror писались как ds 1 — Mirror), ds 1 — Mirror, ds 2 — None; BinaryMaterial.doubleSidedNormalMode (flipNormals остаётся для старых клиентов), VertexAnimationSurface.doubleSidedNormalMode для VAT; общий ModDoubleSidedNormalMode и MtlDoubleSidedCode (DR3C-4465)
 - Экспорт прозрачных материалов HDRP Lit учитывает Alpha Remapping (_AlphaRemapMin/_AlphaRemapMax): ремап запекается в map_d (суффикс _a<min>_<max>[_<a>] в имени), d считается по формуле HDRP; бинарный контейнер запекает d в альфу packed map (DR3C-4465)
 - Утечки Texture2D при экспорте (Blit/распаковка), материал и RT Blit освобождаются; кэш путей проверяется до Blit (DR3C-4465)
