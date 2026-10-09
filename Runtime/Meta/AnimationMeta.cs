@@ -70,6 +70,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public float smoothness = 0.3f;
 		public float cutoff;
 		public bool doubleSided;
+		// В документах до появления поля его нет — None, прежнее поведение VAT.
+		public ModDoubleSidedNormalMode doubleSidedNormalMode;
 	}
 
 	[Serializable]

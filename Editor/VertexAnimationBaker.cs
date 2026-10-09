@@ -151,6 +151,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 							if (material.HasProperty(colorName)) surface.color = material.GetColor(colorName);
 							if (material.HasProperty("_Smoothness")) surface.smoothness = material.GetFloat("_Smoothness");
 							surface.doubleSided = material.HasProperty("_DoubleSidedEnable") && material.GetFloat("_DoubleSidedEnable") > 0;
+							if (surface.doubleSided) surface.doubleSidedNormalMode = MtlMaterialWriter.GetDoubleSidedNormalMode(material);
 							if (material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0)
 								surface.cutoff = material.GetFloat("_AlphaCutoff");
 							if (material.HasProperty(textureName) && material.GetTexture(textureName) is Texture texture)

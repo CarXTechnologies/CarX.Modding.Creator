@@ -72,8 +72,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					material.illumination = int.Parse(value, CultureInfo.InvariantCulture);
 					break;
 				case "ds":
-					material.doubleSided = ParseFloat(value) > .5f;
-					material.flipNormals = ParseFloat(value) < 1.5f;
+					float doubleSidedCode = ParseFloat(value);
+					material.doubleSided = MtlDoubleSidedCode.IsDoubleSided(doubleSidedCode);
+					material.SetDoubleSidedNormalMode(MtlDoubleSidedCode.ToNormalMode(doubleSidedCode));
 					break;
 				case "d":
 				case "Tr":

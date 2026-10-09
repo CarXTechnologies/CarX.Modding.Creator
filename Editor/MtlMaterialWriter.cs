@@ -66,8 +66,29 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return;
 			}
 
-			bool flipNormals = material.HasProperty("_DoubleSidedNormalMode") && material.GetFloat("_DoubleSidedNormalMode") < 1.5f;
-			mtl.AppendLine(flipNormals ? "ds 1" : "ds 2");
+			mtl.AppendFormat("ds {0}", MtlDoubleSidedCode.FromNormalMode(GetDoubleSidedNormalMode(material))).AppendLine();
+		}
+
+		/// <summary>Double-Sided Normal Mode материала HDRP (Lit, Layered Lit); без свойства — None, как прежний экспорт.</summary>
+		public static ModDoubleSidedNormalMode GetDoubleSidedNormalMode(Material material)
+		{
+			if (!material.HasProperty("_DoubleSidedNormalMode"))
+			{
+				return ModDoubleSidedNormalMode.None;
+			}
+
+			// HDRP: 0 — Flip, 1 — Mirror, 2 — None.
+			int hdrpMode = Mathf.RoundToInt(material.GetFloat("_DoubleSidedNormalMode"));
+
+			switch (hdrpMode)
+			{
+				case 0:
+					return ModDoubleSidedNormalMode.Flip;
+				case 1:
+					return ModDoubleSidedNormalMode.Mirror;
+				default:
+					return ModDoubleSidedNormalMode.None;
+			}
 		}
 
 		private static void AppendBaseColor(Material material, MaterialBlendMode blendMode, StringBuilder mtl)
