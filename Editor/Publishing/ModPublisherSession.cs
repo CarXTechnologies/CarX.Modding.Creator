@@ -23,6 +23,12 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 		private IModPublisher m_publisher;
 		private bool m_tickHooked;
 
+		static ModPublisherSession()
+		{
+			// Дефайны вендоров синхронизируются только там, где реально работают с публикацией, а не на каждой загрузке домена.
+			ModPublishingDefines.ScheduleSync();
+		}
+
 		public ModPublisherSession(ModPublisherContext context)
 		{
 			m_context = context ?? throw new ArgumentNullException(nameof(context));

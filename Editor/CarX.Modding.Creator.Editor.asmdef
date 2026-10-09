@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "GUID:db3100163910fbb47893097d9a08adc7",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "CarX.Modding.Creator.Publishing"
     ],
     "includePlatforms": [
         "Editor"
