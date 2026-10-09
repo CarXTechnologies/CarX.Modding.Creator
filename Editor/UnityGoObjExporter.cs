@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
@@ -18,6 +21,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	public class UnityGoObjExporter
 	{
 		private const string EmptyGroupName = "empty";
+		private const string ColliderGroupPrefix = "colliders_";
+		private const long ColliderGroupTriangles = 1000000;
+		private const long YieldIntervalMilliseconds = 50;
 
 		private static readonly Dictionary<PendingKey, ExportMeshEntry> s_pendingObjects = new();
 
@@ -57,7 +63,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			string objectId = isCollider ? MeshExportUtility.GetColliderObjectId(mesh) : MeshExportUtility.GetMeshObjectId(mesh);
-			string materialGroupId = isCollider ? null : MeshExportUtility.GetMaterialGroupId(materials);
+			string materialGroupId = isCollider ? null : MeshExportUtility.GetMaterialGroupId(mesh, materials);
 
 			s_pendingObjects[new PendingKey(path, objectId, materialGroupId, isCollider)] = new ExportMeshEntry(mesh, materials, isCollider, castShadows);
 		}
@@ -72,15 +78,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			try
 			{
 				List<ExportGroup> groups = GroupPendingObjects();
+				var yieldTimer = Stopwatch.StartNew();
 
 				for (int i = 0; i < groups.Count; i++)
 				{
 					cancellationToken.ThrowIfCancellationRequested();
 					progress?.Invoke((float)i / groups.Count);
 
-					if (cooperative)
+					// Task.Delay(1) на Windows стоит ~15 мс: уступаем редактору по бюджету времени, а не на каждую группу.
+					if (cooperative && yieldTimer.ElapsedMilliseconds >= YieldIntervalMilliseconds)
 					{
 						await Task.Delay(1, cancellationToken);
+						yieldTimer.Restart();
 					}
 
 					await WriteGroupAsync(collectionProvider, groups[i], cooperative, cancellationToken);
@@ -90,6 +99,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					PbrTextureDeduplicator.Deduplicate(directory);
 				}
+
+				int colliderGroups = groups.Count(group => group.isCollider);
+				Debug.Log($"Mod geometry export: {groups.Count - colliderGroups} render group files, {colliderGroups} collider group files " +
+					$"({groups.Where(group => group.isCollider).Sum(group => group.meshes.Count)} colliders), {groups.Sum(group => group.meshes.Count)} meshes in total.");
 			}
 			finally
 			{
@@ -103,15 +116,19 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static List<ExportGroup> GroupPendingObjects()
 		{
 			var groups = new Dictionary<(string directory, string name), ExportGroup>();
+			var colliderGroups = new Dictionary<string, (int index, long triangles)>();
 
 			foreach (KeyValuePair<PendingKey, ExportMeshEntry> pending in s_pendingObjects)
 			{
 				PendingKey key = pending.Key;
-				string name = key.isCollider ? key.objectId : key.materialGroupId ?? EmptyGroupName;
+				string name = key.isCollider
+					? NextColliderGroup(colliderGroups, key.directory, pending.Value.mesh)
+					: key.materialGroupId ?? EmptyGroupName;
 
 				if (!groups.TryGetValue((key.directory, name), out ExportGroup group))
 				{
-					group = new ExportGroup(key.directory, name, pending.Value.materials, key.isCollider || key.materialGroupId == null);
+					Material[] materials = key.isCollider ? null : MeshExportUtility.GetMaterialLibrary(pending.Value.mesh, pending.Value.materials);
+					group = new ExportGroup(key.directory, name, materials, key.isCollider, key.isCollider || key.materialGroupId == null);
 					groups.Add((key.directory, name), group);
 				}
 
@@ -119,6 +136,31 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			return groups.Values.ToList();
+		}
+
+		/// <summary>
+		/// Коллайдеры каталога пишутся общими файлами, а не файлом на коллайдер: рантайм находит коллайдер по имени объекта
+		/// (collider_&lt;id&gt;) среди всех загруженных групп. Файл ограничен по треугольникам, чтобы текстовый OBJ
+		/// оставался в лимите размера файла и группы грузились параллельно.
+		/// </summary>
+		private static string NextColliderGroup(Dictionary<string, (int index, long triangles)> colliderGroups, string directory, Mesh mesh)
+		{
+			long triangles = 0;
+
+			for (int subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
+			{
+				triangles += mesh.GetIndexCount(subMesh) / 3;
+			}
+
+			colliderGroups.TryGetValue(directory, out (int index, long triangles) current);
+
+			if (current.triangles > 0 && current.triangles + triangles > ColliderGroupTriangles)
+			{
+				current = (current.index + 1, 0);
+			}
+
+			colliderGroups[directory] = (current.index, current.triangles + triangles);
+			return ColliderGroupPrefix + current.index.ToString(CultureInfo.InvariantCulture);
 		}
 
 		private async Task WriteGroupAsync(IModCollectionProvider collectionProvider, ExportGroup group, bool cooperative, CancellationToken cancellationToken)
@@ -209,14 +251,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			public readonly string directory;
 			public readonly string name;
 			public readonly Material[] materials;
+			public readonly bool isCollider;
 			public readonly bool skipMaterials;
 			public readonly List<ExportMeshEntry> meshes = new();
 
-			public ExportGroup(string directory, string name, Material[] materials, bool skipMaterials)
+			public ExportGroup(string directory, string name, Material[] materials, bool isCollider, bool skipMaterials)
 			{
 				this.directory = directory;
 				this.name = name;
 				this.materials = materials;
+				this.isCollider = isCollider;
 				this.skipMaterials = skipMaterials;
 			}
 		}

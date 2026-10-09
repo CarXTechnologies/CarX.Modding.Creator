@@ -8,6 +8,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 {
 	public static class SectorMeshGeometry
 	{
+		private const float GridEpsilon = 0.0001f;
+
 		public struct Vertex : IEquatable<Vertex>
 		{
 			public Vector3 position, normal;
@@ -28,10 +30,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			private readonly List<Vertex> m_vertices = new();
 			private readonly List<int> m_indices = new();
-			private readonly Dictionary<Vertex, int> m_lookup = new();
+			private Dictionary<Vertex, int> m_lookup = new();
 			public int TriangleCount => m_indices.Count / 3;
+			public IReadOnlyList<Vertex> Vertices => m_vertices;
+			public IReadOnlyList<int> Indices => m_indices;
 			public void Add(Vertex a, Vertex b, Vertex c)
 			{
+				if (m_lookup == null) throw new InvalidOperationException("Sector geometry chunk is sealed.");
 				if (Vector3.Cross(b.position - a.position, c.position - a.position).sqrMagnitude == 0) return;
 				foreach (var vertex in new[] { a, b, c })
 				{
@@ -42,24 +47,48 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					m_indices.Add(index);
 				}
 			}
-			public Mesh Create(string name, Vector3 origin, bool collider)
+
+			/// <summary>Заполненный кусок больше не пополняется: словарь дедупликации вершин освобождается сразу, а не в конце сборки.</summary>
+			public void Seal()
 			{
-				var mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
-				var positions = new Vector3[m_vertices.Count];
-				var normals = new Vector3[m_vertices.Count];
-				var uv = new Vector2[m_vertices.Count];
-				var colors = new Color[m_vertices.Count];
-				for (int i = 0; i < positions.Length; i++)
-				{
-					var v = m_vertices[i]; positions[i] = v.position - origin;
-					normals[i] = v.normal.normalized; uv[i] = v.uv; colors[i] = v.color;
-				}
-				mesh.vertices = positions;
-				if (!collider) { mesh.normals = normals; mesh.uv = uv; mesh.colors = colors; }
-				mesh.triangles = MeshOptimizerNative.Optimize(m_indices.ToArray(), positions.Length);
-				mesh.RecalculateBounds();
-				return mesh;
+				m_lookup = null;
 			}
+		}
+
+		/// <summary>
+		/// Меш сектора: каждый кусок — свой сабмеш (свой материал). Вершины кусков не разделяются: рантайм всё равно
+		/// дублирует вершину, общую для двух материалов, а раздельные вершины позволяют упрощать сабмеши независимо.
+		/// </summary>
+		public static Mesh Create(string name, Vector3 origin, bool collider, IReadOnlyList<Builder> parts)
+		{
+			int vertexCount = 0;
+			foreach (Builder part in parts) vertexCount += part.Vertices.Count;
+			var mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
+			var positions = new Vector3[vertexCount];
+			var normals = new Vector3[vertexCount];
+			var uv = new Vector2[vertexCount];
+			var colors = new Color[vertexCount];
+			var subMeshes = new int[parts.Count][];
+			int offset = 0;
+			for (int p = 0; p < parts.Count; p++)
+			{
+				IReadOnlyList<Vertex> vertices = parts[p].Vertices;
+				for (int i = 0; i < vertices.Count; i++)
+				{
+					Vertex v = vertices[i]; positions[offset + i] = v.position - origin;
+					normals[offset + i] = v.normal.normalized; uv[offset + i] = v.uv; colors[offset + i] = v.color;
+				}
+				var local = new int[parts[p].Indices.Count];
+				for (int i = 0; i < local.Length; i++) local[i] = parts[p].Indices[i];
+				int[] optimized = MeshOptimizerNative.Optimize(local, vertices.Count);
+				for (int i = 0; i < optimized.Length; i++) optimized[i] += offset;
+				subMeshes[p] = optimized;
+				offset += vertices.Count;
+			}
+			mesh.vertices = positions;
+			if (!collider) { mesh.normals = normals; mesh.uv = uv; mesh.colors = colors; }
+			SetSubMeshes(mesh, subMeshes);
+			return mesh;
 		}
 
 		public static void Partition(Vertex a, Vertex b, Vertex c, float sectorSize,
@@ -114,30 +143,68 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return output;
 		}
 
+		/// <summary>
+		/// Метки вершин на плоскостях сетки секторов (координаты меша — от угла ячейки, кратного <paramref name="size"/>).
+		/// Проверяются все кратные плоскости, а не только грани своей ячейки: мелкие куски, перенесённые в соседний сектор,
+		/// сохраняют свою границу. Ось, вдоль которой сабмеш плоский, не учитывается — иначе плоская дорога на плоскости сетки
+		/// заблокировалась бы целиком.
+		/// </summary>
 		public static byte[] LockSectorBorders(Mesh mesh, float size)
 		{
 			var positions = mesh.vertices; var locks = new byte[positions.Length];
-			for (int i = 0; i < positions.Length; i++)
-				for (int axis = 0; axis < 3; axis++)
-					if (mesh.bounds.size[axis] > 0.0001f && (Mathf.Abs(positions[i][axis]) < 0.0001f || Mathf.Abs(positions[i][axis] - size) < 0.0001f)) locks[i] = 1;
+			for (int sub = 0; sub < mesh.subMeshCount; sub++)
+			{
+				int[] indices = mesh.GetTriangles(sub);
+				if (indices.Length == 0) continue;
+				var min = positions[indices[0]]; var max = min;
+				foreach (int index in indices) { min = Vector3.Min(min, positions[index]); max = Vector3.Max(max, positions[index]); }
+				foreach (int index in indices)
+					for (int axis = 0; axis < 3; axis++)
+						if (max[axis] - min[axis] > GridEpsilon && IsOnGrid(positions[index][axis], size)) locks[index] = 1;
+			}
 			return locks;
 		}
 
-		public static Mesh Compact(Mesh source, int[] indices, string name)
+		/// <summary>Меш из выбранных индексов исходного (по массиву на сабмеш); неиспользуемые вершины отбрасываются.</summary>
+		public static Mesh Compact(Mesh source, int[][] subMeshIndices, string name)
 		{
 			var result = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
 			var vertices = source.vertices; var normals = source.normals; var uv = source.uv; var colors = source.colors;
-			var map = new Dictionary<int, int>(); var order = new List<int>(); var remapped = new int[indices.Length];
-			for (int i = 0; i < indices.Length; i++)
+			var map = new Dictionary<int, int>(); var order = new List<int>(); var remapped = new int[subMeshIndices.Length][];
+			for (int sub = 0; sub < subMeshIndices.Length; sub++)
 			{
-				if (!map.TryGetValue(indices[i], out int index)) { index = order.Count; map.Add(indices[i], index); order.Add(indices[i]); }
-				remapped[i] = index;
+				int[] indices = subMeshIndices[sub];
+				remapped[sub] = new int[indices.Length];
+				for (int i = 0; i < indices.Length; i++)
+				{
+					if (!map.TryGetValue(indices[i], out int index)) { index = order.Count; map.Add(indices[i], index); order.Add(indices[i]); }
+					remapped[sub][i] = index;
+				}
 			}
 			result.vertices = order.ConvertAll(i => vertices[i]).ToArray();
 			if (normals.Length == vertices.Length) result.normals = order.ConvertAll(i => normals[i]).ToArray();
 			if (uv.Length == vertices.Length) result.uv = order.ConvertAll(i => uv[i]).ToArray();
 			if (colors.Length == vertices.Length) result.colors = order.ConvertAll(i => colors[i]).ToArray();
-			result.triangles = remapped; result.RecalculateBounds(); return result;
+			SetSubMeshes(result, remapped); return result;
+		}
+
+		public static int TriangleCount(Mesh mesh)
+		{
+			long indices = 0;
+			for (int sub = 0; sub < mesh.subMeshCount; sub++) indices += mesh.GetIndexCount(sub);
+			return (int)(indices / 3);
+		}
+
+		private static void SetSubMeshes(Mesh mesh, int[][] subMeshes)
+		{
+			mesh.subMeshCount = subMeshes.Length;
+			for (int sub = 0; sub < subMeshes.Length; sub++) mesh.SetTriangles(subMeshes[sub], sub, calculateBounds: false);
+			mesh.RecalculateBounds();
+		}
+
+		private static bool IsOnGrid(float value, float size)
+		{
+			return Mathf.Abs(value - Mathf.Round(value / size) * size) < GridEpsilon;
 		}
 	}
 }

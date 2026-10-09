@@ -22,6 +22,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const int HashBytes = 16;
 
 		private static readonly Dictionary<Mesh, string> s_meshIds = new();
+		private static readonly Dictionary<Mesh, Material[]> s_materialLibraries = new();
 
 		public static string GetMeshObjectId(Mesh mesh)
 		{
@@ -58,6 +59,36 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			return hasAny ? ContentHashPrefix + ComputeHash(Encoding.UTF8.GetBytes(builder.ToString())) : null;
+		}
+
+		/// <summary>
+		/// Идентификатор группы материалов меша: общей библиотеки, если она задана (<see cref="SetMaterialLibrary"/>),
+		/// иначе — набора материалов его сабмешей.
+		/// </summary>
+		public static string GetMaterialGroupId(Mesh mesh, Material[] materials)
+		{
+			return GetMaterialGroupId(GetMaterialLibrary(mesh, materials));
+		}
+
+		/// <summary>Материалы для .mtl группы меша: общая библиотека или собственный набор материалов.</summary>
+		public static Material[] GetMaterialLibrary(Mesh mesh, Material[] materials)
+		{
+			return mesh != null && s_materialLibraries.TryGetValue(mesh, out Material[] library) ? library : materials;
+		}
+
+		/// <summary>
+		/// Привязывает сгенерированный меш к общей библиотеке материалов: меши с разными наборами материалов
+		/// попадают в одну группу (один файл геометрии и один .mtl), сабмеши ссылаются на материалы библиотеки по имени.
+		/// Живёт до <see cref="RemoveMaterialLibrary"/> — не сбрасывается в <see cref="ClearCache"/>.
+		/// </summary>
+		public static void SetMaterialLibrary(Mesh mesh, Material[] library)
+		{
+			s_materialLibraries[mesh] = library;
+		}
+
+		public static void RemoveMaterialLibrary(Mesh mesh)
+		{
+			s_materialLibraries.Remove(mesh);
 		}
 
 		/// <summary>GUID + localFileId ассета. Для объекта без ассета — InstanceID (стабилен только в пределах сессии).</summary>

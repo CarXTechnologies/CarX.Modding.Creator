@@ -391,7 +391,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (lodInfo.materials != null && lodInfo.materials.Length > 0)
 			{
-				string materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.materials);
+				// Сектор оптимизации ссылается на общую библиотеку материалов своей группы, а не на набор своих сабмешей.
+				string materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.mesh, lodInfo.materials);
 
 				if (materialGroupId != null)
 				{

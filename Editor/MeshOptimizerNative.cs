@@ -21,10 +21,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return result;
 		}
 
-		public static int[] Simplify(Mesh mesh, float ratio, float errorMeters, bool collider, byte[] locks)
+		/// <summary>
+		/// Упрощает каждый сабмеш отдельно (индексы — в исходный буфер вершин меша), атрибуты собираются один раз на меш.
+		/// Открытые края сабмеша закреплены (LockBorder), поэтому граница между материалами не расходится.
+		/// </summary>
+		public static int[][] Simplify(Mesh mesh, float ratio, float errorMeters, bool collider, byte[] locks)
 		{
-			var indices = mesh.triangles;
-			var result = new int[indices.Length];
 			var vertices = mesh.vertices;
 			var normals = mesh.normals;
 			var uv = mesh.uv;
@@ -43,6 +45,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					attributes[o + 3] = u.x; attributes[o + 4] = u.y;
 					attributes[o + 5] = c.r; attributes[o + 6] = c.g; attributes[o + 7] = c.b; attributes[o + 8] = c.a;
 				}
+			var result = new int[mesh.subMeshCount][];
+			for (int sub = 0; sub < result.Length; sub++)
+				result[sub] = Simplify(mesh.GetTriangles(sub), vertices, attributes, weights, collider, locks, ratio, errorMeters);
+			return result;
+		}
+
+		private static int[] Simplify(int[] indices, Vector3[] vertices, float[] attributes, float[] weights, bool collider, byte[] locks,
+			float ratio, float errorMeters)
+		{
+			var result = new int[indices.Length];
 			int target = Math.Max(3, (int)(indices.Length / 3 * ratio) * 3);
 			int count = checked((int)meshopt_simplifyWithAttributes(result, indices, (UIntPtr)indices.Length,
 				vertices, (UIntPtr)vertices.Length, (UIntPtr)12, attributes, (UIntPtr)(collider ? 0 : 36),
