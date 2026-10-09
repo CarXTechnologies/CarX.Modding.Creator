@@ -16,6 +16,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	/// </summary>
 	internal sealed class BinaryTexturePreparation
 	{
+		// Как NativePropertyBlock.ResolveMaterialType клиента: d ниже порога — прозрачный материал.
+		private const float AlphaScaleThreshold = 0.999f;
+
 		private readonly SortedDictionary<string, string> m_files;
 		private readonly BinaryTextureEncoding m_encoding;
 		private readonly Dictionary<string, string> m_prepared = new(StringComparer.Ordinal);
@@ -120,9 +123,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			BinaryMaterialProperty[] packed = properties.Where(IsPackedSurfaceProperty).ToArray();
 
-			if (packed.Length != 0)
+			// d (dissolve) запекается в альфу packed map: клиент берёт готовую карту как есть, без пересборки на GPU.
+			float alphaScale = Mathf.Clamp01(material.alpha);
+
+			if (packed.Length != 0 || alphaScale < AlphaScaleThreshold)
 			{
-				string name = Emit(document, PackSurface(document, packed));
+				string name = Emit(document, PackSurface(document, packed, alphaScale));
 				properties.RemoveAll(property => packed.Contains(property));
 				properties.Add(new BinaryMaterialProperty { semantic = BinaryTexture.PackedSemantic, type = BinaryMaterialPropertyType.Texture, texture = name });
 			}
@@ -282,7 +288,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			target.Apply(updateMipmaps: false, makeNoLongerReadable: false);
 		}
 
-		private byte[] PackSurface(string document, BinaryMaterialProperty[] properties)
+		private byte[] PackSurface(string document, BinaryMaterialProperty[] properties, float alphaScale)
 		{
 			var sources = new List<Texture2D>();
 			Material material = null;
@@ -309,6 +315,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				material.SetTexture("_AlphaTex", OrWhite(alpha));
 				material.SetFloat("_RoughnessScale", properties.LastOrDefault(property => property.semantic == "Pr")?.scalar ?? 1);
 				material.SetFloat("_MetalnessScale", properties.LastOrDefault(property => property.semantic == "Pm")?.scalar ?? (metalness != null ? 1 : 0));
+				material.SetFloat("_AlphaScale", alphaScale);
 
 				target = RenderTexture.GetTemporary(reference.width, reference.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 				GL.sRGBWrite = false;

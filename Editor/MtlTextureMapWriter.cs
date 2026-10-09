@@ -37,7 +37,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			mtl.AppendFormat("map_Kd {0}{1}", tilingOptions, Path.GetFileName(basePath)).AppendLine();
 
 			bool hasAlpha = blendMode != MaterialBlendMode.Opaque;
-			string alphaName = stableId + "_dissolve";
+			Vector4 alphaRemap = GetAlphaMapRemap(material, blendMode);
+
+			// Суффикс ремапа: одна base map с разными Alpha Remapping не должна схлопнуться в один файл.
+			string alphaName = stableId + "_dissolve" + GetAlphaRemapSuffix(alphaRemap);
 			string alphaPath = hasAlpha ? ExportTextureUtility.GetTexturePath(collectionProvider, baseMap, alphaName, directory) : null;
 
 			if (hasAlpha)
@@ -64,7 +67,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (packAlpha)
 				{
-					PackBlit(collectionProvider, readable, AlphaPass, normalScale: 1f, alphaName, directory);
+					PackConverted(collectionProvider, ExportTextureUtility.Blit(readable, AlphaPass, normalScale: 1f, alphaRemap), alphaName, directory);
 				}
 			}
 			finally
@@ -211,10 +214,98 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			mtl.AppendFormat(CultureInfo.InvariantCulture, "Pm {0:F6}", metallic).AppendLine();
 		}
 
+		/// <summary>
+		/// Значение d (.mtl) прозрачного материала с учётом Alpha Remapping HDRP Lit (_AlphaRemapMin/_AlphaRemapMax), как в шейдере HDRP:
+		/// AlphaBlend — lerp(min, max, a * _BaseColor.a), AlphaTest — lerp(min, max, a) * _BaseColor.a, где a — альфа base map (без карты — 1).
+		/// При AlphaBlend с ремапом и base map вся альфа запечена в map_d, поэтому d = 1.
+		/// </summary>
+		public static float GetDissolve(Material material, MaterialBlendMode blendMode)
+		{
+			float baseAlpha = GetBaseAlpha(material);
+
+			if (!TryGetAlphaRemap(material, out float remapMin, out float remapMax))
+			{
+				return baseAlpha;
+			}
+
+			bool hasBaseMap = FindTexture(material, s_baseProperties, out _) != null;
+
+			if (blendMode == MaterialBlendMode.AlphaBlend)
+			{
+				return hasBaseMap ? 1.0f : Mathf.Lerp(remapMin, remapMax, baseAlpha);
+			}
+
+			return hasBaseMap ? baseAlpha : remapMax * baseAlpha;
+		}
+
+		/// <summary>Параметры прохода альфы <see cref="ExportTextureUtility.Blit(Texture2D, int, float, Vector4)"/>: x, y — диапазон ремапа, z — множитель до ремапа.</summary>
+		private static Vector4 GetAlphaMapRemap(Material material, MaterialBlendMode blendMode)
+		{
+			if (!TryGetAlphaRemap(material, out float remapMin, out float remapMax))
+			{
+				return new Vector4(0.0f, 1.0f, 1.0f, 0.0f);
+			}
+
+			// AlphaBlend: HDRP ремапит уже умноженную на _BaseColor.a альфу — множитель уходит в текстуру (см. GetDissolve).
+			float multiplier = blendMode == MaterialBlendMode.AlphaBlend ? GetBaseAlpha(material) : 1.0f;
+
+			return new Vector4(remapMin, remapMax, multiplier, 0.0f);
+		}
+
+		private static string GetAlphaRemapSuffix(Vector4 alphaRemap)
+		{
+			bool isIdentityRange = Mathf.Approximately(alphaRemap.x, 0.0f) && Mathf.Approximately(alphaRemap.y, 1.0f);
+
+			if (isIdentityRange && Mathf.Approximately(alphaRemap.z, 1.0f))
+			{
+				return string.Empty;
+			}
+
+			string suffix = "_a" + FormatSuffixNumber(alphaRemap.x) + "_" + FormatSuffixNumber(alphaRemap.y);
+
+			return Mathf.Approximately(alphaRemap.z, 1.0f) ? suffix : suffix + "_" + FormatSuffixNumber(alphaRemap.z);
+		}
+
+		private static string FormatSuffixNumber(float value)
+		{
+			return value.ToString("F3", CultureInfo.InvariantCulture).Replace('.', '_').Replace('-', 'm');
+		}
+
+		/// <summary>Диапазон Alpha Remapping HDRP Lit. false — ремапа нет или он тождественный (0..1).</summary>
+		private static bool TryGetAlphaRemap(Material material, out float remapMin, out float remapMax)
+		{
+			remapMin = 0.0f;
+			remapMax = 1.0f;
+
+			if (!material.HasProperty("_AlphaRemapMin") || !material.HasProperty("_AlphaRemapMax"))
+			{
+				return false;
+			}
+
+			remapMin = material.GetFloat("_AlphaRemapMin");
+			remapMax = material.GetFloat("_AlphaRemapMax");
+
+			return !Mathf.Approximately(remapMin, 0.0f) || !Mathf.Approximately(remapMax, 1.0f);
+		}
+
+		private static float GetBaseAlpha(Material material)
+		{
+			if (material.HasProperty("_BaseColor"))
+			{
+				return material.GetColor("_BaseColor").a;
+			}
+
+			return material.HasProperty("_BaseColor0") ? material.GetColor("_BaseColor0").a : 1.0f;
+		}
+
 		private static void PackBlit(IModCollectionProvider collectionProvider, Texture2D source, int pass, float normalScale, string name, string directory)
 		{
-			Texture2D converted = ExportTextureUtility.Blit(source, pass, normalScale);
+			PackConverted(collectionProvider, ExportTextureUtility.Blit(source, pass, normalScale), name, directory);
+		}
 
+		/// <summary>Упаковывает результат Blit и сразу уничтожает временную текстуру.</summary>
+		private static void PackConverted(IModCollectionProvider collectionProvider, Texture2D converted, string name, string directory)
+		{
 			try
 			{
 				ExportTextureUtility.Pack(collectionProvider, converted, name, directory);

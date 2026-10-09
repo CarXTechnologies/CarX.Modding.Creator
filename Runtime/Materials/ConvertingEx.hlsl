@@ -4,6 +4,8 @@ sampler2D _MainTex;
 float4 _MainTex_ST;
 
 float _NormalScale;
+// Alpha pass: x - remap min, y - remap max, z - alpha multiplier before remap (HDRP Lit: lerp(min, max, a * baseColor.a))
+float4 _AlphaRemap;
 
 struct appdata
 {
@@ -33,8 +35,8 @@ fixed4 CopyFirstChannel(v2f i) : SV_Target
 
 fixed4 CopyFourthChannel(v2f i) : SV_Target
 {
-	fixed4 col = fixed4(tex2D(_MainTex, i.uv).a, tex2D(_MainTex, i.uv).a, tex2D(_MainTex, i.uv).a, 1.0);
-	return col;
+	float alpha = lerp(_AlphaRemap.x, _AlphaRemap.y, tex2D(_MainTex, i.uv).a * _AlphaRemap.z);
+	return fixed4(alpha, alpha, alpha, 1.0);
 }
 
 fixed4 CopyFourthInvertedChannel(v2f i) : SV_Target

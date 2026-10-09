@@ -91,7 +91,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (blendMode != MaterialBlendMode.Opaque)
 			{
-				mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", color.a).AppendLine();
+				// Без Alpha Remapping d = _BaseColor.a; с ремапом — по формуле HDRP Lit (часть альфы может быть запечена в map_d).
+				mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", MtlTextureMapWriter.GetDissolve(material, blendMode)).AppendLine();
 			}
 		}
 

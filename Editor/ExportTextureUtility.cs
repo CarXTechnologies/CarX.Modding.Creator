@@ -15,6 +15,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const string ConvertShaderName = "Hidden/ConvertingEx";
 
 		private static readonly HashSet<string> s_processedTexturePaths = new();
+		private static readonly Vector4 s_identityAlphaRemap = new Vector4(0.0f, 1.0f, 1.0f, 0.0f);
 
 		private static Material s_blitMaterial;
 		private static RenderTexture s_cachedRenderTexture;
@@ -85,12 +86,22 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		/// <summary>Проход шейдера конвертации над исходником. Результат — временная текстура, её уничтожает вызывающий код.</summary>
 		public static Texture2D Blit(Texture2D source, int pass, float normalScale = 1f)
 		{
+			return Blit(source, pass, normalScale, s_identityAlphaRemap);
+		}
+
+		/// <summary>
+		/// Проход шейдера конвертации с параметрами прохода альфы <paramref name="alphaRemap"/>:
+		/// x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа (альфа = lerp(x, y, a * z)).
+		/// </summary>
+		public static Texture2D Blit(Texture2D source, int pass, float normalScale, Vector4 alphaRemap)
+		{
 			Texture2D readable = AcquireReadable(source);
 
 			try
 			{
 				Material material = GetBlitMaterial();
 				material.SetFloat("_NormalScale", normalScale);
+				material.SetVector("_AlphaRemap", alphaRemap);
 				material.SetVector("_MainTex_ST", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 				RenderTexture target = GetRenderTexture(readable.width, readable.height);
 				Graphics.Blit(readable, target, material, pass);
