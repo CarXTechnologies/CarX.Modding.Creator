@@ -10,7 +10,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Индексированное хранилище ресурсов мода. Логические имена — алиасы для совместимости, а не извлечённые файлы.
-	/// Алиасы могут делить одно содержимое; каждое чтение открывает свой дескриптор, поэтому фоновые чтения независимы.
+	/// Алиасы могут делить одно содержимое. Чтение потокобезопасно: пока идут чтения, открыт один дескриптор на архив, под блокировкой
+	/// читаются только сырые байты блока, распаковка и CRC — параллельно в вызывающих потоках.
 	/// </summary>
 	public sealed class BinaryModArchive
 	{
@@ -25,6 +26,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public int FormatVersion { get; }
 		private readonly string m_path;
 		private readonly Dictionary<string, Entry> m_entries = new(StringComparer.OrdinalIgnoreCase);
+		private readonly object m_streamLock = new();
+		private FileStream m_stream;
+		private int m_readers;
 
 		public BinaryModArchive(string file)
 		{
@@ -113,15 +117,61 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public byte[] Read(string name)
 		{
-			if (!m_entries.TryGetValue(Normalize(name), out Entry entry))
+			if (!TryRead(name, out byte[] bytes))
 			{
 				throw new FileNotFoundException("Binary resource is missing.", name);
 			}
 
-			using FileStream file = File.OpenRead(m_path);
-			file.Position = entry.offset;
+			return bytes;
+		}
+
+		/// <summary>Читает ресурс, если он есть в индексе: одна нормализация имени вместо пары Contains + Read.</summary>
+		public bool TryRead(string name, out byte[] bytes)
+		{
+			if (!m_entries.TryGetValue(Normalize(name), out Entry entry))
+			{
+				bytes = null;
+				return false;
+			}
+
+			bytes = ReadEntry(entry, name);
+			return true;
+		}
+
+		private byte[] ReadEntry(Entry entry, string name)
+		{
 			var stored = new byte[entry.stored];
-			ReadExactly(file, stored);
+
+			// Дескриптор живёт, пока есть читатели: параллельная загрузка карты читает через один дескриптор,
+			// а после неё файл не остаётся открытым (удаление и пересборка мода не блокируются).
+			lock (m_streamLock)
+			{
+				m_readers++;
+			}
+
+			try
+			{
+				lock (m_streamLock)
+				{
+					m_stream ??= new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1);
+					m_stream.Position = entry.offset;
+					ReadExactly(m_stream, stored);
+				}
+			}
+			finally
+			{
+				lock (m_streamLock)
+				{
+					m_readers--;
+
+					if (m_readers == 0 && m_stream != null)
+					{
+						m_stream.Dispose();
+						m_stream = null;
+					}
+				}
+			}
+
 			byte[] bytes = stored;
 
 			if (entry.compression == 1)
