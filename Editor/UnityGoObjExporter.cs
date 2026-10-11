@@ -38,6 +38,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			s_pendingObjects.Clear();
 			ExportTextureUtility.ClearCache();
 			MeshExportUtility.ClearCache();
+			RenderCoreMaterialOverrides.Clear();
 			ExportImporterSettings.RestoreAll();
 		}
 

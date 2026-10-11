@@ -8,6 +8,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public string name;
 		public string layeredResource;
+		// Переопределение маркером Material: вариант rendercore и документ ModRenderCoreMaterial. Остальные поля — запасной материал.
+		public string renderCoreVariant;
+		public string renderCoreResource;
 		public Vector4 uv = new Vector4(1, 1, 0, 0);
 		public float alpha = 1;
 		public int illumination = -1;

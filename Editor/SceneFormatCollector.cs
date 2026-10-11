@@ -296,7 +296,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (meshFilter != null && meshRenderer != null && !(Optimization?.SuppressRenderer(o) ?? false))
 			{
 				singleLODInfo.mesh = meshFilter.sharedMesh;
-				singleLODInfo.materials = meshRenderer.sharedMaterials;
+				// Маркер Material объекта, а у LOD — маркер на объекте LODGroup.
+				singleLODInfo.materials = RenderCoreMaterialOverrides.Resolve(o, meshRenderer.sharedMaterials, relativeTo);
 				singleLODInfo.castShadows = meshRenderer.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off;
 			}
 

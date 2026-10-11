@@ -103,8 +103,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (!transform.gameObject.activeInHierarchy || transform.GetComponentInParent<Rigidbody>(true) != null ||
 				transform.GetComponentInParent<Animator>(true) != null || transform.GetComponentInParent<Animation>(true) != null ||
 				transform.GetComponentInParent<LODGroup>(true) != null) return false;
+			// Road и Material не мешают склейке: поверхность входит в ключ сектора, переопределённый материал — отдельный сабмеш.
 			for (var t = transform; t != null; t = t.parent)
-				if (t.CompareTag("Garbage") || t.GetComponents<Component>().Any(c => c is IMarkerDataSource marker && marker.MarkerHead != "Road")) return false;
+				if (t.CompareTag("Garbage") || t.GetComponents<Component>().Any(c => c is IMarkerDataSource marker && marker.MarkerHead != "Road" &&
+					marker.MarkerHead != RenderCoreMaterialMarkerSettings.MarkerHead)) return false;
 			return true;
 		}
 
@@ -154,7 +156,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					if (renderer == null || !renderer.enabled || filter == null || filter.sharedMesh == null) continue;
 					var mesh = filter.sharedMesh;
 					if (renderer.HasPropertyBlock() || renderer.lightmapIndex >= 0 && renderer.lightmapIndex < 65534 ||
-						renderer.sharedMaterials.Length != mesh.subMeshCount || renderer.sharedMaterials.Any(m => m == null || m.renderQueue >= 3000)) continue;
+						renderer.sharedMaterials.Length != mesh.subMeshCount || renderer.sharedMaterials.Any(m => m == null || m.renderQueue >= 3000) ||
+						RenderCoreMaterialOverrides.Resolve(t.gameObject, renderer.sharedMaterials).Any(RenderCoreMaterialOverrides.IsTransparent)) continue;
 					if (!CanRead(mesh, renderer)) continue;
 					AddMesh(mesh, t, renderer, null, s, token);
 					m_renderSources.Add(t.gameObject.GetInstanceID()); SourceRenderers++;
@@ -218,9 +221,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			compatibility += ":surface:" + (surface is Component component ? component.GetInstanceID() : 0);
 			float size = physics ? s.colliderSectorSize : s.sectorSize;
 			int maxTriangles = physics ? s.colliderMaxTriangles : s.maxTriangles;
+			Material[] materials = physics ? null : RenderCoreMaterialOverrides.Resolve(transform.gameObject, renderer.sharedMaterials);
 			for (int sub = 0; sub < mesh.subMeshCount; sub++)
 			{
-				var material = physics ? null : renderer.sharedMaterials[sub];
+				Material material = physics ? null : materials[sub];
 				int materialId = material != null ? material.GetInstanceID() : 0;
 				void Emit(Vector3Int cell, SectorMeshGeometry.Vertex a, SectorMeshGeometry.Vertex b, SectorMeshGeometry.Vertex c)
 				{

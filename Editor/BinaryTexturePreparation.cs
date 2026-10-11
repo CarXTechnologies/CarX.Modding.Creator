@@ -74,6 +74,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
+		/// <summary>Текстуры варианта rendercore: u_sTexture* — sRGB, packed map и нормали — линейные (как читает клиент).</summary>
+		public void Prepare(string document, ModRenderCoreMaterial material)
+		{
+			foreach (ModRenderCoreProperty property in material.properties ?? Array.Empty<ModRenderCoreProperty>())
+			{
+				if (property.type == ModRenderCorePropertyType.Texture)
+				{
+					property.texture = Prepare(document, property.texture, linear: !ModRenderCoreVariants.IsColorTexture(property.name));
+				}
+			}
+		}
+
 		public void Prepare(AnimationMeta animation)
 		{
 			foreach (VertexAnimationAsset asset in animation.assets)

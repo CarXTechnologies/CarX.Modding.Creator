@@ -91,7 +91,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			s_materialLibraries.Remove(mesh);
 		}
 
-		/// <summary>GUID + localFileId ассета. Для объекта без ассета — InstanceID (стабилен только в пределах сессии).</summary>
+		/// <summary>
+		/// GUID + localFileId ассета; у прокси-материала маркера Material — id исходного материала с хэшем переопределения.
+		/// Для объекта без ассета — InstanceID (стабилен только в пределах сессии).
+		/// </summary>
 		public static string GetStableObjectId(Object obj)
 		{
 			if (obj == null)
@@ -99,7 +102,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return "0";
 			}
 
+			if (RenderCoreMaterialOverrides.TryGetStableId(obj, out string proxyId))
+			{
+				return proxyId;
+			}
+
 			return TryGetAssetId(obj, out string assetId) ? assetId : obj.GetInstanceID().ToString(CultureInfo.InvariantCulture);
+		}
+
+		/// <summary>128-битный хэш строки в hex.</summary>
+		public static string GetTextHash(string text)
+		{
+			return ComputeHash(Encoding.UTF8.GetBytes(text));
 		}
 
 		/// <summary>Сбрасывает кэш хэшей мешей. Вызывается в конце экспорта.</summary>

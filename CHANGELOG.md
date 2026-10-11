@@ -5,12 +5,14 @@
 ## [Unreleased]
 
 ### Added
+- Маркер Material: переопределение материала рендерера вариантом Standard-шейдера rendercore (только Binary). Таблица вариантов для карт ModRenderCoreVariants (из MaterialEditorSettings rendercore), документ ModRenderCoreMaterial (.rc.json, ссылка cx_rc в MTL, BinaryMaterial.renderCoreVariant/renderCoreResource), прокси-материалы экспорта со стабильным id (RenderCoreMaterialOverrides), Export from material из HDRP Lit / Layered Lit (RenderCoreMaterialBaker); обычный материал остаётся запасным. Описание — RenderCoreMaterial.md (DR3C-4465)
 - Формат BinaryModData версии 2: длина у каждого поля, пропуск незнакомых полей, отдельный legacy-читатель версии 1, понятная ошибка на незнакомую версию (DR3C-4465)
 - ModPathResolver — единое безопасное разрешение путей из данных мода внутри каталога мода (без "..", UNC и чужих абсолютных путей) (DR3C-4465)
 - Тесты совместимости BinaryModData на замороженных документах v1/v2 и тесты ModPathResolver (DR3C-4465)
 - ExportImporterSettings: временное изменение и восстановление настроек импорта текстур и моделей на время экспорта (DR3C-4465)
 
 ### Changed
+- Оптимизация сцены не исключает объекты с маркером Material: переопределённый материал становится отдельным сабмешем сектора (DR3C-4465)
 - Оптимизация сцены при экспорте: один меш на ячейку с сабмешем на материал (вместо меша на материал×ячейку) и общие группы материалов на блок секторов; коллайдеры — свой сектор (colliderSectorSize 128 м, colliderMaxTriangles 32768) и общие файлы colliders_N вместо файла на коллайдер; куски меньше minSectorTriangles (128) переносятся в соседний сектор; уступка редактору раз в 50 мс вместо Task.Delay(1) на объект/группу; в лог — меши с LOD, сабмеши, группы и файлы коллайдеров. Формат и рантайм не менялись (DR3C-4465)
 - BinaryModArchive читает ресурсы через один открытый дескриптор на время параллельных чтений (под блокировкой — только чтение блока, распаковка и CRC вне её), добавлен TryRead; CRC32 — slicing-by-8; DefaultFileProvider перепроверяет файл архива не чаще раза в секунду и с пула потоков читает синхронно (DR3C-4465)
 - ModResourceFiles кэширует открытый BinaryModArchive по пути (сброс при смене файла и через ClearCache) (DR3C-4465)
@@ -27,3 +29,6 @@
 - Экспорт прозрачных материалов HDRP Lit учитывает Alpha Remapping (_AlphaRemapMin/_AlphaRemapMax): ремап запекается в map_d (суффикс _a<min>_<max>[_<a>] в имени), d считается по формуле HDRP; бинарный контейнер запекает d в альфу packed map (DR3C-4465)
 - Утечки Texture2D при экспорте (Blit/распаковка), материал и RT Blit освобождаются; кэш путей проверяется до Blit (DR3C-4465)
 - Экспорт больше не оставляет изменёнными настройки импорта исходных ассетов и имена загруженных текстур (DR3C-4465)
+
+### Removed
+- Material Mapping Editor (MaterialEditorWindow, MaterialVariantAsset, MaterialMapData) и MaterialConfigurations (сгенерированные Mat*.g.cs, MaterialLitHDRP/MaterialMtl/MaterialRenderCore.json): заменены таблицей ModRenderCoreVariants (DR3C-4465)

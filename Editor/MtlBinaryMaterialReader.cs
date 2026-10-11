@@ -68,6 +68,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				case "cx_pbr":
 					material.layeredResource = value;
 					break;
+				case "cx_rc":
+					ReadRenderCore(material, value);
+					break;
 				case "illum":
 					material.illumination = int.Parse(value, CultureInfo.InvariantCulture);
 					break;
@@ -97,6 +100,20 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					ReadTexture(material, properties, token, value);
 					break;
 			}
+		}
+
+		/// <summary>cx_rc &lt;вариант&gt; &lt;документ&gt;: переопределение материала маркером Material.</summary>
+		private static void ReadRenderCore(BinaryMaterial material, string value)
+		{
+			int space = value.IndexOf(' ');
+
+			if (space <= 0 || space == value.Length - 1)
+			{
+				throw new InvalidDataException("Render core material reference must contain a variant and a document: " + value);
+			}
+
+			material.renderCoreVariant = value.Substring(0, space);
+			material.renderCoreResource = value.Substring(space + 1).Trim();
 		}
 
 		private static void ReadColor(BinaryMaterial material, List<BinaryMaterialProperty> properties, string token, string value)

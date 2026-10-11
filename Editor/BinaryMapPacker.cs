@@ -187,6 +187,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				textures.Prepare(name, layered);
 			}
 
+			if (data is ModRenderCoreMaterial renderCore)
+			{
+				textures.Prepare(name, renderCore);
+			}
+
 			if (data is AnimationMeta animation)
 			{
 				textures.Prepare(animation);
@@ -220,6 +225,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (name.EndsWith(".pbr.json", StringComparison.OrdinalIgnoreCase))
 			{
 				return typeof(ModPbrMaterial);
+			}
+
+			if (name.EndsWith(ModRenderCoreMaterial.Extension, StringComparison.OrdinalIgnoreCase))
+			{
+				return typeof(ModRenderCoreMaterial);
 			}
 
 			string folder = Path.GetDirectoryName(name)?.Replace('\\', '/');

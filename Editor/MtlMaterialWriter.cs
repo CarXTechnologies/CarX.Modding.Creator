@@ -30,11 +30,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static void AppendMaterial(IModCollectionProvider collectionProvider, Material material, string directory, StringBuilder mtl)
 		{
 			mtl.AppendFormat("newmtl {0}", MeshExportUtility.GetStableObjectId(material)).AppendLine();
-			string layeredPbr = LayeredPbrWriter.Write(material, directory);
 
-			if (layeredPbr != null)
+			// Переопределение маркером Material главнее Layered PBR: запасным остаётся обычный материал ниже.
+			if (RenderCoreMaterialOverrides.TryGet(material, out RenderCoreMaterialOverride renderCore))
 			{
-				mtl.Append("cx_pbr ").AppendLine(layeredPbr);
+				string document = RenderCoreMaterialWriter.Write(material, renderCore, directory);
+				mtl.Append("cx_rc ").Append(renderCore.variant).Append(' ').AppendLine(document);
+			}
+			else
+			{
+				string layeredPbr = LayeredPbrWriter.Write(material, directory);
+
+				if (layeredPbr != null)
+				{
+					mtl.Append("cx_pbr ").AppendLine(layeredPbr);
+				}
 			}
 
 			MaterialBlendMode blendMode = DetectBlendMode(material);
@@ -117,7 +127,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		private static MaterialBlendMode DetectBlendMode(Material material)
+		internal static MaterialBlendMode DetectBlendMode(Material material)
 		{
 			if (material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0f)
 			{
