@@ -26,7 +26,7 @@ Generated textures are saved as PNG assets in a `RenderCore` folder next to the 
 | --- | --- | --- |
 | `Editor/RenderCoreMirror/RenderCoreLock.txt` | generated, committed | Normalized, sorted text snapshot of the rendercore inputs: `MaterialVariant` enum, `MaterialEditorSettings.asset`, `EditorUtils.SetupMaterialVariant`, `Standard.shader` (properties, `[Gamma]`, per-pass pragmas), `StandardMaterialDefinitions.hlsl`, `Definitions/*MaterialDefs.hlsl` and `Functions/*MaterialFunc.hlsl` (per-variant defines, vertex streams and a decode hash). Provenance lines (package version, commit) are not compared. |
 | `Editor/RenderCoreMirror/Generation/RenderCoreMirrorAnnotations.cs` | hand-edited | The only hand input: scope (excluded `MAT_CAR_*`, `MAT_PARTICLE*`, `MAT_SLOD`, `MAT_MATTESHADOW`, `MAT_SKIDMARK`, `MAT_UNSUPPORTED`), offered variants with layout key, packed channels, reviewed decode hash and vertex colour usage, slot overrides with reasons, the reviewed `SetupMaterialVariant` hash, frozen baked contracts per revision and the variant suggestions. |
-| `Runtime/RenderCore/ModRenderCoreVariants.g.cs` | generated, do not edit | `CreateVariants()`, `CreateSuggestions()` and `LockContentHash`. Its header lists rendercore map variants that exist but are not annotated, therefore not offered. |
+| `Runtime/RenderCore/ModRenderCoreVariantTable.g.cs` | generated, do not edit | `CreateVariants()`, `CreateSuggestions()` and `LockContentHash`. Its header lists rendercore map variants that exist but are not annotated, therefore not offered. |
 | `Runtime/RenderCore/ModRenderCoreVariants.cs` | hand-written | API (`All`, `Offered`, `TryGet`, `TryFind`, `Suggest`), `SupportedStreams` and the frozen color-space rule baked into published mods: `u_sTexture*` is sRGB, every other texture is linear (`ModRenderCoreVariantProperty.IsNormalMap` is the matching frozen `u_sNormalMap*` rule). |
 | `Tools~/RenderCoreMirror` | tool | net8 command line build of the same extractor and generator; reads rendercore from a directory or with `git show <ref>:<path>`. |
 
@@ -36,7 +36,7 @@ The generator derives role, layer and default of each property from slot rules (
 
 Menus (Unity, `ModSystem/Render Core`):
 
-- **Regenerate Table** — `generate(committed lock, annotations)`; writes `ModRenderCoreVariants.g.cs` only when it changed. Works in MapUploader. Use it after editing the annotations.
+- **Regenerate Table** — `generate(committed lock, annotations)`; writes `ModRenderCoreVariantTable.g.cs` only when it changed. Works in MapUploader. Use it after editing the annotations.
 - **Update Lock From Project Render Core** — extracts from the `com.carxtech.rendercore` package of the project, rewrites `RenderCoreLock.txt` and regenerates. Available only where the package is installed (the game project); greyed out in MapUploader.
 - **Check** — writes nothing, logs the findings by tier.
 

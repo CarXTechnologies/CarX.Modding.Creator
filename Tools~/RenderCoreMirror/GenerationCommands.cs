@@ -9,44 +9,44 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 	/// Команды генератора: generate (таблица из закоммиченного снимка), update (снимок из rendercore + таблица), legacy-diff (поштучное
 	/// сравнение таблицы из dll с generate(снимок, аннотации)). Аннотации — скомпилированные RenderCoreMirrorAnnotations этой сборки.
 	/// </summary>
-	internal static partial class Program
+	internal static class GenerationCommands
 	{
 		private const string SdkUsage = "--sdk <папка CarX.Modding.Creator>";
 
-		static partial void RegisterGenerationCommands(Dictionary<string, RenderCoreMirrorCommand> commands)
+		public static void Register(Dictionary<string, RenderCoreMirrorCommand> commands)
 		{
 			commands["generate"] = new RenderCoreMirrorCommand($"generate {SdkUsage} [--check]", Generate);
-			commands["update"] = new RenderCoreMirrorCommand($"update {SourceUsage} {SdkUsage}", Update);
+			commands["update"] = new RenderCoreMirrorCommand($"update {Program.SourceUsage} {SdkUsage}", Update);
 			commands["legacy-diff"] = new RenderCoreMirrorCommand(
 				$"legacy-diff --old-dll <CarX.Modding.Creator.dll> [--unity-managed <папка UnityEngine*.dll>]... {SdkUsage}", LegacyDiff);
 		}
 
 		/// <summary>
-		/// generate(закоммиченный снимок, аннотации) → Runtime/RenderCore/ModRenderCoreVariants.g.cs. С --check ничего не пишет: 0 — таблица
+		/// generate(закоммиченный снимок, аннотации) → Runtime/RenderCore/ModRenderCoreVariantTable.g.cs. С --check ничего не пишет: 0 — таблица
 		/// актуальна, 2 — устарела. Breaking/Error — таблица не пишется, код 3/4.
 		/// </summary>
 		private static int Generate(RenderCoreMirrorArguments arguments)
 		{
 			string sdk = arguments.Require("sdk");
-			RenderCoreLock committed = ReadLock(RenderCoreMirrorPaths.GetLockPath(sdk));
+			RenderCoreLock committed = Program.ReadLock(RenderCoreMirrorPaths.GetLockPath(sdk));
 			MirrorGenerationResult result = RenderCoreMirrorPipeline.Regenerate(committed, RenderCoreMirrorAnnotations.Create(), out string table);
 			PrintGeneration(result);
 
 			if (!result.Succeeded)
 			{
 				Console.Error.WriteLine("Таблица не записана: есть находки Breaking/Error.");
-				return ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
+				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
 			string path = RenderCoreMirrorPaths.GetGeneratedTablePath(sdk);
 
 			if (arguments.Has("check"))
 			{
-				return ReportFindings(RenderCoreMirrorPipeline.CheckTable(committed, RenderCoreMirrorAnnotations.Create(), ReadTextOrEmpty(path)));
+				return Program.ReportFindings(RenderCoreMirrorPipeline.CheckTable(committed, RenderCoreMirrorAnnotations.Create(), Program.ReadTextOrEmpty(path)));
 			}
 
-			Console.WriteLine(WriteText(path, table) ? $"записан {path}" : $"не изменился {path}");
-			return ExitClean;
+			Console.WriteLine(Program.WriteText(path, table) ? $"записан {path}" : $"не изменился {path}");
+			return Program.ExitClean;
 		}
 
 		/// <summary>
@@ -57,8 +57,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		{
 			string sdk = arguments.Require("sdk");
 			string lockPath = RenderCoreMirrorPaths.GetLockPath(sdk);
-			RenderCoreLock committed = File.Exists(lockPath) ? ReadLock(lockPath) : null;
-			IRenderCoreSourceProvider source = CreateSource(arguments);
+			RenderCoreLock committed = File.Exists(lockPath) ? Program.ReadLock(lockPath) : null;
+			IRenderCoreSourceProvider source = Program.CreateSource(arguments);
 
 			MirrorGenerationResult result = RenderCoreMirrorPipeline.Update(source, committed, RenderCoreMirrorAnnotations.Create(),
 				out List<RenderCoreFinding> changes, out string lockText, out string table);
@@ -75,13 +75,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			if (!result.Succeeded)
 			{
 				Console.Error.WriteLine("Ничего не записано: есть находки Breaking/Error против аннотаций.");
-				return ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
+				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
-			Console.WriteLine(WriteText(lockPath, lockText) ? $"записан {lockPath}" : $"не изменился {lockPath}");
+			Console.WriteLine(Program.WriteText(lockPath, lockText) ? $"записан {lockPath}" : $"не изменился {lockPath}");
 			string tablePath = RenderCoreMirrorPaths.GetGeneratedTablePath(sdk);
-			Console.WriteLine(WriteText(tablePath, table) ? $"записан {tablePath}" : $"не изменился {tablePath}");
-			return ExitClean;
+			Console.WriteLine(Program.WriteText(tablePath, table) ? $"записан {tablePath}" : $"не изменился {tablePath}");
+			return Program.ExitClean;
 		}
 
 		/// <summary>
@@ -92,13 +92,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		{
 			string sdk = arguments.Require("sdk");
 			string dll = arguments.Require("old-dll");
-			RenderCoreLock committed = ReadLock(RenderCoreMirrorPaths.GetLockPath(sdk));
+			RenderCoreLock committed = Program.ReadLock(RenderCoreMirrorPaths.GetLockPath(sdk));
 			MirrorGenerationResult result = MirrorGenerator.Generate(committed, RenderCoreMirrorAnnotations.Create());
 
 			if (!result.Succeeded)
 			{
 				Console.Error.WriteLine("Сравнивать не с чем: генерация заблокирована.");
-				return ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
+				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
 			SortedDictionary<string, string> before = LegacyTableReader.Read(dll, arguments.GetAll("unity-managed"));
@@ -112,7 +112,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				Console.WriteLine("  " + line);
 			}
 
-			return ExitClean;
+			return Program.ExitClean;
 		}
 
 		private static void PrintGeneration(MirrorGenerationResult result)
@@ -127,11 +127,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				Console.WriteLine($"Вариантов {result.variants.Count} (доступных {result.variants.Count(variant => variant.Available)}), " +
 					$"LockContentHash {result.lockContentHash}, не предлагаются: {(result.notAnnotated.Count == 0 ? "—" : string.Join(", ", result.notAnnotated))}");
 			}
-		}
-
-		private static string ReadTextOrEmpty(string path)
-		{
-			return File.Exists(path) ? RenderCoreText.Decode(File.ReadAllBytes(path)) : "";
 		}
 	}
 }

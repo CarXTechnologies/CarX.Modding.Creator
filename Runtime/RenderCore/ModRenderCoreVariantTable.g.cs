@@ -5,14 +5,16 @@
 // </auto-generated>
 using System;
 using UnityEngine;
+using static Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	public static partial class ModRenderCoreVariants
+	/// <summary>Данные зеркала rendercore для <see cref="ModRenderCoreVariants"/>.</summary>
+	internal static class ModRenderCoreVariantTable
 	{
 		public const string LockContentHash = "35d6c44beb42";
 
-		private static ModRenderCoreVariant[] CreateVariants()
+		public static ModRenderCoreVariant[] CreateVariants()
 		{
 			return new[]
 			{
@@ -217,7 +219,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			};
 		}
 
-		private static ModRenderCoreSuggestion[] CreateSuggestions()
+		public static ModRenderCoreSuggestion[] CreateSuggestions()
 		{
 			return new[]
 			{

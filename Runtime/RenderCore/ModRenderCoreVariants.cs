@@ -5,13 +5,16 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Зеркало вариантов Standard-шейдера rendercore для маркера Material (только Binary). Данные — в ModRenderCoreVariants.g.cs: его генерирует
+	/// Зеркало вариантов Standard-шейдера rendercore для маркера Material (только Binary). Данные — в ModRenderCoreVariantTable.g.cs: его генерирует
 	/// зеркало rendercore (Editor/RenderCoreMirror) из снимка RenderCoreLock.txt и ручных аннотаций. Здесь — API и правила, которые запечены
 	/// в опубликованные моды и потому не меняются (цветовое пространство текстур по имени свойства).
 	/// Таблица — только управляемые данные без Unity API: клиент читает её с пула потоков.
 	/// </summary>
-	public static partial class ModRenderCoreVariants
+	public static class ModRenderCoreVariants
 	{
+		/// <summary>LockContentHash снимка rendercore, из которого сгенерирована таблица.</summary>
+		public const string LockContentHash = ModRenderCoreVariantTable.LockContentHash;
+
 		private const string ColorTexturePrefix = "u_sTexture";
 
 		/// <summary>Потоки, которые несут меши модов (BinaryModMesh: позиция, нормаль, UV0, цвет; тангенсы клиент пересчитывает).</summary>
@@ -24,11 +27,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private static readonly Dictionary<string, ModRenderCoreVariant> s_byName;
 		private static readonly string[] s_duplicates;
 
-		/// <summary>Единственное место инициализации: порядок статических полей в разных файлах partial не определён.</summary>
+		/// <summary>Единственное место инициализации: таблица строится один раз, без исключений.</summary>
 		static ModRenderCoreVariants()
 		{
-			s_variants = CreateVariants();
-			s_suggestions = CreateSuggestions();
+			s_variants = ModRenderCoreVariantTable.CreateVariants();
+			s_suggestions = ModRenderCoreVariantTable.CreateSuggestions();
 			s_byName = BuildLookup(s_variants, out s_duplicates);
 			s_offered = Array.FindAll(s_variants, variant => variant.Available);
 		}
@@ -108,19 +111,19 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return lookup;
 		}
 
-		private static ModRenderCoreVariantProperty Texture(string name, string label, string tooltip, ModRenderCoreSource source, int layer)
+		internal static ModRenderCoreVariantProperty Texture(string name, string label, string tooltip, ModRenderCoreSource source, int layer)
 		{
 			return new ModRenderCoreVariantProperty(name, label, tooltip, ModRenderCorePropertyType.Texture, source, layer, Vector4.one, vectorLabels: null, channels: null);
 		}
 
-		private static ModRenderCoreVariantProperty Packed(string name, string label, string tooltip, int layer, ModRenderCoreChannel r, ModRenderCoreChannel g,
+		internal static ModRenderCoreVariantProperty Packed(string name, string label, string tooltip, int layer, ModRenderCoreChannel r, ModRenderCoreChannel g,
 			ModRenderCoreChannel b, ModRenderCoreChannel a)
 		{
 			return new ModRenderCoreVariantProperty(name, label, tooltip, ModRenderCorePropertyType.Texture, ModRenderCoreSource.Surface, layer, Vector4.one,
 				vectorLabels: null, new[] { r, g, b, a });
 		}
 
-		private static ModRenderCoreVariantProperty Value(string name, string label, string tooltip, ModRenderCorePropertyType type, ModRenderCoreSource source,
+		internal static ModRenderCoreVariantProperty Value(string name, string label, string tooltip, ModRenderCorePropertyType type, ModRenderCoreSource source,
 			Vector4 defaultValue, IReadOnlyList<string> vectorLabels)
 		{
 			return new ModRenderCoreVariantProperty(name, label, tooltip, type, source, layer: 0, defaultValue, vectorLabels, channels: null);

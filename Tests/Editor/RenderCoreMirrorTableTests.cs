@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Закоммиченная таблица ModRenderCoreVariants.g.cs против generate(закоммиченный снимок, аннотации) и замороженные правила, от которых
+	/// Закоммиченная таблица ModRenderCoreVariantTable.g.cs против generate(закоммиченный снимок, аннотации) и замороженные правила, от которых
 	/// зависят опубликованные моды. Пакет rendercore не нужен: всё читается из снимка и таблицы SDK.
 	/// </summary>
 	public class RenderCoreMirrorTableTests
@@ -55,7 +55,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			Assert.That(result.Succeeded, Is.True, Describe(result.findings));
 			Assert.That(RenderCoreMirrorFiles.ReadText(RenderCoreMirrorUnityPaths.GeneratedTablePath), Is.EqualTo(table),
-				$"ModRenderCoreVariants.g.cs устарела или поправлена руками: {MirrorCSharpWriter.RegenerateMenu} или {MirrorCSharpWriter.RegenerateCommand}");
+				$"ModRenderCoreVariantTable.g.cs устарела или поправлена руками: {MirrorCSharpWriter.RegenerateMenu} или {MirrorCSharpWriter.RegenerateCommand}");
 			Assert.That(ModRenderCoreVariants.LockContentHash, Is.EqualTo(RenderCoreLockText.ContentHash(ReadCommittedLock())));
 		}
 

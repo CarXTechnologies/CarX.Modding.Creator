@@ -1,5 +1,5 @@
-// Фикстура RenderCoreMirrorScenarioTests: синтетическое декодирование packed map. Важна только структура ветвлений (живые и мёртвые
-// ветки, вложенность, ветка только для проходов выреза); функции, поля и числа придуманы.
+// RenderCoreMirrorScenarioTests fixture: synthetic packed map decoding. Only the branch structure matters (live and dead
+// branches, nesting, a branch for cutout passes only); functions, fields and numbers are made up.
 void FixtureSurface(FixtureInput input, inout FixtureSurfaceData surface)
 {
 	float4 packed = FetchPacked(input.coord);

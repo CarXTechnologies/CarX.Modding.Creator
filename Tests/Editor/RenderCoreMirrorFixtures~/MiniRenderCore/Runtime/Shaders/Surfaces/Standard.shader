@@ -1,5 +1,5 @@
-// Фикстура RenderCoreMirrorScenarioTests: Properties, объявления keyword'ов и программы проходов. Синтетика: структура как у Standard-шейдера
-// (проходы, #include Definitions/Functions, ветки на keyword'ах прохода), операторы и define'ы программ придуманы.
+// RenderCoreMirrorScenarioTests fixture: Properties, keyword declarations and pass programs. Synthetic: structured like the Standard shader
+// (passes, #include Definitions/Functions, branches on pass keywords); statements and program defines are made up.
 Shader "Fixture/Standard"
 {
 	Properties

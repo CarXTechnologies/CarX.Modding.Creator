@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Вариант в сгенерированной таблице: то, что станет ModRenderCoreVariant в ModRenderCoreVariants.g.cs.</summary>
+	/// <summary>Вариант в сгенерированной таблице: то, что станет ModRenderCoreVariant в ModRenderCoreVariantTable.g.cs.</summary>
 	public sealed class MirrorVariant
 	{
 		public readonly string name;

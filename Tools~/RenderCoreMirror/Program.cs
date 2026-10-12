@@ -8,10 +8,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
 	/// CLI зеркала rendercore (README.md рядом). Команды ядра — extract и check. Команды генератора (generate, update, legacy-diff)
-	/// добавляются в отдельном файле этой папки: partial class Program с реализацией RegisterGenerationCommands; общие шаги (источник,
-	/// чтение снимка, печать находок, коды выхода) — internal-методы ниже.
+	/// регистрирует GenerationCommands; общие шаги (источник, чтение снимка, печать находок, коды выхода) — internal-методы ниже.
 	/// </summary>
-	internal static partial class Program
+	internal static class Program
 	{
 		public const int ExitClean = 0;
 		public const int ExitUsage = 1;
@@ -19,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		public const int ExitBreaking = 3;
 		public const int ExitError = 4;
 
-		private const string SourceUsage = "(--rendercore <папка пакета> | --git <репозиторий rendercore> --ref <commit> [--override <имя файла>=<ref>]...)";
+		internal const string SourceUsage = "(--rendercore <папка пакета> | --git <репозиторий rendercore> --ref <commit> [--override <имя файла>=<ref>]...)";
 
 		private static int Main(string[] args)
 		{
@@ -31,7 +30,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				["check"] = new RenderCoreMirrorCommand($"check {SourceUsage} (--lock <RenderCoreLock.txt> | --sdk <папка CarX.Modding.Creator>)", Check)
 			};
 
-			RegisterGenerationCommands(commands);
+			GenerationCommands.Register(commands);
 
 			if (args.Length == 0 || !commands.TryGetValue(args[0], out RenderCoreMirrorCommand command))
 			{
@@ -55,9 +54,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				return ExitError;
 			}
 		}
-
-		/// <summary>Точка расширения для команд генератора; без реализации вызов просто отсутствует.</summary>
-		static partial void RegisterGenerationCommands(Dictionary<string, RenderCoreMirrorCommand> commands);
 
 		/// <summary>Источник rendercore из --rendercore или --git/--ref/--override.</summary>
 		internal static IRenderCoreSourceProvider CreateSource(RenderCoreMirrorArguments arguments)
@@ -120,6 +116,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			}
 
 			return RenderCoreLockText.Read(RenderCoreText.Decode(File.ReadAllBytes(path)), path);
+		}
+
+		/// <summary>Текст файла или пустая строка, если файла нет.</summary>
+		internal static string ReadTextOrEmpty(string path)
+		{
+			return File.Exists(path) ? RenderCoreText.Decode(File.ReadAllBytes(path)) : "";
 		}
 
 		/// <summary>UTF-8 без BOM, LF; файл не трогается, если текст тот же. Возвращает true, если записан.</summary>

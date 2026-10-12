@@ -18,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public static List<RenderCoreFinding> Check(RenderCoreLock committed, IRenderCoreSourceProvider liveSource, MirrorAnnotationSet annotations,
 			string committedTable)
 		{
-			var findings = committedTable == null ? new List<RenderCoreFinding>() : CheckTable(committed, annotations, committedTable);
+			List<RenderCoreFinding> findings = committedTable == null ? new List<RenderCoreFinding>() : CheckTable(committed, annotations, committedTable);
 			RenderCoreLock live;
 
 			try

@@ -1,4 +1,4 @@
-// Фикстура RenderCoreMirrorScenarioTests: выбор Defs и особенностей по keyword'у варианта, общая ветка ALPHATEST для проходов выреза.
+// RenderCoreMirrorScenarioTests fixture: Defs and features selected by the variant keyword, shared ALPHATEST branch for cutout passes.
 #ifdef MAT_DEFAULT
 	#include "Definitions/BaseMaterialDefs.hlsl"
 #elif defined(MAT_ROUGHNESS_ALPHATEST)

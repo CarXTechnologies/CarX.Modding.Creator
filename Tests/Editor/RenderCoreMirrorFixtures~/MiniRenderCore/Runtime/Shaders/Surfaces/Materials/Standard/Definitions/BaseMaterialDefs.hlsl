@@ -1,4 +1,4 @@
-// Фикстура RenderCoreMirrorScenarioTests: потоки прохода Forward и проходов выреза, include библиотеки вне папки Standard.
+// RenderCoreMirrorScenarioTests fixture: Forward and cutout pass streams, a library include outside the Standard folder.
 #if defined(SHADERPASS_FORWARD)
 	#define INPUT_NEED_TEXCOORD0
 	#define INPUT_NEED_NORMAL

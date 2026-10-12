@@ -7,8 +7,8 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Пишет Runtime/RenderCore/ModRenderCoreVariants.g.cs: только данные (CreateVariants, CreateSuggestions, LockContentHash) вызовами
-	/// помощников Texture/Packed/Value из ручного partial ModRenderCoreVariants.cs. Табы, LF, числа InvariantCulture, именованные аргументы
+	/// Пишет Runtime/RenderCore/ModRenderCoreVariantTable.g.cs: только данные (CreateVariants, CreateSuggestions, LockContentHash) вызовами
+	/// помощников Texture/Packed/Value из ручного ModRenderCoreVariants.cs. Табы, LF, числа InvariantCulture, именованные аргументы
 	/// для литералов; ни времени, ни коммитов — одинаковый вход даёт байт-в-байт одинаковый файл.
 	/// </summary>
 	public static class MirrorCSharpWriter
@@ -36,19 +36,21 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			Line(builder, "// </auto-generated>");
 			Line(builder, "using System;");
 			Line(builder, "using UnityEngine;");
+			Line(builder, "using static Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants;");
 			Line(builder, "");
 			Line(builder, "namespace Plugins.CarX.Modding.Creator.Runtime");
 			Line(builder, "{");
-			Line(builder, "\tpublic static partial class ModRenderCoreVariants");
+			Line(builder, "\t/// <summary>Данные зеркала rendercore для <see cref=\"ModRenderCoreVariants\"/>.</summary>");
+			Line(builder, "\tinternal static class ModRenderCoreVariantTable");
 			Line(builder, "\t{");
 			Line(builder, $"\t\tpublic const string LockContentHash = {Literal(result.lockContentHash)};");
 			Line(builder, "");
-			Line(builder, "\t\tprivate static ModRenderCoreVariant[] CreateVariants()");
+			Line(builder, "\t\tpublic static ModRenderCoreVariant[] CreateVariants()");
 			Line(builder, "\t\t{");
 			WriteArray(builder, result.variants, WriteVariant, "ModRenderCoreVariant");
 			Line(builder, "\t\t}");
 			Line(builder, "");
-			Line(builder, "\t\tprivate static ModRenderCoreSuggestion[] CreateSuggestions()");
+			Line(builder, "\t\tpublic static ModRenderCoreSuggestion[] CreateSuggestions()");
 			Line(builder, "\t\t{");
 			WriteArray(builder, result.suggestions, WriteSuggestion, "ModRenderCoreSuggestion");
 			Line(builder, "\t\t}");

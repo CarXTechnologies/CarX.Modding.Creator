@@ -30,8 +30,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			{
 				Assembly assembly = context.LoadFromAssemblyPath(fullPath);
 				Type table = assembly.GetType(TableType, throwOnError: true);
-				IEnumerable variants = (table.GetProperty("All", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ??
-					table.GetField("s_variants", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null)) as IEnumerable;
+				IEnumerable variants = (table.GetProperty("All", BindingFlags.Public | BindingFlags.Static)?.GetValue(obj: null) ??
+					table.GetField("s_variants", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(obj: null)) as IEnumerable;
 
 				if (variants == null)
 				{
@@ -74,7 +74,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				}
 
 				object available = Get(variant, "Available");
-				dump[prefix + "available"] = available == null ? MirrorTableDump.Bool(true) : Format(available);
+				dump[prefix + "available"] = available == null ? MirrorTableDump.Bool(value: true) : Format(available);
 
 				IEnumerable properties = (IEnumerable)Get(variant, "properties");
 				var propertyNames = new List<string>();

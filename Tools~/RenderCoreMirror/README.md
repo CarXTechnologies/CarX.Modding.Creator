@@ -43,7 +43,7 @@ dotnet run --project Tools~/RenderCoreMirror -- check --git <репозитор�
 
 - отличия rendercore от снимка (RCM1xx; изменения вариантов без аннотации — всегда Info);
 - ворота генератора на живом снимке против `RenderCoreMirrorAnnotations` (RCM0xx);
-- с `--sdk` — ещё и что закоммиченная `ModRenderCoreVariants.g.cs` равна generate(снимок, аннотации) (RCM091/RCM092).
+- с `--sdk` — ещё и что закоммиченная `ModRenderCoreVariantTable.g.cs` равна generate(снимок, аннотации) (RCM091/RCM092).
 
 Извлечение идёт с областью из снимка, поэтому видны только изменения rendercore. Находки печатаются по уровням.
 
@@ -61,7 +61,7 @@ dotnet run --project Tools~/RenderCoreMirror -- check --git <репозитор�
 dotnet run --project Tools~/RenderCoreMirror -- generate --sdk . [--check]
 ```
 
-Пишет `Runtime/RenderCore/ModRenderCoreVariants.g.cs` = generate(`RenderCoreLock.txt`, `RenderCoreMirrorAnnotations`), если текст
+Пишет `Runtime/RenderCore/ModRenderCoreVariantTable.g.cs` = generate(`RenderCoreLock.txt`, `RenderCoreMirrorAnnotations`), если текст
 изменился. То же делает меню `ModSystem/Render Core/Regenerate Table`. С `--check` ничего не пишет: 0 — таблица актуальна, 2 — устарела.
 Breaking/Error — таблица не пишется (коды 3/4). Аннотации — скомпилированные в утилиту, поэтому после правки аннотаций нужна пересборка
 (`dotnet run` пересобирает сам).
@@ -168,12 +168,12 @@ ShadowCaster рисует кубмапы отражений с `SIMPLE_SHADING` 
 
 ## Как добавить команды
 
-Команды генератора (`generate`, `update`, `legacy-diff`) живут в `ProgramGeneration.cs` этой папки; новые добавляются так же:
+Команды генератора (`generate`, `update`, `legacy-diff`) живут в `GenerationCommands.cs` этой папки; новые добавляются так же:
 
 ```csharp
-internal static partial class Program
+internal static class GenerationCommands
 {
-	static partial void RegisterGenerationCommands(Dictionary<string, RenderCoreMirrorCommand> commands)
+	public static void Register(Dictionary<string, RenderCoreMirrorCommand> commands)
 	{
 		commands["generate"] = new RenderCoreMirrorCommand("generate --sdk <папка> [--check]", Generate);
 	}

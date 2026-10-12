@@ -5,7 +5,7 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// generate(снимок, аннотации): строит данные ModRenderCoreVariants.g.cs и проверяет ворота. Rendercore владеет id, очередью, RenderType,
+	/// generate(снимок, аннотации): строит данные ModRenderCoreVariantTable.g.cs и проверяет ворота. Rendercore владеет id, очередью, RenderType,
 	/// keyword'ами и списком свойств с текстами; аннотации — тем, что запекается в опубликованные моды. Всё, что меняет запечённое без
 	/// решения человека (раскладка, декодирование, вырез в DepthOnly/ShadowCaster, [Gamma], цвет вершин, потоки, имена RenderType, setup,
 	/// контракт без новой ревизии), — Breaking, и таблица не строится (fail closed). Механические изменения (id, очередь, keyword'ы,

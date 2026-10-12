@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// ЕДИНСТВЕННЫЙ ручной вход зеркала rendercore: решения команды модов. Таблица Runtime/RenderCore/ModRenderCoreVariants.g.cs =
+	/// ЕДИНСТВЕННЫЙ ручной вход зеркала rendercore: решения команды модов. Таблица Runtime/RenderCore/ModRenderCoreVariantTable.g.cs =
 	/// generate(RenderCoreLock.txt, эти аннотации); после правки — ModSystem/Render Core/Regenerate Table (или CLI generate).
 	///
 	/// Variants — предлагаемые варианты в порядке таблицы. Для каждого:

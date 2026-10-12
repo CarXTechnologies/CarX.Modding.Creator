@@ -26,7 +26,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		/// <summary>Полный путь RenderCoreLock.txt.</summary>
 		public static string LockPath => Path.Combine(GetAssemblyDirectory(RenderCoreMirrorPaths.MirrorAssemblyName), RenderCoreLockText.FileName);
 
-		/// <summary>Путь ModRenderCoreVariants.g.cs от корня проекта (для AssetDatabase.ImportAsset).</summary>
+		/// <summary>Путь ModRenderCoreVariantTable.g.cs от корня проекта (для AssetDatabase.ImportAsset).</summary>
 		public static string GeneratedTableAssetPath
 		{
 			get
@@ -42,7 +42,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Полный путь ModRenderCoreVariants.g.cs.</summary>
+		/// <summary>Полный путь ModRenderCoreVariantTable.g.cs.</summary>
 		public static string GeneratedTablePath => Path.GetFullPath(FileUtil.GetPhysicalPath(GeneratedTableAssetPath));
 
 		/// <summary>Папка asmdef сборки (полный путь); нет asmdef — FileNotFoundException.</summary>
