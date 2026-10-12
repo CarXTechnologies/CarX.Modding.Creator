@@ -1,0 +1,16 @@
+{
+    "name": "CarX.Modding.Creator.RenderCoreMirror",
+    "rootNamespace": "Plugins.CarX.Modding.Creator.RenderCoreMirror",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

@@ -13,7 +13,17 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		/// <summary>Имя варианта из <see cref="ModRenderCoreVariants"/>.</summary>
 		public string variant;
 
+		/// <summary>
+		/// Ревизия варианта, для которой Export from material запёк значения (раскладку packed map и прочий контракт). 0 — не записана
+		/// (маркеры до появления поля) и считается ревизией 1. Экспорт пишет в документ её, а не текущую ревизию таблицы: после повышения
+		/// ревизии клиент берёт запасной материал, пока автор не повторит Export from material, и никогда не читает старую раскладку как новую.
+		/// </summary>
+		public int revision;
+
 		public List<RenderCoreMaterialValue> values = new();
+
+		/// <summary>Ревизия запечённых значений с учётом того, что 0 означает 1.</summary>
+		public int BakedRevision => Math.Max(1, revision);
 
 		public RenderCoreMaterialValue Find(string propertyName)
 		{

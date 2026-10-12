@@ -20,5 +20,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		/// <summary>Заданные автором свойства; незаданные остаются значениями по умолчанию шаблона клиента.</summary>
 		public ModRenderCoreProperty[] properties;
+
+		/// <summary>Ревизия контракта варианта (ModRenderCoreVariant.revision) на момент экспорта; 0 в документах до её появления означает 1.</summary>
+		public int variantRevision;
 	}
 }

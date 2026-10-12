@@ -71,6 +71,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				case "cx_rc":
 					ReadRenderCore(material, value);
 					break;
+				case "cx_rc_rev":
+					material.renderCoreRevision = ReadRenderCoreRevision(value);
+					break;
 				case "illum":
 					material.illumination = int.Parse(value, CultureInfo.InvariantCulture);
 					break;
@@ -114,6 +117,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			material.renderCoreVariant = value.Substring(0, space);
 			material.renderCoreResource = value.Substring(space + 1).Trim();
+		}
+
+		/// <summary>cx_rc_rev &lt;n&gt;: ревизия варианта документа cx_rc. Экспорт пишет строку только для n &gt; 1; без неё — 0 (ревизия 1).</summary>
+		private static int ReadRenderCoreRevision(string value)
+		{
+			if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int revision) || revision < 1)
+			{
+				throw new InvalidDataException("Invalid render core variant revision: cx_rc_rev " + value);
+			}
+
+			return revision;
 		}
 
 		private static void ReadColor(BinaryMaterial material, List<BinaryMaterialProperty> properties, string token, string value)

@@ -103,7 +103,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (!transform.gameObject.activeInHierarchy || transform.GetComponentInParent<Rigidbody>(true) != null ||
 				transform.GetComponentInParent<Animator>(true) != null || transform.GetComponentInParent<Animation>(true) != null ||
 				transform.GetComponentInParent<LODGroup>(true) != null) return false;
-			// Road и Material не мешают склейке: поверхность входит в ключ сектора, переопределённый материал — отдельный сабмеш.
+			// Road и Material не мешают склейке: поверхность входит в ключ сектора, переопределённый материал — отдельный сабмеш
+			// (вариант с цветом вершин слоёв — ещё и отдельный ключ, см. AddMesh).
 			for (var t = transform; t != null; t = t.parent)
 				if (t.CompareTag("Garbage") || t.GetComponents<Component>().Any(c => c is IMarkerDataSource marker && marker.MarkerHead != "Road" &&
 					marker.MarkerHead != RenderCoreMaterialMarkerSettings.MarkerHead)) return false;
@@ -212,16 +213,20 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					uv = !physics && uv.Length == positions.Length ? uv[i] : Vector2.zero,
 					color = !physics && colors.Length == positions.Length ? colors[i] : Color.white };
 			}
+			Material[] materials = physics ? null : RenderCoreMaterialOverrides.Resolve(transform.gameObject, renderer.sharedMaterials);
 			// Материал — не часть ключа рендер-сектора: материалы ячейки становятся сабмешами одного меша.
 			string compatibility = physics
 				? $"C:{transform.gameObject.layer}:{(collider.sharedMaterial != null ? collider.sharedMaterial.GetInstanceID() : 0)}:{collider.cookingOptions}"
 				: $"R:{transform.gameObject.layer}:{renderer.shadowCastingMode}:{renderer.receiveShadows}:{renderer.renderingLayerMask}:{renderer.motionVectorGenerationMode}:{renderer.lightProbeUsage}:{renderer.reflectionProbeUsage}";
+			// Кроме цвета вершин слоёв: клиент не перекрашивает в белый меш с LayerBlend, и в общем меше цвет вершин окрасил бы эмиссию
+			// соседних объектов. Объекты с LayerBlend склеиваются только между собой; ключ остальных прежний.
+			if (!physics && materials.Any(material => RenderCoreMaterialOverrides.GetVertexColorUsage(material) == ModRenderCoreVertexColors.LayerBlend))
+				compatibility += ":vertexColors:" + ModRenderCoreVertexColors.LayerBlend;
 			if (!s.mergeCompatibleMeshes) compatibility += ":" + transform.GetInstanceID();
 			var surface = transform.GetComponents<Component>().OfType<IMarkerDataSource>().FirstOrDefault(m => m.MarkerHead == "Road");
 			compatibility += ":surface:" + (surface is Component component ? component.GetInstanceID() : 0);
 			float size = physics ? s.colliderSectorSize : s.sectorSize;
 			int maxTriangles = physics ? s.colliderMaxTriangles : s.maxTriangles;
-			Material[] materials = physics ? null : RenderCoreMaterialOverrides.Resolve(transform.gameObject, renderer.sharedMaterials);
 			for (int sub = 0; sub < mesh.subMeshCount; sub++)
 			{
 				Material material = physics ? null : materials[sub];

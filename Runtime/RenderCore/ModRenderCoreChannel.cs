@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Содержимое канала packed map варианта rendercore (по подсказкам свойств в rendercore).</summary>
+	/// <summary>Содержимое канала packed map варианта rendercore (по MATERIALFEATURE_* варианта и декодированию в шейдере).</summary>
 	public enum ModRenderCoreChannel
 	{
 		Zero = 0,
@@ -16,6 +16,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		NormalX = 6,
 
 		/// <summary>Y нормали в диапазоне 0..1 (MAT_LAYERS4).</summary>
-		NormalY = 7
+		NormalY = 7,
+
+		/// <summary>Маска окраски u_vColor (MAT_COLORMASK_*): при экспорте из HDRP — ноль, маску автор рисует сам.</summary>
+		ColorMask = 8
 	}
 }

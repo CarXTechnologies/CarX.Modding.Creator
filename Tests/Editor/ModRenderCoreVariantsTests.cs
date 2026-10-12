@@ -16,6 +16,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			Assert.IsNotEmpty(variants);
 			Assert.AreEqual(variants.Count, variants.Select(variant => variant.name).Distinct().Count());
+			// Ворота RCM012 запрещают общий id у любых строк таблицы (доступных и недоступных): materialVariant материала однозначен.
 			Assert.AreEqual(variants.Count, variants.Select(variant => variant.id).Distinct().Count());
 			Assert.IsTrue(variants.All(variant => variant.name.StartsWith("MAT_")));
 			Assert.IsFalse(variants.Any(variant => variant.name.StartsWith("MAT_CAR_") || variant.name.StartsWith("MAT_PARTICLE")));
@@ -42,8 +43,9 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		[Test]
 		public void LookupAndColorSpaceFollowRenderCoreNames()
 		{
+			// Очередь, id и keyword'ы принадлежат rendercore и лечатся перегенерацией: их сверяет RenderCoreMirrorTableTests со снимком, не литерал.
 			Assert.IsTrue(ModRenderCoreVariants.TryGet("MAT_FOLIAGE_ALPHATEST", out ModRenderCoreVariant foliage));
-			Assert.AreEqual(2500, foliage.queue);
+			Assert.AreEqual("MAT_FOLIAGE_ALPHATEST", foliage.name);
 			Assert.IsFalse(ModRenderCoreVariants.TryGet("MAT_CAR_PAINT", out _));
 			Assert.IsFalse(ModRenderCoreVariants.TryGet(name: null, out _));
 			Assert.IsTrue(ModRenderCoreVariants.IsColorTexture("u_sTexture1"));

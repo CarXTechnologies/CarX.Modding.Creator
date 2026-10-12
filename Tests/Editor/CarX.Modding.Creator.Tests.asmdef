@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "CarX.Modding.Creator"
+        "CarX.Modding.Creator",
+        "CarX.Modding.Creator.RenderCoreMirror",
+        "CarX.Modding.Creator.Editor"
     ],
     "includePlatforms": [
         "Editor"

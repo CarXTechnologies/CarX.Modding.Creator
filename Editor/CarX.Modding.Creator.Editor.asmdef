@@ -4,7 +4,8 @@
     "references": [
         "GUID:db3100163910fbb47893097d9a08adc7",
         "Unity.RenderPipelines.Core.Runtime",
-        "CarX.Modding.Creator.Publishing"
+        "CarX.Modding.Creator.Publishing",
+        "CarX.Modding.Creator.RenderCoreMirror"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Plugins.CarX.Modding.Creator.Runtime;
@@ -21,21 +22,105 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const int SolidTextureSize = 4;
 		private const int NormalPass = 3;
 		private const float WhiteTolerance = 0.001f;
+		private const float HdrpDefaultAlphaCutoff = 0.5f;
+		private const string ChannelNames = "RGBA";
+		private const float OcclusionTolerance = 0.5f / 255;
 
-		/// <summary>Вариант по настройкам материала HDRP: альфа-тест, прозрачность, эмиссия, карта нормалей.</summary>
+		/// <summary>Плоская нормаль в RGB (0, 0, 1).</summary>
+		private static readonly Color FlatNormal = new(0.5f, 0.5f, 1, 1);
+
+		/// <summary>
+		/// Вариант по настройкам материала HDRP (альфа-тест, прозрачность, эмиссия, карта нормалей) из подсказок зеркала rendercore.
+		/// Без точной подсказки: у прозрачных и альфа-тест вариантов карт нет эмиссии, поэтому сначала без неё, затем без учёта
+		/// карты нормалей, затем первый доступный вариант того же типа рендера. Null — только для пустой таблицы.
+		/// Для альфа-теста вариант, у которого канал отсечения несёт ещё и AO (<see cref="ModRenderCoreChannel.AmbientOcclusionAlpha"/>),
+		/// не предлагается, пока есть другой: rendercore отсекал бы непрозрачные в HDRP, но затенённые texel'и. Поэтому материалу
+		/// без карты нормалей достаётся вариант с нормалью: <see cref="Bake"/> запишет плоскую нормаль, AO при этом не переносится.
+		/// </summary>
 		public static string SuggestVariant(Material source)
 		{
 			var hdrp = new HdrpMaterial(source);
+			ModRenderCoreRenderType renderType = ToRenderType(MtlMaterialWriter.DetectBlendMode(source));
+			bool hasNormal = hdrp.GetTexture("_NormalMap", layer: 0) != null;
+			bool hasEmission = hdrp.EmissiveColor.maxColorComponent > 0;
+			return SuggestVariant(renderType, hasNormal, hasEmission);
+		}
 
-			switch (MtlMaterialWriter.DetectBlendMode(source))
+		/// <summary>Выбор <see cref="SuggestVariant(Material)"/> по уже определённым настройкам материала; только таблица, без Unity API.</summary>
+		private static string SuggestVariant(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission)
+		{
+			string[] candidates =
+			{
+				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission),
+				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission: false),
+				ModRenderCoreVariants.Suggest(renderType, !hasNormal, hasEmission: false),
+				FirstOffered(renderType)
+			};
+			string first = null;
+
+			foreach (string candidate in candidates)
+			{
+				if (candidate == null)
+				{
+					continue;
+				}
+
+				if (renderType != ModRenderCoreRenderType.AlphaTest || !ClipsOnOcclusion(candidate))
+				{
+					return candidate;
+				}
+
+				first ??= candidate;
+			}
+
+			return first;
+		}
+
+		/// <summary>Канал packed map варианта — AO × альфа: AO в нём участвует и в альфа-тесте.</summary>
+		private static bool ClipsOnOcclusion(string variantName)
+		{
+			if (!ModRenderCoreVariants.TryGet(variantName, out ModRenderCoreVariant variant))
+			{
+				return false;
+			}
+
+			foreach (ModRenderCoreVariantProperty property in variant.properties)
+			{
+				if (property.channels != null && property.channels.Contains(ModRenderCoreChannel.AmbientOcclusionAlpha))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private static ModRenderCoreRenderType ToRenderType(MaterialBlendMode blendMode)
+		{
+			switch (blendMode)
 			{
 				case MaterialBlendMode.AlphaTest:
-					return hdrp.GetTexture("_NormalMap", layer: 0) != null ? "MAT_ROUGHNESS_NORMAL_ALPHATEST" : "MAT_ROUGHNESS_ALPHATEST";
+					return ModRenderCoreRenderType.AlphaTest;
 				case MaterialBlendMode.AlphaBlend:
-					return "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND";
+					return ModRenderCoreRenderType.Transparent;
 				default:
-					return hdrp.EmissiveColor.maxColorComponent > 0 ? "MAT_EMISSION" : "MAT_ROUGHNESS_METALNESS_NORMAL";
+					return ModRenderCoreRenderType.Opaque;
 			}
+		}
+
+		private static string FirstOffered(ModRenderCoreRenderType renderType)
+		{
+			IReadOnlyList<ModRenderCoreVariant> offered = ModRenderCoreVariants.Offered;
+
+			foreach (ModRenderCoreVariant variant in offered)
+			{
+				if (variant.renderType == renderType)
+				{
+					return variant.name;
+				}
+			}
+
+			return offered.Count > 0 ? offered[0].name : null;
 		}
 
 		/// <summary>Папка сгенерированных текстур: RenderCore рядом с материалом, для материала вне Assets — Assets/RenderCore.</summary>
@@ -51,7 +136,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		/// <summary>
 		/// Заполняет значения варианта <see cref="RenderCoreMaterialOverride.variant"/> (пустой — <see cref="SuggestVariant"/>)
-		/// из <see cref="RenderCoreMaterialOverride.source"/>. Возвращает подписи свойств, которым в HDRP нет источника.
+		/// из <see cref="RenderCoreMaterialOverride.source"/> и запоминает ревизию варианта, для которой они запечены
+		/// (<see cref="RenderCoreMaterialOverride.revision"/>). Возвращает подписи свойств, которым в HDRP нет источника, и заметки
+		/// о том, что автору стоит проверить вручную.
 		/// </summary>
 		public static IReadOnlyList<string> Bake(RenderCoreMaterialOverride target)
 		{
@@ -67,7 +154,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (!ModRenderCoreVariants.TryGet(target.variant, out ModRenderCoreVariant variant))
 			{
-				throw new InvalidDataException($"Unknown render core variant '{target.variant}'.");
+				throw new InvalidDataException(ModRenderCoreVariants.TryFind(target.variant, out ModRenderCoreVariant unavailable)
+					? $"Render core variant '{unavailable.name}' is unavailable in mods: {unavailable.unavailableReason}"
+					: $"Unknown render core variant '{target.variant}'.");
 			}
 
 			var hdrp = new HdrpMaterial(target.source);
@@ -80,11 +169,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					RenderCoreMaterialValue value = target.GetOrAdd(property);
 
-					if (!TryFill(property, variant, hdrp, output, value))
+					if (!TryFill(property, variant, hdrp, output, value, manual))
 					{
 						manual.Add(property.label);
 					}
+
+					AddManualChannels(property, manual);
 				}
+
+				AddAlphaThresholdNote(hdrp, variant, manual);
 			}
 			finally
 			{
@@ -93,11 +186,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			target.values.RemoveAll(value => value == null || !variant.TryGetProperty(value.name, out _));
+			target.revision = variant.revision;
 			return manual;
 		}
 
 		private static bool TryFill(ModRenderCoreVariantProperty property, ModRenderCoreVariant variant, HdrpMaterial hdrp, TextureOutput output,
-			RenderCoreMaterialValue value)
+			RenderCoreMaterialValue value, List<string> manual)
 		{
 			switch (property.source)
 			{
@@ -111,11 +205,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					value.texture = BakeNormal(hdrp, property, output);
 					return true;
 				case ModRenderCoreSource.Surface:
-					value.texture = BakeSurface(hdrp, property, variant.renderType, output);
-					return true;
-				case ModRenderCoreSource.AlphaCutoff:
-					float cutoff = hdrp.GetFloat("_AlphaCutoffEnable", fallback: 0) > 0 ? hdrp.GetFloat("_AlphaCutoff", fallback: 0.5f) : 0.5f;
-					value.vector = new Vector4(cutoff, cutoff, cutoff, cutoff);
+					value.texture = BakeSurface(hdrp, property, variant.renderType, output, manual);
 					return true;
 				case ModRenderCoreSource.EmissionParameters:
 					// Постоянная яркость: период и разброс нулевые, минимум — интенсивность HDR (цвет нормирован в карте эмиссии).
@@ -123,6 +213,44 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					return true;
 				default:
 					return false;
+			}
+		}
+
+		/// <summary>Каналы packed map, которым в HDRP нет источника: маску окраски (MAT_COLORMASK_*) рисует автор, экспорт пишет ноль.</summary>
+		private static void AddManualChannels(ModRenderCoreVariantProperty property, List<string> manual)
+		{
+			if (property.channels == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < property.channels.Count; i++)
+			{
+				if (property.channels[i] == ModRenderCoreChannel.ColorMask)
+				{
+					manual.Add($"{property.label} {ChannelNames[i]} (color mask)");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Порог Alpha Clipping HDRP не переносится: альфа-тест rendercore режет по своему фиксированному порогу с дизерингом.
+		/// Значение HDRP по умолчанию (0.5) не сообщается, чтобы не шуметь на каждом материале.
+		/// </summary>
+		private static void AddAlphaThresholdNote(HdrpMaterial hdrp, ModRenderCoreVariant variant, List<string> manual)
+		{
+			if (variant.renderType != ModRenderCoreRenderType.AlphaTest || !hdrp.IsAlphaClipping)
+			{
+				return;
+			}
+
+			float threshold = hdrp.AlphaCutoff;
+
+			if (!Mathf.Approximately(threshold, HdrpDefaultAlphaCutoff))
+			{
+				manual.Add(string.Format(CultureInfo.InvariantCulture,
+					"alpha threshold {0:0.###} (render core clips at its own fixed, dithered threshold; the HDRP Alpha Clipping threshold is not transferred)",
+					threshold));
 			}
 		}
 
@@ -170,13 +298,21 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				: output.Save(property.name, Recolor(emissiveMap, pixel => new Color(pixel.r * tint.r, pixel.g * tint.g, pixel.b * tint.b, 1)), isColor: true);
 		}
 
-		/// <summary>Normal Map: при Normal Scale = 1 — исходная карта (экспорт сам распакует её в RGB), иначе — RGB-нормаль с масштабом.</summary>
+		/// <summary>
+		/// Normal Map: при Normal Scale = 1 — исходная карта (экспорт сам распакует её в RGB), иначе — RGB-нормаль с масштабом.
+		/// Без карты — плоская RGB-нормаль: документ не полагается на значение слота нормали по умолчанию в шаблоне клиента.
+		/// </summary>
 		private static Texture2D BakeNormal(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, TextureOutput output)
 		{
 			Texture2D normalMap = hdrp.GetTexture("_NormalMap", property.layer);
 			float scale = hdrp.GetFloat(hdrp.Key("_NormalScale", property.layer), fallback: 1);
 
-			if (normalMap == null || Mathf.Approximately(scale, 1))
+			if (normalMap == null)
+			{
+				return output.Save(property.name, Solid(FlatNormal), isColor: false);
+			}
+
+			if (Mathf.Approximately(scale, 1))
 			{
 				return normalMap;
 			}
@@ -193,11 +329,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Packed map по раскладке каналов свойства из Mask Map, альфы Base Map и Normal Map слоя.</summary>
-		private static Texture2D BakeSurface(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, ModRenderCoreRenderType renderType, TextureOutput output)
+		/// <summary>
+		/// Packed map по раскладке каналов свойства из Mask Map, альфы Base Map и Normal Map слоя. Канал AO × альфа альфа-тест rendercore
+		/// читает целиком, поэтому затенённые texel'и, непрозрачные в HDRP, могут отсекаться: если такие есть, автор получает заметку.
+		/// </summary>
+		private static Texture2D BakeSurface(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, ModRenderCoreRenderType renderType, TextureOutput output,
+			List<string> manual)
 		{
 			int layer = property.layer;
 			IReadOnlyList<ModRenderCoreChannel> channels = property.channels;
+			int coverageChannel = IndexOf(channels, ModRenderCoreChannel.AmbientOcclusionAlpha);
+			bool occludesCoverage = false;
 			bool usesAlpha = channels.Any(channel => channel == ModRenderCoreChannel.Alpha || channel == ModRenderCoreChannel.AmbientOcclusionAlpha);
 			bool usesNormal = channels.Any(channel => channel == ModRenderCoreChannel.NormalX || channel == ModRenderCoreChannel.NormalY);
 
@@ -227,17 +369,38 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					float u = (x + 0.5f) / width;
 					Color maskPixel = mask?.Sample(u, v) ?? Color.white;
 					float baseAlpha = alphaSource?.Sample(u, v).a ?? 1;
-					Color normalPixel = normal?.Sample(u, v) ?? new Color(0.5f, 0.5f, 1, 1);
+					Color normalPixel = normal?.Sample(u, v) ?? FlatNormal;
 					var pixel = new Color(
 						surface.Channel(channels[0], maskPixel, baseAlpha, normalPixel, mask != null),
 						surface.Channel(channels[1], maskPixel, baseAlpha, normalPixel, mask != null),
 						surface.Channel(channels[2], maskPixel, baseAlpha, normalPixel, mask != null),
 						surface.Channel(channels[3], maskPixel, baseAlpha, normalPixel, mask != null));
 					packed.Set(x, y, pixel);
+					occludesCoverage = occludesCoverage || (coverageChannel >= 0 && surface.OccludesOpaqueTexel(maskPixel, baseAlpha, mask != null));
 				}
 			}
 
+			if (occludesCoverage)
+			{
+				char channel = ChannelNames[coverageChannel];
+				manual.Add($"{property.label} {channel} (ambient occlusion also lowers alpha-test coverage: texels that are opaque in HDRP but occluded " +
+					$"may be clipped; a variant whose {channel} is alpha only avoids it)");
+			}
+
 			return output.Save(property.name, packed, isColor: false);
+		}
+
+		private static int IndexOf(IReadOnlyList<ModRenderCoreChannel> channels, ModRenderCoreChannel channel)
+		{
+			for (int i = 0; i < channels.Count; i++)
+			{
+				if (channels[i] == channel)
+				{
+					return i;
+				}
+			}
+
+			return -1;
 		}
 
 		private static PixelGrid Solid(Color color)
@@ -289,6 +452,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			public Color EmissiveColor => m_material.HasProperty("_EmissiveColor") ? m_material.GetColor("_EmissiveColor") : Color.black;
 
+			/// <summary>Alpha Clipping HDRP включён.</summary>
+			public bool IsAlphaClipping => GetFloat("_AlphaCutoffEnable", fallback: 0) > 0;
+
+			/// <summary>Порог Alpha Clipping HDRP (общий для слоёв Layered Lit).</summary>
+			public float AlphaCutoff => GetFloat("_AlphaCutoff", fallback: HdrpDefaultAlphaCutoff);
+
 			public string Key(string name, int layer)
 			{
 				return m_isLayered ? name + layer : name;
@@ -323,6 +492,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			private readonly float m_metallic;
 			private readonly float m_colorAlpha;
 			private readonly bool m_isAlphaBlend;
+			private readonly bool m_isAlphaClipping;
+			private readonly float m_alphaCutoff;
 
 			public SurfaceInputs(HdrpMaterial hdrp, int layer, ModRenderCoreRenderType renderType)
 			{
@@ -334,6 +505,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				m_metallic = hdrp.GetFloat(hdrp.Key("_Metallic", layer), fallback: 0);
 				m_colorAlpha = hdrp.GetColor("_BaseColor", layer).a;
 				m_isAlphaBlend = renderType == ModRenderCoreRenderType.Transparent;
+				m_isAlphaClipping = hdrp.IsAlphaClipping;
+				m_alphaCutoff = hdrp.AlphaCutoff;
+			}
+
+			/// <summary>Texel непрозрачен в HDRP (без Alpha Clipping — любой, с ним — не ниже порога), но AO у него меньше 1.</summary>
+			public bool OccludesOpaqueTexel(Color mask, float baseAlpha, bool hasMask)
+			{
+				bool isOpaque = !m_isAlphaClipping || Alpha(baseAlpha) >= m_alphaCutoff;
+				return isOpaque && AmbientOcclusion(mask, hasMask) < 1 - OcclusionTolerance;
 			}
 
 			public float Channel(ModRenderCoreChannel channel, Color mask, float baseAlpha, Color normal, bool hasMask)
@@ -354,6 +534,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 						return normal.r;
 					case ModRenderCoreChannel.NormalY:
 						return normal.g;
+					case ModRenderCoreChannel.ColorMask:
+						// Маски окраски в HDRP нет: ноль — без окраски u_vColor, автор рисует маску сам.
+						return 0;
 					default:
 						return 0;
 				}

@@ -32,10 +32,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			mtl.AppendFormat("newmtl {0}", MeshExportUtility.GetStableObjectId(material)).AppendLine();
 
 			// Переопределение маркером Material главнее Layered PBR: запасным остаётся обычный материал ниже.
-			if (RenderCoreMaterialOverrides.TryGet(material, out RenderCoreMaterialOverride renderCore))
+			// Неприменимый вариант документа не получает, и материал экспортируется как без маркера.
+			if (RenderCoreMaterialOverrides.TryGet(material, out RenderCoreMaterialOverride renderCore)
+				&& RenderCoreMaterialWriter.TryWrite(material, renderCore, directory, out ModRenderCoreVariant variant, out int revision, out string document))
 			{
-				string document = RenderCoreMaterialWriter.Write(material, renderCore, directory);
-				mtl.Append("cx_rc ").Append(renderCore.variant).Append(' ').AppendLine(document);
+				mtl.Append("cx_rc ").Append(variant.name).Append(' ').AppendLine(document);
+
+				// Ревизия — та, что записана в документ (ревизия запекания маркера). Ревизия 1 не пишется: такой MTL совпадает с прежним,
+				// а отсутствие строки читается как ревизия 1.
+				if (revision > 1)
+				{
+					mtl.AppendFormat(CultureInfo.InvariantCulture, "cx_rc_rev {0}", revision).AppendLine();
+				}
 			}
 			else
 			{
@@ -125,6 +133,27 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				// Без Alpha Remapping d = _BaseColor.a; с ремапом — по формуле HDRP Lit (часть альфы может быть запечена в map_d).
 				mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", MtlTextureMapWriter.GetDissolve(material, blendMode)).AppendLine();
 			}
+		}
+
+		/// <summary>
+		/// Экспорт запишет материалу эмиссию (Ke, по которому клиент считает материал эмиссионным): цвет эмиссии HDRP _EmissiveColor
+		/// или, без него, _EmissionColor при включённом _EMISSION — с ненулевой компонентой. То же правило, что и в
+		/// <see cref="MtlTextureMapWriter.AppendEmission"/>: без цвета карта эмиссии не пишется.
+		/// </summary>
+		internal static bool WritesEmission(Material material)
+		{
+			Color emissiveColor = Color.black;
+
+			if (material.HasProperty("_EmissiveColor"))
+			{
+				emissiveColor = material.GetColor("_EmissiveColor");
+			}
+			else if (material.HasProperty("_EmissionColor") && material.IsKeywordEnabled("_EMISSION"))
+			{
+				emissiveColor = material.GetColor("_EmissionColor");
+			}
+
+			return emissiveColor.maxColorComponent > 0f;
 		}
 
 		internal static MaterialBlendMode DetectBlendMode(Material material)

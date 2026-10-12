@@ -11,6 +11,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		// Переопределение маркером Material: вариант rendercore и документ ModRenderCoreMaterial. Остальные поля — запасной материал.
 		public string renderCoreVariant;
 		public string renderCoreResource;
+		// Ревизия варианта rendercore из MTL (cx_rc_rev); 0 — ревизия 1.
+		public int renderCoreRevision;
 		public Vector4 uv = new Vector4(1, 1, 0, 0);
 		public float alpha = 1;
 		public int illumination = -1;

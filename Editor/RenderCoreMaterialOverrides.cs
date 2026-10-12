@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
@@ -18,13 +20,30 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private static readonly Dictionary<string, Material> s_proxiesByKey = new();
 		private static readonly Dictionary<Material, ProxyEntry> s_entries = new();
+		private static readonly HashSet<RenderCoreMaterialOverride> s_warned = new();
+		private static bool s_enabled;
 
 		/// <summary>Включается сборкой Binary до сбора сцены; Wavefront маркер Material игнорирует.</summary>
-		public static bool Enabled { get; set; }
+		public static bool Enabled
+		{
+			get => s_enabled;
+			set
+			{
+				// Каждая сборка заново предупреждает о неприменимых и устаревших переопределениях.
+				if (value && !s_enabled)
+				{
+					s_warned.Clear();
+				}
+
+				s_enabled = value;
+			}
+		}
 
 		/// <summary>
 		/// Материалы рендерера с учётом маркера Material на объекте <paramref name="gameObject"/>, а если там маркера нет —
 		/// на объекте LODGroup <paramref name="lodRoot"/>. Без переопределений возвращается исходный массив.
+		/// Переопределение с неизвестным или недоступным в модах вариантом не применяется: материал экспортируется как без маркера,
+		/// а в консоль один раз за сборку выводится предупреждение (сборка без валидатора MapUploader иначе потеряла бы его молча).
 		/// </summary>
 		public static Material[] Resolve(GameObject gameObject, Material[] materials, Transform lodRoot = null)
 		{
@@ -33,11 +52,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return materials;
 			}
 
+			GameObject markerObject = gameObject;
 			RenderCoreMaterialMarkerSettings settings = FindSettings(gameObject);
 
 			if (settings == null && lodRoot != null)
 			{
-				settings = FindSettings(lodRoot.gameObject);
+				markerObject = lodRoot.gameObject;
+				settings = FindSettings(markerObject);
 			}
 
 			if (settings == null)
@@ -51,8 +72,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				RenderCoreMaterialOverride materialOverride = settings.Find(materials[i]);
 
-				if (materialOverride == null || !ModRenderCoreVariants.TryGet(materialOverride.variant, out _))
+				if (materialOverride == null)
 				{
+					continue;
+				}
+
+				if (!ModRenderCoreVariants.TryGet(materialOverride.variant, out _))
+				{
+					WarnOnce(materialOverride, $"Material marker on '{markerObject.name}': material '{materials[i].name}' uses " +
+						$"{DescribeUnusable(materialOverride.variant)}. Only the fallback material is exported.", markerObject);
 					continue;
 				}
 
@@ -61,6 +89,54 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			return resolved ?? materials;
+		}
+
+		/// <summary>
+		/// Как материал использует цвет вершин в игре. Прокси экспорта — по своему варианту rendercore. Любой другой материал —
+		/// <see cref="ModRenderCoreVertexColors.EmissionMultiplier"/>, если экспорт запишет ему эмиссию (Ke в .mtl, см.
+		/// <see cref="MtlMaterialWriter.WritesEmission"/>), иначе <see cref="ModRenderCoreVertexColors.None"/>. Для исходного материала
+		/// с маркером Material (не прокси) вариант переопределения берёт вызывающий код.
+		/// Клиент перекрашивает меш с эмиссией в белый, но оставляет цвета меша, где есть LayerBlend: в таком меше цвет вершин окрашивает
+		/// эмиссию, поэтому LayerBlend и эмиссию нельзя держать в одном меше.
+		/// </summary>
+		public static ModRenderCoreVertexColors GetVertexColorUsage(Material material)
+		{
+			if (material == null)
+			{
+				return ModRenderCoreVertexColors.None;
+			}
+
+			if (TryGet(material, out RenderCoreMaterialOverride materialOverride))
+			{
+				return ModRenderCoreVariants.TryGet(materialOverride.variant, out ModRenderCoreVariant variant)
+					? variant.vertexColors
+					: ModRenderCoreVertexColors.None;
+			}
+
+			// Клиент считает материал эмиссионным (и белит меш) только для непрозрачного MTL: прозрачность и альфа-тест в нём главнее эмиссии.
+			return MtlMaterialWriter.DetectBlendMode(material) == MaterialBlendMode.Opaque && MtlMaterialWriter.WritesEmission(material)
+				? ModRenderCoreVertexColors.EmissionMultiplier
+				: ModRenderCoreVertexColors.None;
+		}
+
+		/// <summary>Почему вариант нельзя применить: недоступен в модах (с причиной) или неизвестен зеркалу.</summary>
+		internal static string DescribeUnusable(string variantName)
+		{
+			if (ModRenderCoreVariants.TryFind(variantName, out ModRenderCoreVariant variant))
+			{
+				return $"render core variant '{variant.name}' that is unavailable in mods ({variant.unavailableReason})";
+			}
+
+			return $"unknown render core variant '{variantName}'";
+		}
+
+		/// <summary>Предупреждение о переопределении — один раз за сборку, сколько бы рендереров и групп его ни использовали.</summary>
+		internal static void WarnOnce(RenderCoreMaterialOverride materialOverride, string message, Object context)
+		{
+			if (s_warned.Add(materialOverride))
+			{
+				Debug.LogWarning(message, context);
+			}
 		}
 
 		/// <summary>Настройки маркера Material на объекте или null.</summary>
@@ -121,6 +197,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			s_entries.Clear();
 			s_proxiesByKey.Clear();
+			s_warned.Clear();
 			Enabled = false;
 		}
 
@@ -139,13 +216,24 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return proxy;
 		}
 
-		/// <summary>Хэш варианта и значений свойств: одинаковые переопределения на разных объектах дают один материал.</summary>
+		/// <summary>
+		/// Хэш варианта и значений свойств: одинаковые переопределения на разных объектах дают один материал. Свойства — по имени,
+		/// а не в порядке rendercore: перестановка свойств в MaterialEditorSettings не меняет id прокси и имена файлов.
+		/// Ревизия запекания входит в хэш, начиная с 2: переопределения с разными ревизиями пишут разные документы, а id
+		/// переопределений ревизии 1 (и маркеров без записанной ревизии) прежние.
+		/// Вызывается только для доступного варианта (см. <see cref="Resolve"/>).
+		/// </summary>
 		private static string GetOverrideHash(RenderCoreMaterialOverride materialOverride)
 		{
-			var builder = new StringBuilder(materialOverride.variant);
 			ModRenderCoreVariants.TryGet(materialOverride.variant, out ModRenderCoreVariant variant);
+			var builder = new StringBuilder(variant.name);
 
-			foreach (ModRenderCoreVariantProperty property in variant.properties)
+			if (materialOverride.BakedRevision > 1)
+			{
+				builder.Append("|revision=").Append(materialOverride.BakedRevision.ToString(CultureInfo.InvariantCulture));
+			}
+
+			foreach (ModRenderCoreVariantProperty property in variant.properties.OrderBy(candidate => candidate.name, StringComparer.Ordinal))
 			{
 				RenderCoreMaterialValue value = materialOverride.Find(property.name);
 
