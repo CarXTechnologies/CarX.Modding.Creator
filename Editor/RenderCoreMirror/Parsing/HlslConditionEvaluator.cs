@@ -151,7 +151,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (branches.Count > 0)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, branches[branches.Count - 1].line, "#if без #endif");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, branches[branches.Count - 1].line, "#if without #endif");
 			}
 		}
 
@@ -221,7 +221,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (name.Length == 0)
 					{
-						throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} без имени");
+						throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} without a name");
 					}
 
 					HlslActivity condition = parent == HlslActivity.Inactive ? HlslActivity.Inactive : TestDefined(name, directive == "ifdef");
@@ -274,14 +274,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (branches.Count == 0)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} без #if");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} without #if");
 			}
 
 			Branch top = branches[branches.Count - 1];
 
 			if (top.seenElse && directive != "endif")
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} после #else");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#{directive} after #else");
 			}
 
 			return top;
@@ -293,7 +293,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (name.Length == 0)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, "#define без имени");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, "#define without a name");
 			}
 
 			if (maybe)
@@ -364,7 +364,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				}
 			}
 
-			throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"#include не разобран: '{argument}'");
+			throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"cannot parse #include: '{argument}'");
 		}
 
 		private static string ReadIdentifier(string text, int start)
@@ -454,7 +454,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (m_text.Trim().Length == 0)
 				{
-					throw Error("пустое выражение");
+					throw Error("empty expression");
 				}
 
 				HlslValue value = ParseOr();
@@ -462,7 +462,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_index < m_text.Length)
 				{
-					throw Error($"не разобрано: '{m_text.Substring(m_index)}'");
+					throw Error($"cannot parse: '{m_text.Substring(m_index)}'");
 				}
 
 				return value;
@@ -586,7 +586,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_index >= m_text.Length)
 				{
-					throw Error("выражение оборвано");
+					throw Error("unexpected end of expression");
 				}
 
 				char character = m_text[m_index];
@@ -598,7 +598,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (!Accept(")"))
 					{
-						throw Error("нет ')'");
+						throw Error("missing ')'");
 					}
 
 					return value;
@@ -613,7 +613,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (identifier.Length == 0)
 				{
-					throw Error($"неизвестный символ '{character}'");
+					throw Error($"unknown character '{character}'");
 				}
 
 				m_index += identifier.Length;
@@ -627,14 +627,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (name.Length == 0)
 					{
-						throw Error("defined без имени");
+						throw Error("defined without a name");
 					}
 
 					m_index += name.Length;
 
 					if (parenthesized && !Accept(")"))
 					{
-						throw Error("defined( без ')'");
+						throw Error("defined( without ')'");
 					}
 
 					return m_owner.IsUndecidable(name) ? HlslValue.Unknown : HlslValue.Of(m_owner.IsDefined(name));
@@ -644,7 +644,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_index < m_text.Length && m_text[m_index] == '(')
 				{
-					throw Error($"вызов макроса {identifier}(…) не поддержан");
+					throw Error($"macro call {identifier}(…) is not supported");
 				}
 
 				return ResolveIdentifier(identifier);
@@ -665,12 +665,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (value.Trim().Length == 0)
 				{
-					throw Error($"{identifier} определён без значения и не может стоять в #if как число");
+					throw Error($"{identifier} is defined without a value and cannot be used as a number in #if");
 				}
 
 				if (m_depth >= MaxMacroDepth)
 				{
-					throw Error($"слишком глубокая подстановка {identifier}");
+					throw Error($"macro expansion of {identifier} is too deep");
 				}
 
 				var nested = new ExpressionParser(m_owner, value, m_path, m_line, m_depth + 1);
@@ -693,7 +693,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!parsed)
 				{
-					throw Error($"число не разобрано: '{literal}'");
+					throw Error($"cannot parse number: '{literal}'");
 				}
 
 				return value;

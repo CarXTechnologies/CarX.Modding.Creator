@@ -30,7 +30,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!committed.scope.SameAs(live.scope))
 			{
 				findings.Add(new RenderCoreFinding(RenderCoreFindingCodes.Scope, RenderCoreFindingTier.Stale, "scope",
-					$"область снимка ({committed.scope}) не совпадает с областью извлечения ({live.scope})"));
+					$"lock scope ({committed.scope}) does not match the extraction scope ({live.scope})"));
 			}
 
 			CompareVariants(committed, live, isRelevant, findings);
@@ -55,7 +55,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!live.TryGetVariant(before.name, out RenderCoreLockVariant after))
 				{
 					findings.Add(new RenderCoreFinding(RenderCoreFindingCodes.VariantRemoved, Tier(relevant, RenderCoreFindingTier.Breaking), before.name,
-						"кандидат пропал из rendercore (нет члена enum или данных в asset)" + DescribeRename(before, live)));
+						"candidate is gone from rendercore (no enum member or asset data)" + DescribeRename(before, live)));
 					continue;
 				}
 
@@ -67,7 +67,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!committed.TryGetVariant(after.name, out _))
 				{
 					findings.Add(new RenderCoreFinding(RenderCoreFindingCodes.VariantAdded, RenderCoreFindingTier.Info, after.name,
-						$"новый кандидат (id {after.id}, {after.defs} {string.Join(" ", after.features)}); в таблицу не попадёт без аннотации"));
+						$"new candidate (id {after.id}, {after.defs} {string.Join(" ", after.features)}); not added to the table without an annotation"));
 				}
 			}
 		}
@@ -85,7 +85,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (before.queueBase != after.queueBase || before.queueOffset != after.queueOffset)
 			{
 				Add(findings, RenderCoreFindingCodes.VariantQueue, Tier(relevant, RenderCoreFindingTier.Stale), name,
-					$"очередь {before.queueBase}+{before.queueOffset} → {after.queueBase}+{after.queueOffset}");
+					$"queue {before.queueBase}+{before.queueOffset} → {after.queueBase}+{after.queueOffset}");
 			}
 
 			if (before.renderType != after.renderType)
@@ -103,13 +103,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				bool mismatch = after.label != after.name;
 				Add(findings, RenderCoreFindingCodes.VariantLabel, mismatch ? Tier(relevant, RenderCoreFindingTier.Breaking) : RenderCoreFindingTier.Info, name,
-					mismatch ? $"метка записи asset '{after.label}' не совпадает с именем enum (было '{before.label}')" : $"метка '{before.label}' → '{after.label}'");
+					mismatch ? $"asset entry label '{after.label}' does not match the enum name (was '{before.label}')" : $"label '{before.label}' → '{after.label}'");
 			}
 
 			if (before.entries != after.entries)
 			{
 				Add(findings, RenderCoreFindingCodes.VariantEntries, RenderCoreFindingTier.Info, name,
-					$"записей asset с id {after.id}: {before.entries} → {after.entries} (берётся первая)");
+					$"asset entries with id {after.id}: {before.entries} → {after.entries} (the first one is used)");
 			}
 
 			CompareProperties(before, after, relevant, findings);
@@ -137,20 +137,20 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!before.libraries.SequenceEqual(after.libraries, StringComparer.Ordinal))
 			{
 				Add(findings, RenderCoreFindingCodes.Libraries, Tier(relevant, RenderCoreFindingTier.Breaking), name,
-					"библиотеки Definitions: " + DescribeSet(before.libraries, after.libraries) + "; зеркало в них не заходит — проверить, что они определяют");
+					"Definitions libraries: " + DescribeSet(before.libraries, after.libraries) + "; the mirror does not inspect them — check what they define");
 			}
 
 			if (before.decodeHash != after.decodeHash)
 			{
 				string header = before.func != after.func
 					? $"Func {before.func} → {after.func}"
-					: $"библиотеки Definitions или активные строки {after.func} изменились ({before.decodeHash} → {after.decodeHash})";
+					: $"Definitions libraries or active lines of {after.func} changed ({before.decodeHash} → {after.decodeHash})";
 				Add(findings, RenderCoreFindingCodes.Decode, Tier(relevant, RenderCoreFindingTier.Breaking), name,
 					header + DescribeCode(committed.GetDecodeLines(before.decodeHash), live.GetDecodeLines(after.decodeHash)));
 			}
 			else if (before.func != after.func)
 			{
-				Add(findings, RenderCoreFindingCodes.Decode, RenderCoreFindingTier.Info, name, $"Func {before.func} → {after.func}, активные строки те же");
+				Add(findings, RenderCoreFindingCodes.Decode, RenderCoreFindingTier.Info, name, $"Func {before.func} → {after.func}, active lines unchanged");
 			}
 		}
 
@@ -162,13 +162,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!after.TryGetProperty(property.name, out RenderCoreLockProperty current))
 				{
-					Add(findings, RenderCoreFindingCodes.PropertyRemoved, Tier(relevant, RenderCoreFindingTier.Stale), subject, "свойство убрано");
+					Add(findings, RenderCoreFindingCodes.PropertyRemoved, Tier(relevant, RenderCoreFindingTier.Stale), subject, "property removed");
 					continue;
 				}
 
 				if (property.type != current.type)
 				{
-					Add(findings, RenderCoreFindingCodes.PropertyType, Tier(relevant, RenderCoreFindingTier.Stale), subject, $"тип {property.type} → {current.type}");
+					Add(findings, RenderCoreFindingCodes.PropertyType, Tier(relevant, RenderCoreFindingTier.Stale), subject, $"type {property.type} → {current.type}");
 				}
 
 				if (property.label != current.label || property.tooltip != current.tooltip ||
@@ -183,7 +183,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!before.TryGetProperty(property.name, out _))
 				{
 					Add(findings, RenderCoreFindingCodes.PropertyAdded, Tier(relevant, RenderCoreFindingTier.Stale), $"{before.name}.{property.name}",
-						$"свойство добавлено (тип {property.type})");
+						$"property added (type {property.type})");
 				}
 			}
 
@@ -193,7 +193,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!commonBefore.SequenceEqual(commonAfter, StringComparer.Ordinal))
 			{
 				Add(findings, RenderCoreFindingCodes.PropertyOrder, RenderCoreFindingTier.Info, before.name,
-					$"порядок свойств {string.Join(",", commonBefore)} → {string.Join(",", commonAfter)}");
+					$"property order {string.Join(",", commonBefore)} → {string.Join(",", commonAfter)}");
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (before.type != after.type)
 				{
 					Add(findings, RenderCoreFindingCodes.ShaderPropertyType, Tier(relevant, RenderCoreFindingTier.Stale), before.name,
-						$"тип в Properties {before.type} → {after.type}");
+						$"type in Properties {before.type} → {after.type}");
 				}
 
 				if (before.gamma != after.gamma)
@@ -220,14 +220,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					// Ворота сверяют [Gamma] текстур предлагаемых вариантов живого снимка с замороженным правилом префикса (RCM050).
 					bool texture = after.type == TextureShaderType && UsedByRelevant(live, before.name, isRelevant);
 					Add(findings, RenderCoreFindingCodes.ShaderPropertyGamma, texture ? RenderCoreFindingTier.Breaking : Tier(relevant, RenderCoreFindingTier.Stale),
-						before.name, $"[Gamma] {(before.gamma ? "был" : "не было")} → {(after.gamma ? "есть" : "нет")}" +
-						(texture ? ": цветовое пространство текстуры запечено в моды" : ""));
+						before.name, $"[Gamma] {(before.gamma ? "on" : "off")} → {(after.gamma ? "on" : "off")}" +
+						(texture ? ": the texture color space is baked into mods" : ""));
 				}
 
 				if (before.defaultValue != after.defaultValue)
 				{
 					Add(findings, RenderCoreFindingCodes.ShaderPropertyDefault, RenderCoreFindingTier.Info, before.name,
-						$"по умолчанию {before.defaultValue} → {after.defaultValue}");
+						$"default {before.defaultValue} → {after.defaultValue}");
 				}
 			}
 		}
@@ -274,7 +274,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!live.TryGetPassConfig(before.pass, before.keywords, out RenderCoreLockPassConfig after))
 				{
-					Add(findings, RenderCoreFindingCodes.PassConfig, RenderCoreFindingTier.Info, subject, "конфигурации прохода больше нет");
+					Add(findings, RenderCoreFindingCodes.PassConfig, RenderCoreFindingTier.Info, subject, "pass configuration no longer exists");
 					continue;
 				}
 
@@ -288,7 +288,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				else if (!before.otherDefines.SequenceEqual(after.otherDefines, StringComparer.Ordinal))
 				{
 					Add(findings, RenderCoreFindingCodes.PassConfig, RenderCoreFindingTier.Info, subject,
-						"прочие define'ы " + DescribeSet(before.otherDefines, after.otherDefines));
+						"other defines " + DescribeSet(before.otherDefines, after.otherDefines));
 				}
 			}
 
@@ -296,7 +296,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!committed.TryGetPassConfig(after.pass, after.keywords, out _))
 				{
-					Add(findings, RenderCoreFindingCodes.PassConfig, RenderCoreFindingTier.Info, $"{after.pass}/{after.keywords}", "новая конфигурация прохода");
+					Add(findings, RenderCoreFindingCodes.PassConfig, RenderCoreFindingTier.Info, $"{after.pass}/{after.keywords}", "new pass configuration");
 				}
 			}
 		}
@@ -326,9 +326,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				parts.Add($"Definitions {before.defs} → {after.defs}");
 			}
 
-			AddSetChange(parts, "особенности", before.features, after.features);
-			AddSetChange(parts, "потоки", before.streams, after.streams);
-			AddSetChange(parts, "библиотеки Definitions", before.libraries, after.libraries);
+			AddSetChange(parts, "features", before.features, after.features);
+			AddSetChange(parts, "streams", before.streams, after.streams);
+			AddSetChange(parts, "Definitions libraries", before.libraries, after.libraries);
 
 			if (before.func != after.func)
 			{
@@ -337,12 +337,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (before.decodeHash != after.decodeHash)
 			{
-				parts.Add($"активные строки Func {before.decodeHash} → {after.decodeHash}");
+				parts.Add($"Func active lines {before.decodeHash} → {after.decodeHash}");
 			}
 
 			if (before.programHash != after.programHash)
 			{
-				parts.Add($"программа прохода {before.programHash} → {after.programHash}");
+				parts.Add($"pass program {before.programHash} → {after.programHash}");
 			}
 
 			return string.Join("; ", parts);
@@ -365,7 +365,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!before.SequenceEqual(after, StringComparer.Ordinal))
 			{
 				Add(findings, RenderCoreFindingCodes.RenderTypes, RenderCoreFindingTier.Breaking, MaterialVariantEnumParser.RenderTypeEnumName,
-					DescribeSet(before, after) + "; тег RenderType материала пишется именем члена — сверить ModRenderCoreRenderType");
+					DescribeSet(before, after) + "; the material RenderType tag is written as the member name — check ModRenderCoreRenderType");
 			}
 		}
 
@@ -374,7 +374,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (committed.setupHash != live.setupHash)
 			{
 				Add(findings, RenderCoreFindingCodes.Setup, RenderCoreFindingTier.Breaking, CSharpMethodExtractor.SetupMethodName,
-					$"тело изменилось ({committed.setupHash} → {live.setupHash}); сверить MaterialMappingPBR.ApplyRenderCoreVariant" +
+					$"body changed ({committed.setupHash} → {live.setupHash}); check MaterialMappingPBR.ApplyRenderCoreVariant" +
 					DescribeCode(committed.setupLines, live.setupLines));
 			}
 		}
@@ -385,11 +385,11 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!live.TryGetFile(before.role, out string path))
 				{
-					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, before.role, $"файл больше не читается ({before.path})");
+					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, before.role, $"file is no longer read ({before.path})");
 				}
 				else if (path != before.path)
 				{
-					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, before.role, $"файл переехал: {before.path} → {path}");
+					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, before.role, $"file moved: {before.path} → {path}");
 				}
 			}
 
@@ -397,7 +397,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!committed.TryGetFile(after.role, out _))
 				{
-					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, after.role, $"новый входной файл {after.path}");
+					Add(findings, RenderCoreFindingCodes.Files, RenderCoreFindingTier.Info, after.role, $"new input file {after.path}");
 				}
 			}
 		}
@@ -410,7 +410,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!before.SequenceEqual(after, StringComparer.Ordinal))
 			{
 				Add(findings, RenderCoreFindingCodes.EnumEntries, RenderCoreFindingTier.Info, MaterialVariantEnumParser.EnumName,
-					"члены без данных в asset: " + DescribeSet(before, after));
+					"members without asset data: " + DescribeSet(before, after));
 			}
 		}
 
@@ -422,7 +422,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					bool sameLayout = candidate.defs == before.defs && candidate.features.SequenceEqual(before.features, StringComparer.Ordinal);
 					bool sameDecode = candidate.decodeHash == before.decodeHash;
-					return $"; тот же id теперь у {candidate.name}: раскладка {(sameLayout ? "та же" : "другая")}, декодирование {(sameDecode ? "то же" : "другое")}";
+					return $"; same id now used by {candidate.name}: layout {(sameLayout ? "same" : "different")}, decoding {(sameDecode ? "same" : "different")}";
 				}
 			}
 
@@ -479,7 +479,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				parts.Add("+" + string.Join(" +", added));
 			}
 
-			return parts.Count == 0 ? "порядок изменился" : string.Join(" ", parts);
+			return parts.Count == 0 ? "order changed" : string.Join(" ", parts);
 		}
 
 		/// <summary>
@@ -490,7 +490,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (before.Count == 0 || after.Count == 0)
 			{
-				return "; строки кода в снимке не хранятся — смотреть git diff rendercore между пином снимка и текущим";
+				return "; the lock does not store code lines — see git diff of rendercore between the lock pin and the current one";
 			}
 
 			return DescribeLines(before, after);

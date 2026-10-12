@@ -17,7 +17,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			string channels = layout.channels == null || !hasPackedMap ? "channels: null" : FormatChannels(layout.channels);
 			bool unsupported = (layout.streams & ~supportedStreams) != MirrorVertexStreams.None;
-			string reason = unsupported ? $"unavailableReason: \"нужны потоки {layout.streams & ~supportedStreams}\"" : "unavailableReason: null";
+			string reason = unsupported ? $"unavailableReason: \"needs streams {layout.streams & ~supportedStreams}\"" : "unavailableReason: null";
 			return $"Variant({Quote(name)}, revision: {revision}, layoutKey: {Quote(layout.key)}, reviewedDecodeHash: {Quote(decodeHash)}, " +
 				$"MirrorVertexColors.{layout.vertexColors}, {channels}, {reason})";
 		}

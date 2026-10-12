@@ -55,7 +55,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			Assert.That(result.Succeeded, Is.True, Describe(result.findings));
 			Assert.That(RenderCoreMirrorFiles.ReadText(RenderCoreMirrorUnityPaths.GeneratedTablePath), Is.EqualTo(table),
-				$"ModRenderCoreVariantTable.g.cs устарела или поправлена руками: {MirrorCSharpWriter.RegenerateMenu} или {MirrorCSharpWriter.RegenerateCommand}");
+				$"ModRenderCoreVariantTable.g.cs is outdated or edited by hand: {MirrorCSharpWriter.RegenerateMenu} or {MirrorCSharpWriter.RegenerateCommand}");
 			Assert.That(ModRenderCoreVariants.LockContentHash, Is.EqualTo(RenderCoreLockText.ContentHash(ReadCommittedLock())));
 		}
 
@@ -65,7 +65,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			MirrorGenerationResult result = MirrorGenerator.Generate(ReadCommittedLock(), RenderCoreMirrorAnnotations.Create());
 
 			Assert.That(result.findings.Where(finding => finding.tier > RenderCoreFindingTier.Info), Is.Empty, Describe(result.findings));
-			Assert.That(result.notAnnotated, Is.Empty, "в rendercore есть варианты карт без аннотации");
+			Assert.That(result.notAnnotated, Is.Empty, "rendercore has map variants without an annotation");
 		}
 
 		[Test]
@@ -173,7 +173,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			foreach (Thread thread in threads)
 			{
-				Assert.That(thread.Join(TimeSpan.FromSeconds(JoinTimeoutSeconds)), Is.True, "поток не завершился");
+				Assert.That(thread.Join(TimeSpan.FromSeconds(JoinTimeoutSeconds)), Is.True, "thread did not finish");
 			}
 
 			start.Close();
@@ -253,12 +253,12 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 				if (!contracts.TryGetValue(parts[0], out MirrorBakedContract contract))
 				{
-					problems.Add($"контракт {parts[0]} удалён из аннотаций");
+					problems.Add($"contract {parts[0]} was removed from the annotations");
 				}
 				else if (MirrorContracts.Hash(contract) != parts[1])
 				{
-					problems.Add($"контракт {parts[0]} изменён (было {parts[1]}, стало {MirrorContracts.Hash(contract)}: {contract.Text}); " +
-						"нужна новая ревизия, а не правка старой");
+					problems.Add($"contract {parts[0]} changed (was {parts[1]}, now {MirrorContracts.Hash(contract)}: {contract.Text}); " +
+						"add a new revision instead of editing the old one");
 				}
 			}
 
@@ -266,7 +266,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			foreach (MirrorBakedContract contract in RenderCoreMirrorAnnotations.Contracts.Where(contract => !frozen.Contains(Key(contract))))
 			{
-				problems.Add($"новый контракт не внесён в реестр: \"{Key(contract)} {MirrorContracts.Hash(contract)}\" ({contract.Text})");
+				problems.Add($"new contract is missing from the registry: \"{Key(contract)} {MirrorContracts.Hash(contract)}\" ({contract.Text})");
 			}
 
 			Assert.That(problems, Is.Empty, string.Join("\n", problems));

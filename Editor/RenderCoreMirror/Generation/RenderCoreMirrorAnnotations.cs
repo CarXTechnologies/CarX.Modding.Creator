@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// </summary>
 		public const string ReviewedSetupHash = "b342e9ce390b";
 
-		private const string NoSecondUv = "нужен второй UV (TEXCOORD1), а меши модов несут только UV0";
+		private const string NoSecondUv = "needs a second UV set (TEXCOORD1); mod meshes carry only UV0";
 
 		/// <summary>Область вариантов карт: та же, с которой извлекается снимок.</summary>
 		public static RenderCoreScope Scope => RenderCoreScope.Default;

@@ -22,7 +22,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			m_commit = commit;
 		}
 
-		public string Description => "память";
+		public string Description => "memory";
 
 		public string Commit => m_commit;
 
@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!m_files.TryGetValue(path, out string text))
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "файла нет");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "file does not exist");
 			}
 
 			return RenderCoreText.Normalize(text);

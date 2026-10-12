@@ -73,7 +73,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (float.IsNaN(value) || float.IsInfinity(value))
 			{
-				throw new ArgumentOutOfRangeException(nameof(value), value, "в таблицу пишутся только конечные числа");
+				throw new ArgumentOutOfRangeException(nameof(value), value, "only finite numbers can be written to the table");
 			}
 
 			if (value == Math.Floor(value) && Math.Abs(value) < 1e7f)

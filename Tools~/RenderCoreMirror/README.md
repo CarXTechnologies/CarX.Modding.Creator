@@ -175,7 +175,7 @@ internal static class GenerationCommands
 {
 	public static void Register(Dictionary<string, RenderCoreMirrorCommand> commands)
 	{
-		commands["generate"] = new RenderCoreMirrorCommand("generate --sdk <папка> [--check]", Generate);
+		commands["generate"] = new RenderCoreMirrorCommand("generate --sdk <CarX.Modding.Creator folder> [--check]", Generate);
 	}
 }
 ```

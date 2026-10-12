@@ -56,8 +56,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				case ParamsName:
 					slot = emission
-						? new MirrorSlot(MirrorPropertyType.Vector, MirrorSource.EmissionParameters, layer: 0, s_emissionParameters, "u_fParams при EMISSION")
-						: new MirrorSlot(MirrorPropertyType.Vector, MirrorSource.None, layer: 0, MirrorVector.One, "u_fParams без EMISSION");
+						? new MirrorSlot(MirrorPropertyType.Vector, MirrorSource.EmissionParameters, layer: 0, s_emissionParameters, "u_fParams with EMISSION")
+						: new MirrorSlot(MirrorPropertyType.Vector, MirrorSource.None, layer: 0, MirrorVector.One, "u_fParams without EMISSION");
 					return true;
 				case ColorName:
 				case ThirdColorName:
@@ -68,10 +68,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (shaderProperty == null || !MirrorVector.TryParse(shaderProperty.defaultValue, out tiling))
 					{
-						problem = $"значение по умолчанию u_fTiling в Properties шейдера не прочитать ('{shaderProperty?.defaultValue}')";
+						problem = $"cannot read the u_fTiling default value from the shader Properties ('{shaderProperty?.defaultValue}')";
 					}
 
-					slot = new MirrorSlot(MirrorPropertyType.Float, MirrorSource.None, layer: 0, tiling, "u_fTiling → None, по умолчанию из шейдера");
+					slot = new MirrorSlot(MirrorPropertyType.Float, MirrorSource.None, layer: 0, tiling, "u_fTiling → None, default from the shader");
 					return true;
 				default:
 					slot = null;
@@ -131,12 +131,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (family == MirrorLayoutRules.LayeredFamily)
 			{
-				return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.Diffuse, index, MirrorVector.One, "u_sTextureN у Layered → Diffuse/N");
+				return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.Diffuse, index, MirrorVector.One, "u_sTextureN in Layered → Diffuse/N");
 			}
 
 			if (family == MirrorLayoutRules.BaseFamily && emission && index == 1)
 			{
-				return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.Emission, layer: 0, MirrorVector.One, "u_sTexture1 у Base при EMISSION → Emission/0");
+				return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.Emission, layer: 0, MirrorVector.One, "u_sTexture1 in Base with EMISSION → Emission/0");
 			}
 
 			return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.None, layer: 0, MirrorVector.One, "u_sTextureN → None");

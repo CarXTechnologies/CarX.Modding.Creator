@@ -48,8 +48,7 @@ Command line, without Unity (`dotnet run --project Tools~/RenderCoreMirror -- <c
 - `check` (same sources) `--sdk <dir>` — exit code 0 clean or Info only, 2 Stale, 3 Breaking, 4 Error;
 - `update` (same sources) `--sdk <dir>` — writes the lock and the table, like the menu;
 - `generate --sdk <dir> [--check]`;
-- `legacy-diff --old-dll <CarX.Modding.Creator.dll>` — field-by-field diff of an old hand table against the generated one;
-- `replay --git <repo> --cases replay-cases.json` — runs the history cases.
+- `legacy-diff --old-dll <CarX.Modding.Creator.dll> [--unity-managed <dir>]... --sdk <dir>` — field-by-field diff of an old hand table against the generated one.
 
 Details are in `Tools~/RenderCoreMirror/README.md`.
 

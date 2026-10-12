@@ -56,7 +56,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				if (matches.Count != 1)
 				{
 					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, entry.Key, line: 0,
-						$"override: в {entry.Value} найдено файлов с таким именем: {matches.Count}");
+						$"override: expected 1 file with this name in {entry.Value}, found {matches.Count}");
 				}
 
 				files.RemoveAll(path => string.Equals(RenderCoreFileLocator.GetFileName(path), entry.Key, StringComparison.OrdinalIgnoreCase));

@@ -123,7 +123,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				Is.EqualTo(new[] { MirrorFindingCodes.LayoutKey, MirrorFindingCodes.DecodeHash, MirrorFindingCodes.Channels }), Describe(result.findings));
 			Assert.That(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).Select(finding => finding.subject).Distinct(),
 				Is.EqualTo(new[] { AlphaTestVariant }));
-			Assert.That(Find(result.findings, MirrorFindingCodes.LayoutKey).message, Does.Contain("rendercore «Base ALPHATEST ROUGHNESS depth:generic shadow:generic»"));
+			Assert.That(Find(result.findings, MirrorFindingCodes.LayoutKey).message, Does.Contain("rendercore 'Base ALPHATEST ROUGHNESS depth:generic shadow:generic'"));
 			Assert.That(DiffCodes(baseline, changed), Is.EqualTo(new[] { RenderCoreFindingCodes.Features, RenderCoreFindingCodes.Decode }));
 		}
 
@@ -219,7 +219,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			// С причиной вариант генерируется, но недоступен: клиент и маркер его не предложат.
 			annotations.TryGetVariant("MAT_DEFAULT", out MirrorVariantAnnotation original);
-			MirrorAnnotationSet withReason = annotations.WithVariant(Copy(original, original.revision, original.channels, "нужен второй UV"));
+			MirrorAnnotationSet withReason = annotations.WithVariant(Copy(original, original.revision, original.channels, "needs a second UV set"));
 			MirrorGenerationResult reasoned = MirrorGenerator.Generate(Extract(changed), withReason);
 
 			Assert.That(reasoned.findings.Where(finding => finding.code == MirrorFindingCodes.Streams).Select(finding => finding.subject),
@@ -584,7 +584,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			if (RenderCoreFinding.GetWorstTier(diff) >= RenderCoreFindingTier.Breaking)
 			{
-				Assert.That(update.Succeeded, Is.False, "Breaking сравнения снимков, который ворота пропускают: " + Describe(check));
+				Assert.That(update.Succeeded, Is.False, "lock comparison Breaking that the gates let through: " + Describe(check));
 			}
 		}
 
@@ -713,7 +713,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				result.Add(file.Key, file.Value.Replace(original, replacement));
 			}
 
-			Assert.That(replaced, Is.True, $"в фикстуре нет '{original}'");
+			Assert.That(replaced, Is.True, $"fixture has no '{original}'");
 			return result;
 		}
 

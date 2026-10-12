@@ -47,13 +47,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				string codes = string.Join(", ", result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking)
 					.Select(finding => finding.code).Distinct());
 				findings.Add(new RenderCoreFinding(MirrorFindingCodes.TableBlocked, RenderCoreFindingTier.Breaking, RenderCoreLockText.FileName,
-					$"закоммиченный снимок не проходит ворота генератора ({codes}): таблицу из него не построить"));
+					$"the committed lock fails the generator gates ({codes}): the table cannot be built from it"));
 			}
 			else if (RenderCoreText.Normalize(committedTable) != MirrorCSharpWriter.Write(result))
 			{
 				findings.Add(new RenderCoreFinding(MirrorFindingCodes.TableOutdated, RenderCoreFindingTier.Stale,
 					RenderCoreMirrorPaths.GeneratedTableRelativePath,
-					$"таблица не равна generate(снимок, аннотации): {MirrorCSharpWriter.RegenerateMenu} или {MirrorCSharpWriter.RegenerateCommand}"));
+					$"table does not match generate(lock, annotations): {MirrorCSharpWriter.RegenerateMenu} or {MirrorCSharpWriter.RegenerateCommand}"));
 			}
 
 			return findings;

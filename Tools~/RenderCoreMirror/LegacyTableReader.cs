@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 				if (variants == null)
 				{
-					throw new InvalidOperationException($"в {TableType} нет ни All, ни s_variants");
+					throw new InvalidOperationException($"{TableType} has neither All nor s_variants");
 				}
 
 				return Dump(variants);
@@ -153,7 +153,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				return new MirrorVector(Component(value, "x"), Component(value, "y"), Component(value, "z"), Component(value, "w")).ToString();
 			}
 
-			throw new InvalidOperationException($"неизвестный тип поля таблицы {type.FullName}");
+			throw new InvalidOperationException($"unknown table field type {type.FullName}");
 		}
 
 		private static float Component(object vector, string name)

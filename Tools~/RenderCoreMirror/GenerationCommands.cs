@@ -11,14 +11,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 	/// </summary>
 	internal static class GenerationCommands
 	{
-		private const string SdkUsage = "--sdk <папка CarX.Modding.Creator>";
+		private const string SdkUsage = "--sdk <CarX.Modding.Creator folder>";
 
 		public static void Register(Dictionary<string, RenderCoreMirrorCommand> commands)
 		{
 			commands["generate"] = new RenderCoreMirrorCommand($"generate {SdkUsage} [--check]", Generate);
 			commands["update"] = new RenderCoreMirrorCommand($"update {Program.SourceUsage} {SdkUsage}", Update);
 			commands["legacy-diff"] = new RenderCoreMirrorCommand(
-				$"legacy-diff --old-dll <CarX.Modding.Creator.dll> [--unity-managed <папка UnityEngine*.dll>]... {SdkUsage}", LegacyDiff);
+				$"legacy-diff --old-dll <CarX.Modding.Creator.dll> [--unity-managed <UnityEngine*.dll folder>]... {SdkUsage}", LegacyDiff);
 		}
 
 		/// <summary>
@@ -34,7 +34,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (!result.Succeeded)
 			{
-				Console.Error.WriteLine("Таблица не записана: есть находки Breaking/Error.");
+				Console.Error.WriteLine("Table not written: there are Breaking/Error findings.");
 				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
@@ -45,7 +45,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				return Program.ReportFindings(RenderCoreMirrorPipeline.CheckTable(committed, RenderCoreMirrorAnnotations.Create(), Program.ReadTextOrEmpty(path)));
 			}
 
-			Console.WriteLine(Program.WriteText(path, table) ? $"записан {path}" : $"не изменился {path}");
+			Console.WriteLine(Program.WriteText(path, table) ? $"written {path}" : $"unchanged {path}");
 			return Program.ExitClean;
 		}
 
@@ -63,7 +63,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			MirrorGenerationResult result = RenderCoreMirrorPipeline.Update(source, committed, RenderCoreMirrorAnnotations.Create(),
 				out List<RenderCoreFinding> changes, out string lockText, out string table);
 
-			Console.WriteLine($"Отличия от закоммиченного снимка ({source.Description}):");
+			Console.WriteLine($"Differences from the committed lock ({source.Description}):");
 
 			foreach (RenderCoreFinding change in changes)
 			{
@@ -74,13 +74,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (!result.Succeeded)
 			{
-				Console.Error.WriteLine("Ничего не записано: есть находки Breaking/Error против аннотаций.");
+				Console.Error.WriteLine("Nothing written: there are Breaking/Error findings against the annotations.");
 				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
-			Console.WriteLine(Program.WriteText(lockPath, lockText) ? $"записан {lockPath}" : $"не изменился {lockPath}");
+			Console.WriteLine(Program.WriteText(lockPath, lockText) ? $"written {lockPath}" : $"unchanged {lockPath}");
 			string tablePath = RenderCoreMirrorPaths.GetGeneratedTablePath(sdk);
-			Console.WriteLine(Program.WriteText(tablePath, table) ? $"записан {tablePath}" : $"не изменился {tablePath}");
+			Console.WriteLine(Program.WriteText(tablePath, table) ? $"written {tablePath}" : $"unchanged {tablePath}");
 			return Program.ExitClean;
 		}
 
@@ -97,7 +97,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (!result.Succeeded)
 			{
-				Console.Error.WriteLine("Сравнивать не с чем: генерация заблокирована.");
+				Console.Error.WriteLine("Nothing to compare against: generation is blocked.");
 				return Program.ReportFindings(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList());
 			}
 
@@ -105,7 +105,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			SortedDictionary<string, string> after = MirrorTableDump.Dump(result.variants);
 			List<string> lines = MirrorTableDump.Compare(before, after);
 
-			Console.WriteLine($"{dll} против generate({RenderCoreMirrorPaths.LockRelativePath} {result.lockContentHash}, аннотации): отличий {lines.Count}");
+			Console.WriteLine($"{dll} vs generate({RenderCoreMirrorPaths.LockRelativePath} {result.lockContentHash}, annotations): {lines.Count} differences");
 
 			foreach (string line in lines)
 			{
@@ -124,8 +124,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (result.Succeeded)
 			{
-				Console.WriteLine($"Вариантов {result.variants.Count} (доступных {result.variants.Count(variant => variant.Available)}), " +
-					$"LockContentHash {result.lockContentHash}, не предлагаются: {(result.notAnnotated.Count == 0 ? "—" : string.Join(", ", result.notAnnotated))}");
+				Console.WriteLine($"{result.variants.Count} variants ({result.variants.Count(variant => variant.Available)} available), " +
+					$"LockContentHash {result.lockContentHash}, not offered: {(result.notAnnotated.Count == 0 ? "—" : string.Join(", ", result.notAnnotated))}");
 			}
 		}
 	}

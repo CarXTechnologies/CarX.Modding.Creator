@@ -25,7 +25,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!result.Succeeded)
 			{
-				throw new InvalidOperationException("генерация заблокирована находками Breaking/Error: таблица не пишется");
+				throw new InvalidOperationException("generation is blocked by Breaking/Error findings: the table is not written");
 			}
 
 			var builder = new StringBuilder();

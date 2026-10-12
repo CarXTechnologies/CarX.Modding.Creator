@@ -204,7 +204,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					}),
 				new ModRenderCoreVariant("MAT_INTERIOR", id: 1064971, queue: 2000, ModRenderCoreRenderType.Opaque, Array.Empty<string>(),
 					ModRenderCoreVertexColors.None, ModRenderCoreVertexStreams.Position | ModRenderCoreVertexStreams.Normal | ModRenderCoreVertexStreams.Tangent | ModRenderCoreVertexStreams.Uv0 | ModRenderCoreVertexStreams.Uv1 | ModRenderCoreVertexStreams.Color,
-					unavailableReason: "нужен второй UV (TEXCOORD1), а меши модов несут только UV0", revision: 1, new[]
+					unavailableReason: "needs a second UV set (TEXCOORD1); mod meshes carry only UV0", revision: 1, new[]
 					{
 						Value("u_vColor", "Aspect Ratio", "Red channel stores aspect ratio. For example, if one room in atlas has 2:1 aspect ratio, red channel will be 0.5. This parameter is controlled only by the red channel value.", ModRenderCorePropertyType.Color, ModRenderCoreSource.None,
 							new Vector4(1, 1, 1, 1), vectorLabels: null),

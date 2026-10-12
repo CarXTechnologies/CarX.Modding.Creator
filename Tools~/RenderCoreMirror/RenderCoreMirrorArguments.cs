@@ -19,7 +19,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 				if (!name.StartsWith("--", StringComparison.Ordinal) || name.Length == 2)
 				{
-					throw new RenderCoreMirrorUsageException($"ожидалась опция --имя, получено '{name}'");
+					throw new RenderCoreMirrorUsageException($"expected an option --<name>, got '{name}'");
 				}
 
 				name = name.Substring(2);
@@ -64,7 +64,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (string.IsNullOrEmpty(value))
 			{
-				throw new RenderCoreMirrorUsageException($"нужна опция --{name} <значение>");
+				throw new RenderCoreMirrorUsageException($"option --{name} <value> is required");
 			}
 
 			return value;

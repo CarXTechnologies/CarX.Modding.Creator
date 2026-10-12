@@ -36,12 +36,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (!result.Succeeded)
 			{
-				Refuse("Таблица не перегенерирована", result.findings);
+				Refuse("Table not regenerated", result.findings);
 				return;
 			}
 
 			bool written = WriteTable(table);
-			Debug.Log(LogPrefix + (written ? "таблица перегенерирована" : "таблица уже актуальна") + $" (LockContentHash {result.lockContentHash}).");
+			Debug.Log(LogPrefix + (written ? "table regenerated" : "table already up to date") + $" (LockContentHash {result.lockContentHash}).");
 		}
 
 		[MenuItem(UpdateLockItem)]
@@ -51,7 +51,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (package == null)
 			{
-				EditorUtility.DisplayDialog(DialogTitle, $"Пакета {RenderCoreMirrorPaths.RenderCorePackageName} в проекте нет.", "OK");
+				EditorUtility.DisplayDialog(DialogTitle, $"Package {RenderCoreMirrorPaths.RenderCorePackageName} is not in the project.", "OK");
 				return;
 			}
 
@@ -69,20 +69,20 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (RenderCoreMirrorException exception)
 			{
-				Refuse("Снимок не обновлён", new[] { RenderCoreFinding.FromException(exception) });
+				Refuse("Lock not updated", new[] { RenderCoreFinding.FromException(exception) });
 				return;
 			}
 
 			foreach (RenderCoreFinding change in changes)
 			{
-				Debug.Log(LogPrefix + "изменение rendercore: " + change);
+				Debug.Log(LogPrefix + "rendercore change: " + change);
 			}
 
 			Log(result.findings, includeBlocking: false);
 
 			if (!result.Succeeded)
 			{
-				Refuse("Снимок и таблица не обновлены", result.findings);
+				Refuse("Lock and table not updated", result.findings);
 				return;
 			}
 
@@ -94,8 +94,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			bool tableWritten = WriteTable(table);
-			Debug.Log(LogPrefix + $"снимок {(lockWritten ? "обновлён" : "не изменился")}, таблица {(tableWritten ? "перегенерирована" : "не изменилась")} " +
-				$"(LockContentHash {result.lockContentHash}, изменений rendercore {changes.Count}). Закоммитить CarX.Modding.Creator и поднять сабмодуль.");
+			Debug.Log(LogPrefix + $"lock {(lockWritten ? "updated" : "unchanged")}, table {(tableWritten ? "regenerated" : "unchanged")} " +
+				$"(LockContentHash {result.lockContentHash}, rendercore changes: {changes.Count}). Commit CarX.Modding.Creator and bump the submodule.");
 		}
 
 		[MenuItem(UpdateLockItem, isValidateFunction: true)]
@@ -122,7 +122,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				// В MapUploader rendercore нет: проверяются только ворота и актуальность таблицы против закоммиченного снимка.
 				findings = RenderCoreMirrorPipeline.Sort(RenderCoreMirrorPipeline.CheckTable(committed, annotations, table)
 					.Concat(MirrorGenerator.Generate(committed, annotations).findings));
-				Debug.Log(LogPrefix + $"пакета {RenderCoreMirrorPaths.RenderCorePackageName} нет: проверена таблица против закоммиченного снимка.");
+				Debug.Log(LogPrefix + $"package {RenderCoreMirrorPaths.RenderCorePackageName} is not in the project: " +
+					"checked the table against the committed lock.");
 			}
 			else
 			{
@@ -131,13 +132,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			Log(findings, includeBlocking: true);
 			RenderCoreFindingTier worst = RenderCoreFinding.GetWorstTier(findings);
-			string summary = $"Худший уровень: {worst}. Error {Count(findings, RenderCoreFindingTier.Error)}, Breaking {Count(findings, RenderCoreFindingTier.Breaking)}, " +
+			string summary = $"Worst tier: {worst}. Error {Count(findings, RenderCoreFindingTier.Error)}, Breaking {Count(findings, RenderCoreFindingTier.Breaking)}, " +
 				$"Stale {Count(findings, RenderCoreFindingTier.Stale)}, Info {Count(findings, RenderCoreFindingTier.Info)}.";
 			Debug.Log(LogPrefix + summary);
 
 			if (worst > RenderCoreFindingTier.Info)
 			{
-				EditorUtility.DisplayDialog(DialogTitle, summary + "\nПодробности — в консоли.", "OK");
+				EditorUtility.DisplayDialog(DialogTitle, summary + "\nSee the Console for details.", "OK");
 			}
 		}
 
@@ -150,7 +151,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (RenderCoreMirrorException exception)
 			{
-				Refuse("Снимок не прочитан", new[] { RenderCoreFinding.FromException(exception) });
+				Refuse("Lock not read", new[] { RenderCoreFinding.FromException(exception) });
 			}
 			catch (IOException exception)
 			{
@@ -176,7 +177,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (RenderCoreMirrorException exception)
 			{
-				Debug.LogWarning(LogPrefix + "прежний снимок не прочитан, изменения не покажу: " + RenderCoreFinding.FromException(exception));
+				Debug.LogWarning(LogPrefix + "previous lock not read, changes not shown: " + RenderCoreFinding.FromException(exception));
 				return null;
 			}
 		}
@@ -216,7 +217,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			string codes = string.Join(", ", blocking.Select(finding => finding.code).Distinct());
-			EditorUtility.DisplayDialog(DialogTitle, $"{title}: {codes}. Ничего не записано, подробности — в консоли.", "OK");
+			EditorUtility.DisplayDialog(DialogTitle, $"{title}: {codes}. Nothing was written; see the Console for details.", "OK");
 		}
 
 		/// <summary>Находки по уровням; includeBlocking: false — без Breaking/Error (их пишет Refuse вместе с диалогом).</summary>

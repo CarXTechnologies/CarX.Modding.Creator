@@ -145,7 +145,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_frames.Count > 0)
 				{
-					throw Error(m_frames[m_frames.Count - 1].line, "блок не закрыт '}'");
+					throw Error(m_frames[m_frames.Count - 1].line, "block is not closed with '}'");
 				}
 			}
 
@@ -206,7 +206,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (m_frames.Count == 0)
 				{
-					throw Error(RenderCoreText.LineOf(m_code, index), "лишняя '}'");
+					throw Error(RenderCoreText.LineOf(m_code, index), "unmatched '}'");
 				}
 
 				Frame frame = m_frames[m_frames.Count - 1];
@@ -250,7 +250,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					{
 						if (existing.name == name)
 						{
-							throw Error(frame.line, $"проход {name} объявлен повторно (строка {existing.line})");
+							throw Error(frame.line, $"pass {name} is declared twice (first at line {existing.line})");
 						}
 					}
 				}
@@ -266,7 +266,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					{
 						if (existing != pragma.kind)
 						{
-							throw Error(pragma.line, $"keyword {pragma.keyword} объявлен в проходе дважды по-разному: {existing} (строка {lines[pragma.keyword]}) и {pragma.kind}");
+							throw Error(pragma.line,
+								$"keyword {pragma.keyword} is declared twice in the pass with different directives: {existing} (line {lines[pragma.keyword]}) and {pragma.kind}");
 						}
 
 						continue;
@@ -283,7 +284,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (close < 0)
 				{
-					throw Error(RenderCoreText.LineOf(m_code, start), $"нет {endMarker}");
+					throw Error(RenderCoreText.LineOf(m_code, start), $"missing {endMarker}");
 				}
 
 				Frame owner = isInclude ? CurrentScope() : Current(FrameKind.Pass);
@@ -329,7 +330,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						case "endif":
 							if (conditionalLines.Count == 0)
 							{
-								throw Error(lineNumber, "#endif без #if в программе прохода");
+								throw Error(lineNumber, "#endif without #if in the pass program");
 							}
 
 							conditionalLines.RemoveAt(conditionalLines.Count - 1);
@@ -370,7 +371,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (conditionalLines.Count > 0)
 				{
-					throw Error(conditionalLines[conditionalLines.Count - 1], "#if без #endif в программе прохода");
+					throw Error(conditionalLines[conditionalLines.Count - 1], "#if without #endif in the pass program");
 				}
 			}
 
@@ -397,7 +398,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (open >= m_code.Length || m_code[open] != '{')
 				{
-					throw Error(RenderCoreText.LineOf(m_code, end), "после Properties ожидалась '{'");
+					throw Error(RenderCoreText.LineOf(m_code, end), "expected '{' after Properties");
 				}
 
 				int close = FindMatchingBrace(open);
@@ -420,7 +421,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					{
 						if (existing.name == property.name)
 						{
-							throw Error(firstLine + index, $"свойство {property.name} объявлено повторно");
+							throw Error(firstLine + index, $"property {property.name} is declared twice");
 						}
 					}
 
@@ -444,7 +445,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (close < 0)
 					{
-						throw Error(lineNumber, $"атрибут не закрыт: '{line}'");
+						throw Error(lineNumber, $"attribute is not closed: '{line}'");
 					}
 
 					string attribute = rest.Substring(1, close - 1).Trim();
@@ -463,7 +464,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (nameEnd == 0 || !RenderCoreText.IsIdentifierStart(rest[0]))
 				{
-					throw Error(lineNumber, $"свойство не разобрано: '{line}'");
+					throw Error(lineNumber, $"cannot parse property: '{line}'");
 				}
 
 				string name = rest.Substring(0, nameEnd);
@@ -471,14 +472,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!rest.StartsWith("(", StringComparison.Ordinal))
 				{
-					throw Error(lineNumber, $"после имени {name} ожидалась '('");
+					throw Error(lineNumber, $"expected '(' after name {name}");
 				}
 
 				rest = rest.Substring(1).TrimStart();
 
 				if (!rest.StartsWith("\"", StringComparison.Ordinal))
 				{
-					throw Error(lineNumber, $"у {name} нет отображаемого имени в кавычках");
+					throw Error(lineNumber, $"{name} has no quoted display name");
 				}
 
 				int displayEnd = RenderCoreText.SkipQuoted(rest, start: 1, quote: '"');
@@ -486,7 +487,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!rest.StartsWith(",", StringComparison.Ordinal))
 				{
-					throw Error(lineNumber, $"у {name} после отображаемого имени ожидалась ','");
+					throw Error(lineNumber, $"{name}: expected ',' after the display name");
 				}
 
 				rest = rest.Substring(1).TrimStart();
@@ -507,7 +508,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 					if (argumentsEnd < 0)
 					{
-						throw Error(lineNumber, $"у {name} не закрыты аргументы типа");
+						throw Error(lineNumber, $"{name}: type arguments are not closed");
 					}
 
 					rest = rest.Substring(argumentsEnd + 1).TrimStart();
@@ -515,14 +516,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (type.Length == 0 || !rest.StartsWith(")", StringComparison.Ordinal))
 				{
-					throw Error(lineNumber, $"у {name} не разобран тип: '{line}'");
+					throw Error(lineNumber, $"{name}: cannot parse type: '{line}'");
 				}
 
 				rest = rest.Substring(1).TrimStart();
 
 				if (!rest.StartsWith("=", StringComparison.Ordinal))
 				{
-					throw Error(lineNumber, $"у {name} нет значения по умолчанию");
+					throw Error(lineNumber, $"{name} has no default value");
 				}
 
 				return new RenderCoreLockShaderProperty(name, type, NormalizeDefault(rest.Substring(1).Trim()), gamma);
@@ -628,7 +629,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					index++;
 				}
 
-				throw Error(RenderCoreText.LineOf(m_code, open), "блок Properties не закрыт");
+				throw Error(RenderCoreText.LineOf(m_code, open), "Properties block is not closed");
 			}
 
 			private static bool IsKeywordPragma(string directive)

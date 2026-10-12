@@ -264,7 +264,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (index + 1 >= value.Length)
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.LockFormat, path, line, "обрыв escape-последовательности");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.LockFormat, path, line, "truncated escape sequence");
 				}
 
 				char escape = value[++index];
@@ -288,7 +288,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					default:
 						if (escape != separator || separator == '\0')
 						{
-							throw new RenderCoreMirrorException(RenderCoreFindingCodes.LockFormat, path, line, $"неизвестная escape-последовательность \\{escape}");
+							throw new RenderCoreMirrorException(RenderCoreFindingCodes.LockFormat, path, line, $"unknown escape sequence \\{escape}");
 						}
 
 						current.Append(escape);
@@ -367,7 +367,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 						if (m_format != RenderCoreLock.CurrentFormat)
 						{
-							throw Error($"формат снимка {m_format} не поддержан (ожидался {RenderCoreLock.CurrentFormat}); обновите SDK или пересоздайте снимок");
+							throw Error($"unsupported lock format {m_format} (expected {RenderCoreLock.CurrentFormat}); update the SDK or regenerate the lock");
 						}
 
 						break;
@@ -388,7 +388,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						}
 						else
 						{
-							throw Error($"неизвестная запись scope {fields[1]}");
+							throw Error($"unknown scope record {fields[1]}");
 						}
 
 						break;
@@ -410,7 +410,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 						if (!m_variantRecords.TryAdd(variantName, fields))
 						{
-							throw Error($"вариант {variantName} записан дважды");
+							throw Error($"variant {variantName} is written twice");
 						}
 
 						m_variantLines.Add(variantName, line);
@@ -463,7 +463,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						AddLine(m_setupLines, ParseInt(fields[1]), Text(fields[2]));
 						break;
 					default:
-						throw Error($"неизвестная запись '{fields[0]}'");
+						throw Error($"unknown record '{fields[0]}'");
 				}
 			}
 
@@ -473,17 +473,17 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_format < 0)
 				{
-					throw Error("нет записи format");
+					throw Error("missing format record");
 				}
 
 				if (m_excludedNames == null || m_excludedPrefixes == null)
 				{
-					throw Error("нет записей scope");
+					throw Error("missing scope records");
 				}
 
 				if (m_setupHash == null)
 				{
-					throw Error("нет записи setup");
+					throw Error("missing setup record");
 				}
 
 				var decodeLines = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
@@ -510,7 +510,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					// Пустые — снимок без строк кода (см. Write): сверять нечего.
 					if (entry.Value.Count != 0 && RenderCoreText.Hash(entry.Value) != entry.Key)
 					{
-						throw Error($"строки decodeline {entry.Key} не сходятся с отпечатком: снимок правили руками");
+						throw Error($"decodeline lines {entry.Key} do not match the hash: the lock was edited by hand");
 					}
 				}
 
@@ -519,7 +519,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (setupLines.Count != 0 && RenderCoreText.Hash(setupLines) != m_setupHash)
 				{
-					throw Error("строки setupline не сходятся с отпечатком setup: снимок правили руками");
+					throw Error("setupline lines do not match the setup hash: the lock was edited by hand");
 				}
 
 				return new RenderCoreLock(m_format, m_packageVersion, m_commit, m_toolVersion, new RenderCoreScope(m_excludedPrefixes, m_excludedNames),
@@ -540,7 +540,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!m_defines.TryGetValue(name, out string[] defines) || !m_streams.TryGetValue(name, out List<string> streams) ||
 					!m_decodes.TryGetValue(name, out string[] decode))
 				{
-					throw Error($"у варианта {name} нет записей defines/streams/decode");
+					throw Error($"variant {name} has no defines/streams/decode records");
 				}
 
 				string decodeHash = Value(decode[3], "hash");
@@ -570,7 +570,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					if (existing.pass == pass && existing.keywords == keywords)
 					{
-						throw Error($"passconfig {pass} {keywords} записан дважды");
+						throw Error($"passconfig {pass} {keywords} is written twice");
 					}
 				}
 
@@ -596,7 +596,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						m_toolVersion = value;
 						break;
 					default:
-						throw Error($"неизвестная запись provenance {fields[1]}");
+						throw Error($"unknown provenance record {fields[1]}");
 				}
 			}
 
@@ -621,7 +621,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					if (!m_variantRecords.ContainsKey(name))
 					{
-						throw Error($"запись {kind} для неизвестного варианта {name}");
+						throw Error($"{kind} record for unknown variant {name}");
 					}
 				}
 			}
@@ -635,7 +635,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					if (entry.Key != expected)
 					{
-						throw Error($"{what}: пропущена строка {expected}");
+						throw Error($"{what}: line {expected} is missing");
 					}
 
 					result.Add(entry.Value);
@@ -649,7 +649,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!lines.TryAdd(number, text))
 				{
-					throw Error($"строка {number} записана дважды");
+					throw Error($"line {number} is written twice");
 				}
 			}
 
@@ -657,7 +657,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!target.TryAdd(key, value))
 				{
-					throw Error($"запись для {key} повторяется");
+					throw Error($"duplicate record for {key}");
 				}
 			}
 
@@ -665,7 +665,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (fields.Length != count)
 				{
-					throw Error($"запись {fields[0]}: ожидалось полей {count}, получено {fields.Length}");
+					throw Error($"record {fields[0]}: expected {count} fields, got {fields.Length}");
 				}
 			}
 
@@ -680,7 +680,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!field.StartsWith(prefix, StringComparison.Ordinal))
 				{
-					throw Error($"ожидалось поле {key}=, получено '{field}'");
+					throw Error($"expected field {key}=, got '{field}'");
 				}
 
 				return Text(field.Substring(prefix.Length));
@@ -692,7 +692,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!field.StartsWith(prefix, StringComparison.Ordinal))
 				{
-					throw Error($"ожидалось поле {key}=, получено '{field}'");
+					throw Error($"expected field {key}=, got '{field}'");
 				}
 
 				return SplitList(field.Substring(prefix.Length), separator, m_path, m_line);
@@ -702,7 +702,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!int.TryParse(field, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int value))
 				{
-					throw Error($"ожидалось целое, получено '{field}'");
+					throw Error($"expected an integer, got '{field}'");
 				}
 
 				return value;
@@ -720,7 +720,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					return false;
 				}
 
-				throw Error($"ожидалось 0 или 1, получено '{field}'");
+				throw Error($"expected 0 or 1, got '{field}'");
 			}
 
 			private RenderCoreMirrorException Error(string reason)

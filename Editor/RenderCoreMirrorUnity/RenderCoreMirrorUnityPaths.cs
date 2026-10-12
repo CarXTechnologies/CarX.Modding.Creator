@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (string.IsNullOrEmpty(assetPath))
 				{
-					throw new FileNotFoundException($"таблица с GUID {RenderCoreMirrorPaths.GeneratedTableGuid} не найдена в AssetDatabase");
+					throw new FileNotFoundException($"table with GUID {RenderCoreMirrorPaths.GeneratedTableGuid} not found in AssetDatabase");
 				}
 
 				return assetPath;
@@ -58,7 +58,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (string.IsNullOrEmpty(asmdef))
 			{
-				throw new FileNotFoundException($"asmdef сборки {assemblyName} не найден");
+				throw new FileNotFoundException($"asmdef of assembly {assemblyName} not found");
 			}
 
 			return asmdef.Replace('\\', '/');

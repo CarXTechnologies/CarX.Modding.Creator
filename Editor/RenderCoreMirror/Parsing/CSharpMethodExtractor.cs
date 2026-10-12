@@ -44,7 +44,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					else if (next + 1 < code.Length && code[next] == '=' && code[next + 1] == '>')
 					{
 						throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, index),
-							$"{methodName}: тело-выражение (=>) не поддержано");
+							$"{methodName}: expression body (=>) is not supported");
 					}
 				}
 
@@ -53,7 +53,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (bodies.Count != 1)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line: 0, $"ожидалось одно объявление {methodName} с телом, найдено {bodies.Count}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line: 0, $"expected one declaration of {methodName} with a body, found {bodies.Count}");
 			}
 
 			int bodyOpen = bodies[0];
@@ -61,7 +61,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (bodyClose >= code.Length)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, bodyOpen), $"тело {methodName} не закрыто");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, bodyOpen), $"body of {methodName} is not closed");
 			}
 
 			var lines = new List<string>();

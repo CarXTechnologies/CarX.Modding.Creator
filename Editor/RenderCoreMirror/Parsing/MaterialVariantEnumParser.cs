@@ -32,14 +32,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (headers.Count != 1)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line: 0, $"ожидался один enum {enumName}, найдено {headers.Count}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line: 0, $"expected one enum {enumName}, found {headers.Count}");
 			}
 
 			int open = code.IndexOf('{', headers[0].Index);
 
 			if (open < 0)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, headers[0].Index), $"нет тела enum {enumName}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, headers[0].Index), $"enum {enumName} has no body");
 			}
 
 			var entries = new List<RenderCoreLockEnumEntry>();
@@ -58,7 +58,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!match.Success)
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, member.Key, $"член enum не разобран: '{memberText}'");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, member.Key, $"cannot parse enum member: '{memberText}'");
 				}
 
 				long value = next;
@@ -66,12 +66,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (match.Groups["value"].Success && !TryParseInteger(match.Groups["value"].Value.Trim(), out value))
 				{
 					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, member.Key,
-						$"значение {match.Groups["name"].Value} — не целый литерал: '{match.Groups["value"].Value.Trim()}'");
+						$"value of {match.Groups["name"].Value} is not an integer literal: '{match.Groups["value"].Value.Trim()}'");
 				}
 
 				if (value < int.MinValue || value > int.MaxValue)
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, member.Key, $"значение {match.Groups["name"].Value} не помещается в int");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, member.Key, $"value of {match.Groups["name"].Value} does not fit in int");
 				}
 
 				entries.Add(new RenderCoreLockEnumEntry(match.Groups["name"].Value, (int)value));
@@ -121,7 +121,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						if (depth < 0)
 						{
 							throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, index),
-								$"enum {enumName}: лишняя '{character}'");
+								$"enum {enumName}: unmatched '{character}'");
 						}
 
 						break;
@@ -137,7 +137,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				index++;
 			}
 
-			throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, open), $"enum {enumName} не закрыт");
+			throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, RenderCoreText.LineOf(code, open), $"enum {enumName} is not closed");
 		}
 
 		private static void AddMember(List<KeyValuePair<int, string>> members, string code, int start, int end)
@@ -209,7 +209,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (close < 0)
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"атрибут члена enum не закрыт: '{member.Trim()}'");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"enum member attribute is not closed: '{member.Trim()}'");
 				}
 
 				trimmed = trimmed.Substring(close + 1).TrimStart();

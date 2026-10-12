@@ -53,13 +53,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!m_byName.TryGetValue(fileName, out List<string> paths) || paths.Count == 0)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, fileName, line: 0, $"файл не найден в {m_provider.Description}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, fileName, line: 0, $"file not found in {m_provider.Description}");
 			}
 
 			if (paths.Count > 1)
 			{
 				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, fileName, line: 0,
-					$"имя неоднозначно: {string.Join(", ", paths)}; зеркало ищет входы по уникальному имени");
+					$"ambiguous name: {string.Join(", ", paths)}; the mirror locates inputs by unique name");
 			}
 
 			return paths[0];
@@ -113,7 +113,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (paths.Count > 1)
 			{
 				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, includingPath, line,
-					$"#include \"{include}\" не найден по пути, а имя неоднозначно: {string.Join(", ", paths)}");
+					$"#include \"{include}\" not found by path and the name is ambiguous: {string.Join(", ", paths)}");
 			}
 
 			return paths[0];

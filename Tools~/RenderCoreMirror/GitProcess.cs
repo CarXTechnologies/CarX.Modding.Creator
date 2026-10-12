@@ -62,7 +62,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			catch (Win32Exception exception)
 			{
 				output = new byte[0];
-				error = $"git не запускается: {exception.Message}";
+				error = $"failed to start git: {exception.Message}";
 				return false;
 			}
 		}

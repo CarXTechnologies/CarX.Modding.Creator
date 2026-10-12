@@ -413,11 +413,11 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(forward.GetKind("QUALITY_LOW"), Is.EqualTo("multi_compile"));
 			Assert.That(forward.keywordGroups.Select(group => string.Join(" ", group)), Is.EqualTo(new[] { "MAT_A MAT_B", "QUALITY_MID QUALITY_LOW" }));
 			Assert.That(forward.GetRuntimeKeywords(new[] { "MAT_A" }, new[] { "MAT_A" }), Is.EquivalentTo(new[] { "QUALITY_MID", "QUALITY_LOW" }));
-			Assert.That(forward.programs.Single().text.Split('\n')[2], Is.EqualTo(opener), "номера строк программы совпадают с файлом шейдера");
+			Assert.That(forward.programs.Single().text.Split('\n')[2], Is.EqualTo(opener), "program line numbers match the shader file");
 		}
 
-		[TestCase("#endif", "#endif без #if")]
-		[TestCase("#if defined(X)", "#if без #endif")]
+		[TestCase("#endif", "#endif without #if")]
+		[TestCase("#if defined(X)", "#if without #endif")]
 		public void ShaderParserRejectsUnbalancedConditionalsInProgram(string line, string reason)
 		{
 			string text = Lines(
@@ -682,7 +682,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				result.Add(file.Key, file.Value.Replace(original, replacement));
 			}
 
-			Assert.That(replaced, Is.True, $"в фикстуре нет '{original}'");
+			Assert.That(replaced, Is.True, $"fixture has no '{original}'");
 			return result;
 		}
 

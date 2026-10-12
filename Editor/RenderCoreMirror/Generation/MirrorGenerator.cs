@@ -26,21 +26,21 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!annotations.scope.SameAs(lockData.scope))
 			{
 				Add(findings, MirrorFindingCodes.Scope, RenderCoreFindingTier.Stale, "scope",
-					$"снимок извлечён для области ({lockData.scope}), аннотации — для ({annotations.scope}): обновить снимок");
+					$"lock extracted for scope ({lockData.scope}), annotations are for ({annotations.scope}): update the lock");
 			}
 
 			foreach (MirrorVariantAnnotation annotation in annotations.variants)
 			{
 				if (!annotated.Add(annotation.name))
 				{
-					Add(findings, MirrorFindingCodes.DuplicateAnnotation, RenderCoreFindingTier.Breaking, annotation.name, "вариант аннотирован дважды");
+					Add(findings, MirrorFindingCodes.DuplicateAnnotation, RenderCoreFindingTier.Breaking, annotation.name, "variant annotated twice");
 					continue;
 				}
 
 				if (!lockData.TryGetVariant(annotation.name, out RenderCoreLockVariant source))
 				{
 					Add(findings, MirrorFindingCodes.OfferedMissing, RenderCoreFindingTier.Breaking, annotation.name,
-						"предлагаемого варианта нет в rendercore (переименован или удалён): перенести аннотацию на новое имя или удалить её" +
+						"offered variant is missing from rendercore (renamed or removed): move the annotation to the new name or delete it" +
 						DescribeRename(lockData, annotations, annotation));
 					continue;
 				}
@@ -64,8 +64,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (lockData.setupHash != annotations.reviewedSetupHash)
 			{
 				Add(findings, MirrorFindingCodes.Setup, RenderCoreFindingTier.Breaking, CSharpMethodExtractor.SetupMethodName,
-					$"тело изменилось (проверено {annotations.reviewedSetupHash}, сейчас {lockData.setupHash}): сверить MaterialMappingPBR." +
-					"ApplyRenderCoreVariant в CarX.Modding, затем обновить ReviewedSetupHash; изменённые строки — RCM150 при сравнении снимков");
+					$"body changed (reviewed {annotations.reviewedSetupHash}, now {lockData.setupHash}): check MaterialMappingPBR." +
+					"ApplyRenderCoreVariant in CarX.Modding, then update ReviewedSetupHash; changed lines — RCM150 when comparing locks");
 			}
 
 			CheckSuggestions(annotations, variants, findings);
@@ -82,7 +82,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				notAnnotated.Add(candidate.name);
 				MirrorLayout layout = MirrorLayoutRules.Derive(lockData, candidate);
 				Add(findings, MirrorFindingCodes.NotAnnotated, RenderCoreFindingTier.Info, candidate.name,
-					"кандидат без аннотации, в таблицу не попадёт; чтобы предложить, проверить и дописать: " +
+					"candidate without an annotation, not included in the table; to offer it, review and add: " +
 					MirrorAnnotationSnippets.FormatVariant(candidate.name, revision: 1, layout, candidate.decodeHash, annotations.supportedStreams,
 						candidate.properties.Any(property => property.name.StartsWith(PackedMapPrefix, StringComparison.Ordinal))));
 			}
@@ -101,19 +101,19 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (annotation.revision < 1)
 			{
-				Add(findings, MirrorFindingCodes.Revision, RenderCoreFindingTier.Breaking, name, $"ревизия {annotation.revision}, нужна ≥ 1");
+				Add(findings, MirrorFindingCodes.Revision, RenderCoreFindingTier.Breaking, name, $"revision {annotation.revision}, must be ≥ 1");
 			}
 
 			if (source.label != name)
 			{
 				Add(findings, MirrorFindingCodes.LabelMismatch, RenderCoreFindingTier.Breaking, name,
-					$"метка записи asset '{source.label}' не совпадает с именем enum: rendercore-редактор покажет одно, keyword будет другим");
+					$"asset entry label '{source.label}' differs from the enum name: the rendercore editor shows one, the keyword is another");
 			}
 
 			if (source.entries > 1)
 			{
 				Add(findings, MirrorFindingCodes.DuplicateEntries, RenderCoreFindingTier.Info, name,
-					$"в asset {source.entries} записи с id {source.id}; как и StandardShaderGUI, зеркало берёт первую");
+					$"asset has {source.entries} entries with id {source.id}; like StandardShaderGUI, the mirror takes the first");
 			}
 
 			bool knownRenderType = Enum.IsDefined(typeof(MirrorRenderType), source.renderType);
@@ -121,44 +121,45 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (!knownRenderType)
 			{
-				Add(findings, MirrorFindingCodes.AlphaTest, RenderCoreFindingTier.Breaking, name, $"RenderType {source.renderType} неизвестен");
+				Add(findings, MirrorFindingCodes.AlphaTest, RenderCoreFindingTier.Breaking, name, $"RenderType {source.renderType} is unknown");
 			}
 			else if (alphaKeyword != (source.renderType == (int)MirrorRenderType.AlphaTest))
 			{
 				Add(findings, MirrorFindingCodes.AlphaTest, RenderCoreFindingTier.Breaking, name,
-					$"RenderType {(MirrorRenderType)source.renderType}, а keyword ALPHATEST {(alphaKeyword ? "есть" : "нет")}: очередь и вырез разойдутся");
+					$"RenderType {(MirrorRenderType)source.renderType}, but keyword ALPHATEST is {(alphaKeyword ? "present" : "absent")}: " +
+					"queue and clipping will diverge");
 			}
 
 			if (!layout.knownFamily)
 			{
 				Add(findings, MirrorFindingCodes.UnknownFeature, RenderCoreFindingTier.Breaking, name,
-					$"файл Defs '{source.defs}' неизвестен правилам раскладки (Base, Layered, Interior)");
+					$"Defs file '{source.defs}' is unknown to the layout rules (Base, Layered, Interior)");
 			}
 
 			foreach (string feature in layout.unknownFeatures)
 			{
 				Add(findings, MirrorFindingCodes.UnknownFeature, RenderCoreFindingTier.Breaking, name,
-					$"{feature} неизвестен правилам: решить, что он делает с packed map, слотами и цветом вершин, и дописать MirrorLayoutRules");
+					$"{feature} is unknown to the rules: decide what it does to the packed map, slots and vertex colors, and extend MirrorLayoutRules");
 			}
 
 			if (layout.key != annotation.layoutKey)
 			{
 				Add(findings, MirrorFindingCodes.LayoutKey, RenderCoreFindingTier.Breaking, name,
-					$"аннотация «{annotation.layoutKey}», rendercore «{layout.key}». Регрессия rendercore — сообщить и не обновлять; намеренно — " +
-					"обновить ключ и каналы (смена запечённого — новая ревизия и контракт)");
+					$"annotation '{annotation.layoutKey}', rendercore '{layout.key}'. A rendercore regression — report it, do not update; " +
+					"intentional — update the key and channels (a change to baked data needs a new revision and contract)");
 			}
 
 			if (source.decodeHash != annotation.reviewedDecodeHash)
 			{
 				Add(findings, MirrorFindingCodes.DecodeHash, RenderCoreFindingTier.Breaking, name,
-					$"библиотеки Definitions или активные строки {source.func} изменились (проверено {annotation.reviewedDecodeHash}, сейчас {source.decodeHash}): " +
-					"смысл тот же — обновить reviewedDecodeHash; другой — поправить каналы/цвет вершин и поднять ревизию. Отличия — RCM134/RCM135 при " +
-					"сравнении снимков");
+					$"Definitions libraries or active lines of {source.func} changed (reviewed {annotation.reviewedDecodeHash}, now {source.decodeHash}): " +
+					"same meaning — update reviewedDecodeHash; different — fix channels/vertex colors and bump the revision. Differences — RCM134/RCM135 " +
+					"when comparing locks");
 			}
 
 			foreach (string stream in layout.unknownStreams)
 			{
-				Add(findings, MirrorFindingCodes.UnknownStream, RenderCoreFindingTier.Breaking, name, $"{stream} не переводится в вершинный поток");
+				Add(findings, MirrorFindingCodes.UnknownStream, RenderCoreFindingTier.Breaking, name, $"{stream} does not map to a vertex stream");
 			}
 
 			string unavailableReason = string.IsNullOrEmpty(annotation.unavailableReason) ? null : annotation.unavailableReason;
@@ -167,13 +168,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (missing != MirrorVertexStreams.None && unavailableReason == null)
 			{
 				Add(findings, MirrorFindingCodes.Streams, RenderCoreFindingTier.Breaking, name,
-					$"нужны потоки {missing}, которых нет у мешей модов ({annotations.supportedStreams}): вариант недоступен, укажите unavailableReason");
+					$"needs streams {missing} that mod meshes lack ({annotations.supportedStreams}): the variant is unavailable, set unavailableReason");
 			}
 
 			if (layout.vertexColors != annotation.vertexColors)
 			{
 				Add(findings, MirrorFindingCodes.VertexColors, RenderCoreFindingTier.Breaking, name,
-					$"аннотация {annotation.vertexColors}, по define'ам {layout.vertexColors}; цвет вершин входит в контракт — нужна новая ревизия");
+					$"annotation {annotation.vertexColors}, from defines {layout.vertexColors}; vertex colors are part of the contract — " +
+					"a new revision is needed");
 			}
 
 			List<MirrorProperty> properties = BuildProperties(lockData, source, annotation, layout, findings);
@@ -195,7 +197,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!MirrorSlotRules.TryMapAssetType(property.type, out MirrorPropertyType type))
 				{
-					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject, $"тип {property.type} в asset не поддержан таблицей");
+					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject, $"asset type {property.type} is not supported by the table");
 					continue;
 				}
 
@@ -206,7 +208,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!hasSlot && !hasOverride)
 				{
 					Add(findings, MirrorFindingCodes.UnknownSlot, RenderCoreFindingTier.Breaking, subject,
-						$"свойство ({type}) вне правил слотов: дописать MirrorSlotRules (и решить цветовое пространство) или переопределение с причиной");
+						$"property ({type}) is outside the slot rules: extend MirrorSlotRules (and decide the color space) " +
+						"or add an override with a reason");
 					continue;
 				}
 
@@ -217,25 +220,26 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (hasSlot && slot.type != type)
 				{
-					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject, $"тип в asset {type}, слот ждёт {slot.type} ({slot.rule})");
+					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject, $"asset type {type}, slot expects {slot.type} ({slot.rule})");
 				}
 
 				if (shaderProperty == null || shaderProperty.type == RenderCoreLockShaderProperty.AbsentType)
 				{
-					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject, "свойства нет в Properties шейдера Standard");
+					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject,
+						"property is missing from the Standard shader Properties");
 				}
 				else if (!MirrorSlotRules.IsShaderTypeCompatible(shaderProperty.type, type))
 				{
 					Add(findings, MirrorFindingCodes.SlotType, RenderCoreFindingTier.Breaking, subject,
-						$"тип в Properties шейдера {shaderProperty.type} не подходит к {type}");
+						$"shader Properties type {shaderProperty.type} does not fit {type}");
 				}
 
 				if (type == MirrorPropertyType.Texture && shaderProperty != null && shaderProperty.gamma != MirrorContracts.IsColorTexture(property.name))
 				{
 					Add(findings, MirrorFindingCodes.Gamma, RenderCoreFindingTier.Breaking, subject,
-						$"[Gamma] {(shaderProperty.gamma ? "есть" : "нет")}, а замороженное правило префикса {MirrorContracts.ColorTexturePrefix} даёт " +
-						$"{(MirrorContracts.IsColorTexture(property.name) ? MirrorContracts.Srgb : MirrorContracts.Linear)}: заголовки BinaryTexture " +
-						"опубликованных модов разойдутся с шейдером; эскалировать в rendercore");
+						$"[Gamma] is {(shaderProperty.gamma ? "present" : "absent")}, but the frozen prefix rule {MirrorContracts.ColorTexturePrefix} gives " +
+						$"{(MirrorContracts.IsColorTexture(property.name) ? MirrorContracts.Srgb : MirrorContracts.Linear)}: BinaryTexture headers " +
+						"of published mods will diverge from the shader; escalate to rendercore");
 				}
 
 				MirrorSource role = hasOverride ? slotOverride.source : slot.source;
@@ -258,7 +262,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!source.TryGetProperty(slotOverride.property, out _))
 				{
 					Add(findings, MirrorFindingCodes.Override, RenderCoreFindingTier.Breaking, source.name + "." + slotOverride.property,
-						"переопределение для свойства, которого у варианта нет: удалить");
+						"override for a property the variant does not have: remove it");
 				}
 			}
 
@@ -269,7 +273,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (string.IsNullOrWhiteSpace(slotOverride.reason))
 			{
-				reason = "переопределение без причины";
+				reason = "override without a reason";
 				return false;
 			}
 
@@ -278,13 +282,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!texture && (slotOverride.layer != 0 || slotOverride.source == MirrorSource.Surface || slotOverride.source == MirrorSource.Normal ||
 				slotOverride.source == MirrorSource.Diffuse || slotOverride.source == MirrorSource.Emission))
 			{
-				reason = $"для {type} таблица выражает только слой 0 и источники None/EmissionParameters ({slotOverride.source}, слой {slotOverride.layer})";
+				reason = $"for {type} the table supports only layer 0 and sources None/EmissionParameters ({slotOverride.source}, layer {slotOverride.layer})";
 				return false;
 			}
 
 			if (texture && (slotOverride.source == MirrorSource.EmissionParameters || slotOverride.layer < 0 || slotOverride.layer > 3))
 			{
-				reason = $"для текстуры источник {slotOverride.source} или слой {slotOverride.layer} невозможны";
+				reason = $"for a texture, source {slotOverride.source} or layer {slotOverride.layer} is not possible";
 				return false;
 			}
 
@@ -299,21 +303,23 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (hasPacked && annotation.channels == null)
 			{
-				string derived = layout.channels == null ? "" : "; по define'ам " + MirrorAnnotationSnippets.FormatChannels(layout.channels);
-				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name, "у варианта есть packed map, а каналов в аннотации нет" + derived);
+				string derived = layout.channels == null ? "" : "; from defines " + MirrorAnnotationSnippets.FormatChannels(layout.channels);
+				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name,
+					"variant has a packed map, but the annotation has no channels" + derived);
 			}
 			else if (!hasPacked && annotation.channels != null)
 			{
-				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name, "каналы аннотированы, а packed map (u_sPackedMap*) у варианта нет");
+				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name,
+					"channels are annotated, but the variant has no packed map (u_sPackedMap*)");
 			}
 			else if (annotation.channels != null && annotation.channels.Count != 4)
 			{
-				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name, $"каналов {annotation.channels.Count}, нужно 4 (R, G, B, A)");
+				Add(findings, MirrorFindingCodes.ChannelsShape, RenderCoreFindingTier.Breaking, name, $"{annotation.channels.Count} channels, 4 required (R, G, B, A)");
 			}
 			else if (hasPacked && layout.channels != null && !annotation.channels.SequenceEqual(layout.channels))
 			{
 				Add(findings, MirrorFindingCodes.Channels, RenderCoreFindingTier.Breaking, name,
-					$"аннотация {MirrorAnnotationSnippets.FormatChannels(annotation.channels)}, по define'ам {MirrorAnnotationSnippets.FormatChannels(layout.channels)}");
+					$"annotation {MirrorAnnotationSnippets.FormatChannels(annotation.channels)}, from defines {MirrorAnnotationSnippets.FormatChannels(layout.channels)}");
 			}
 		}
 
@@ -325,24 +331,24 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (frozen.Count == 0)
 			{
 				Add(findings, MirrorFindingCodes.ContractMissing, RenderCoreFindingTier.Breaking, variant.name,
-					$"нет контракта ревизии {variant.revision}; проверить и дописать: {MirrorAnnotationSnippets.FormatContract(current)}");
+					$"no contract for revision {variant.revision}; review and add: {MirrorAnnotationSnippets.FormatContract(current)}");
 				return;
 			}
 
 			if (frozen.Count > 1)
 			{
-				Add(findings, MirrorFindingCodes.ContractDuplicate, RenderCoreFindingTier.Breaking, variant.name, $"контрактов ревизии {variant.revision}: {frozen.Count}");
+				Add(findings, MirrorFindingCodes.ContractDuplicate, RenderCoreFindingTier.Breaking, variant.name, $"contracts for revision {variant.revision}: {frozen.Count}");
 				return;
 			}
 
 			MirrorBakedContract contract = frozen[0];
-			string bump = $"; поднять ревизию до {variant.revision + 1} и дописать " +
+			string bump = $"; bump the revision to {variant.revision + 1} and add " +
 				MirrorAnnotationSnippets.FormatContract(new MirrorBakedContract(variant.name, variant.revision + 1, current.vertexColors, current.textures));
 
 			if (contract.vertexColors != current.vertexColors)
 			{
 				Add(findings, MirrorFindingCodes.ContractChanged, RenderCoreFindingTier.Breaking, variant.name,
-					$"цвет вершин {contract.vertexColors} → {current.vertexColors} при ревизии {variant.revision}" + bump);
+					$"vertex colors {contract.vertexColors} → {current.vertexColors} at revision {variant.revision}" + bump);
 			}
 
 			foreach (string texture in contract.textures)
@@ -352,12 +358,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!current.TryGetTexture(property, out string now))
 				{
 					Add(findings, MirrorFindingCodes.ContractPropertyRemoved, RenderCoreFindingTier.Breaking, variant.name + "." + property,
-						$"свойство из контракта ревизии {variant.revision} пропало ({texture})" + bump);
+						$"property from the revision {variant.revision} contract is gone ({texture})" + bump);
 				}
 				else if (now != texture)
 				{
 					Add(findings, MirrorFindingCodes.ContractChanged, RenderCoreFindingTier.Breaking, variant.name + "." + property,
-						$"{texture} → {now} при ревизии {variant.revision}" + bump);
+						$"{texture} → {now} at revision {variant.revision}" + bump);
 				}
 			}
 		}
@@ -394,7 +400,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!kind.StartsWith("multi_compile", StringComparison.Ordinal))
 				{
 					Add(findings, MirrorFindingCodes.PassKind, RenderCoreFindingTier.Breaking, $"{pass}/{keyword}",
-						$"объявлен как '{kind}', нужен безусловный multi_compile*: материал мода, собранный в рантайме, иначе останется без варианта " +
+						$"declared as '{kind}', an unconditional multi_compile* is required: otherwise a mod material built at runtime gets no variant " +
 						$"({string.Join(", ", entry.Value)})");
 				}
 			}
@@ -409,7 +415,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					if (kind.Contains("shader_feature") && !passUsers.ContainsKey(PassKey(pass, keyword)))
 					{
 						Add(findings, MirrorFindingCodes.PassKind, RenderCoreFindingTier.Breaking, $"{pass}/{keyword}",
-							$"объявлен как '{kind}': вариант может быть вырезан из сборки");
+							$"declared as '{kind}': the variant may be stripped from the build");
 					}
 				}
 			}
@@ -442,23 +448,23 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!lockData.TryGetPassConfig(pass, keywords, out RenderCoreLockPassConfig config))
 				{
 					Add(findings, MirrorFindingCodes.PassConfig, RenderCoreFindingTier.Breaking, entry.Key,
-						$"в снимке нет конфигурации прохода выреза (проход пропал?): {variantList} останутся без выреза");
+						$"the lock has no clipping pass configuration (pass removed?): {variantList} will be left without clipping");
 					continue;
 				}
 
 				if (!annotations.TryGetPassReview(pass, keywords, out MirrorPassReview review))
 				{
 					Add(findings, MirrorFindingCodes.PassConfig, RenderCoreFindingTier.Breaking, entry.Key,
-						$"конфигурация прохода выреза не проверена ({variantList}): проверить Defs, особенности, потоки и Func этого прохода в rendercore " +
-						"и дописать " + MirrorAnnotationSnippets.FormatPassReview(pass, keywords, config.ReviewHash));
+						$"clipping pass configuration not reviewed ({variantList}): review Defs, features, streams and Func of this pass in rendercore " +
+						"and add " + MirrorAnnotationSnippets.FormatPassReview(pass, keywords, config.ReviewHash));
 					continue;
 				}
 
 				if (review.reviewedHash != config.ReviewHash)
 				{
 					Add(findings, MirrorFindingCodes.PassConfig, RenderCoreFindingTier.Breaking, entry.Key,
-						$"вырез изменился (проверено {review.reviewedHash}, сейчас {config.ReviewHash}; {variantList}): смысл тот же — обновить reviewedHash; " +
-						"другой (канал, порог, потоки) — поправить каналы и поднять ревизию. Отличия — RCM141 при сравнении снимков");
+						$"clipping changed (reviewed {review.reviewedHash}, now {config.ReviewHash}; {variantList}): same meaning — update reviewedHash; " +
+						"different (channel, threshold, streams) — fix channels and bump the revision. Differences — RCM141 when comparing locks");
 				}
 			}
 
@@ -467,7 +473,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				if (!used.Contains(PassKey(review.pass, review.keywords)))
 				{
 					Add(findings, MirrorFindingCodes.PassConfig, RenderCoreFindingTier.Info, PassKey(review.pass, review.keywords),
-						"проверка конфигурации прохода не используется ни одним аннотированным вариантом альфа-теста: удалить");
+						"pass configuration review is not used by any annotated alpha-test variant: remove it");
 				}
 			}
 		}
@@ -485,8 +491,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			if (!expected.SequenceEqual(actual, StringComparer.Ordinal))
 			{
 				Add(findings, MirrorFindingCodes.RenderTypeNames, RenderCoreFindingTier.Breaking, MaterialVariantEnumParser.RenderTypeEnumName,
-					$"rendercore [{string.Join(", ", actual)}], зеркало [{string.Join(", ", expected)}]: тег RenderType материалов rendercore и модов " +
-					"разойдётся — поправить MirrorRenderType, ModRenderCoreRenderType и клиент");
+					$"rendercore [{string.Join(", ", actual)}], mirror [{string.Join(", ", expected)}]: the RenderType tag of rendercore and mod materials " +
+					"will diverge — fix MirrorRenderType, ModRenderCoreRenderType and the client");
 			}
 		}
 
@@ -495,7 +501,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			foreach (IGrouping<int, MirrorVariant> group in variants.GroupBy(variant => variant.id).Where(group => group.Count() > 1))
 			{
 				Add(findings, MirrorFindingCodes.DuplicateId, RenderCoreFindingTier.Error, string.Join(",", group.Select(variant => variant.name)),
-					$"один id {group.Key} у нескольких вариантов таблицы: materialVariant материала станет неоднозначным");
+					$"id {group.Key} is shared by several table variants: the material's materialVariant becomes ambiguous");
 			}
 		}
 
@@ -509,7 +515,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					Add(findings, MirrorFindingCodes.Suggestion, RenderCoreFindingTier.Breaking,
 						$"{suggestion.renderType}/normal={suggestion.hasNormal}/emission={suggestion.hasEmission}",
-						$"подсказка ведёт на {suggestion.variant}, которого нет среди доступных вариантов таблицы");
+						$"suggestion points to {suggestion.variant}, which is not among the available table variants");
 				}
 			}
 		}
@@ -527,7 +533,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (layout.key == annotation.layoutKey && candidate.decodeHash == annotation.reviewedDecodeHash)
 				{
-					return $"; похоже на переименование в {candidate.name} (id {candidate.id}): тот же ключ раскладки и то же декодирование";
+					return $"; looks like a rename to {candidate.name} (id {candidate.id}): same layout key and same decoding";
 				}
 			}
 

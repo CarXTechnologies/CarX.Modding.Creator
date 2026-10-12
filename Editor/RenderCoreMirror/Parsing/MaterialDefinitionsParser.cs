@@ -167,7 +167,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!normalized.StartsWith("Packages/", StringComparison.Ordinal))
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, includingPath, line, $"#include \"{include}\" не найден");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, includingPath, line, $"#include \"{include}\" not found");
 				}
 
 				// Файл другого пакета или ненайденная библиотека: имя пути как написано.
@@ -186,7 +186,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (depth > MaxIncludeDepth)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, includingPath, line, "слишком глубокая вложенность #include");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, includingPath, line, "#include nesting is too deep");
 			}
 
 			topLevel?.Add(resolved);

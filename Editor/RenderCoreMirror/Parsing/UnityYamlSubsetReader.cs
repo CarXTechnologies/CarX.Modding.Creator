@@ -84,10 +84,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (IsDocumentStart(m_lines[next]))
 			{
-				throw Error(next, "несколько документов в файле не поддержаны");
+				throw Error(next, "multiple documents in one file are not supported");
 			}
 
-			throw Error(next, $"неожиданная строка: '{m_lines[next].Trim()}'");
+			throw Error(next, $"unexpected line: '{m_lines[next].Trim()}'");
 		}
 
 		private UnityYamlNode ParseBlock(int indent)
@@ -118,7 +118,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (lineIndent > indent)
 				{
-					throw Error(next, "неожиданный отступ");
+					throw Error(next, "unexpected indentation");
 				}
 
 				string content = m_lines[next].Substring(lineIndent);
@@ -133,7 +133,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (colon < 0)
 				{
-					throw Error(next, $"ожидался ключ 'имя: значение': '{content.Trim()}'");
+					throw Error(next, $"expected a 'name: value' key: '{content.Trim()}'");
 				}
 
 				string key = content.Substring(0, colon).Trim();
@@ -167,7 +167,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (lineIndent > indent)
 				{
-					throw Error(next, "неожиданный отступ в последовательности");
+					throw Error(next, "unexpected indentation in sequence");
 				}
 
 				string content = m_lines[next].Substring(lineIndent);
@@ -259,19 +259,19 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				case '[':
 				case '{':
-					return SkipUnsupported(indent, lineNumber, "непустая flow-коллекция");
+					return SkipUnsupported(indent, lineNumber, "non-empty flow collection");
 				case '&':
-					return SkipUnsupported(indent, lineNumber, "якорь");
+					return SkipUnsupported(indent, lineNumber, "anchor");
 				case '*':
-					return SkipUnsupported(indent, lineNumber, "ссылка на якорь");
+					return SkipUnsupported(indent, lineNumber, "alias (anchor reference)");
 				case '!':
-					return SkipUnsupported(indent, lineNumber, "тег");
+					return SkipUnsupported(indent, lineNumber, "tag");
 				case '|':
 				case '>':
-					return SkipUnsupported(indent, lineNumber, "блочный скаляр");
+					return SkipUnsupported(indent, lineNumber, "block scalar");
 				case '@':
 				case '`':
-					return SkipUnsupported(indent, lineNumber, "зарезервированный символ");
+					return SkipUnsupported(indent, lineNumber, "reserved character");
 				case '\'':
 					return ParseQuoted(rest, lineIndex, isDouble: false);
 				case '"':
@@ -306,7 +306,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				// "ключ: значение" не может продолжать plain-скаляр: это сдвинутый ключ, а не текст.
 				if (FindMappingColon(trimmed) >= 0)
 				{
-					throw Error(m_index, "неожиданный отступ: ключ внутри многострочного значения");
+					throw Error(m_index, "unexpected indentation: key inside a multi-line value");
 				}
 
 				// Складывание: одиночный перевод строки — пробел, каждая пустая строка — '\n'.
@@ -391,7 +391,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (m_index >= m_lines.Length)
 				{
-					throw Error(lineIndex, $"кавычка {quote} не закрыта");
+					throw Error(lineIndex, $"quote {quote} is not closed");
 				}
 
 				if (breaks > 0)
@@ -415,7 +415,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (tail.Length > 0 && !tail.StartsWith("#", StringComparison.Ordinal))
 			{
-				throw Error(currentLine, $"текст после закрывающей кавычки: '{tail}'");
+				throw Error(currentLine, $"text after closing quote: '{tail}'");
 			}
 
 			return UnityYamlNode.Scalar(m_path, lineIndex + 1, builder.ToString());
@@ -439,7 +439,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (simple < 0)
 			{
-				throw Error(lineIndex, $"неизвестная escape-последовательность \\{escape}");
+				throw Error(lineIndex, $"unknown escape sequence \\{escape}");
 			}
 
 			builder.Append(s_unescaped[simple]);
@@ -452,7 +452,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				!int.TryParse(text.Substring(index, digits), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out int codePoint) ||
 				codePoint < 0 || codePoint > 0x10FFFF || (codePoint >= 0xD800 && codePoint <= 0xDFFF))
 			{
-				throw Error(lineIndex, "неверная escape-последовательность с кодом символа");
+				throw Error(lineIndex, "invalid character code escape sequence");
 			}
 
 			builder.Append(char.ConvertFromUtf32(codePoint));
@@ -496,7 +496,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (count < line.Length && line[count] == '\t')
 			{
-				throw Error(lineIndex, "табуляция в отступе");
+				throw Error(lineIndex, "tab in indentation");
 			}
 
 			return count;

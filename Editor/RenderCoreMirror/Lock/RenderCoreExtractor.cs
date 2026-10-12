@@ -191,7 +191,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					if (existing != path)
 					{
-						throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, $"два файла с одним именем: {existing} и {path}");
+						throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, $"duplicate file name: {existing} and {path}");
 					}
 
 					continue;

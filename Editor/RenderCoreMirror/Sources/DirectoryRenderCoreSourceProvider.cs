@@ -24,7 +24,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!Directory.Exists(m_root))
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, "папка rendercore не найдена");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, "rendercore folder not found");
 			}
 
 			var files = new List<string>();
@@ -35,11 +35,11 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 			catch (IOException exception)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, $"папка rendercore не читается: {exception.Message}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, $"cannot read rendercore folder: {exception.Message}");
 			}
 			catch (UnauthorizedAccessException exception)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, $"папка rendercore не читается: {exception.Message}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, m_root, line: 0, $"cannot read rendercore folder: {exception.Message}");
 			}
 
 			files.Sort(StringComparer.Ordinal);

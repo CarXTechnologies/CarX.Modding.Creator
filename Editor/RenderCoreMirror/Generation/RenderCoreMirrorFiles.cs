@@ -12,7 +12,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!File.Exists(path))
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "снимок не найден");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "lock not found");
 			}
 
 			return RenderCoreLockText.Read(ReadText(path), path);

@@ -88,7 +88,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (!int.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int result))
 				{
-					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"ожидалось целое, получено '{value}'");
+					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"expected an integer, got '{value}'");
 				}
 
 				return result;
@@ -115,7 +115,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (!TryGet(key, out UnityYamlNode value))
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"нет поля '{key}'");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"missing field '{key}'");
 			}
 
 			return value;
@@ -151,12 +151,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		{
 			if (kind == UnityYamlNodeKind.Unsupported)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"не поддержано подмножеством YAML: {m_value}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"not supported by the YAML subset: {m_value}");
 			}
 
 			if (kind != expected)
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"ожидался узел {expected}, получен {kind}");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Parse, path, line, $"expected a {expected} node, got {kind}");
 			}
 		}
 	}

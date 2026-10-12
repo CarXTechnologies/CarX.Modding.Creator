@@ -23,8 +23,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	{
 		private const string LogPrefix = "[RenderCoreMirror] ";
 
-		private const string Hint = "ModSystem/Render Core/Check — подробности; обновление: ModSystem/Render Core/Update Lock From Project Render Core → " +
-			"закоммитить CarX.Modding.Creator → поднять сабмодуль";
+		private const string Hint = "Details: ModSystem/Render Core/Check; to update: ModSystem/Render Core/Update Lock From Project Render Core → " +
+			"commit CarX.Modding.Creator → bump the submodule";
 
 		public int callbackOrder => -100;
 
@@ -32,7 +32,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			if (Environment.GetEnvironmentVariable(RenderCoreMirrorPaths.SkipCheckVariable) == "1")
 			{
-				Debug.LogWarning(LogPrefix + $"проверка зеркала пропущена ({RenderCoreMirrorPaths.SkipCheckVariable}=1).");
+				Debug.LogWarning(LogPrefix + $"mirror check skipped ({RenderCoreMirrorPaths.SkipCheckVariable}=1).");
 				return;
 			}
 
@@ -50,7 +50,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return;
 			}
 
-			string message = LogPrefix + $"зеркало rendercore не сходится с пакетом ({worst}). {Hint}\n" +
+			string message = LogPrefix + $"rendercore mirror does not match the package ({worst}). {Hint}\n" +
 				string.Join("\n", findings.Where(finding => finding.tier > RenderCoreFindingTier.Info));
 			// Опции этой сборки, а не галочка Build Settings: BuildFlow собирает через BuildPipeline с явными опциями.
 			bool development = (report.summary.options & BuildOptions.Development) != 0;
@@ -78,8 +78,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					}
 
 					return Error(RenderCoreMirrorPaths.RenderCorePackageName,
-						$"загрузчик {RenderCoreMirrorUnityPaths.LoaderAssemblyName} есть, а пакет {RenderCoreMirrorPaths.RenderCorePackageName} не найден " +
-						"Package Manager: проверка зеркала не должна выключаться (пакет переименован или не зарегистрирован?)");
+						$"loader {RenderCoreMirrorUnityPaths.LoaderAssemblyName} is present, but package {RenderCoreMirrorPaths.RenderCorePackageName} " +
+						"is not found by Package Manager: the mirror check must not turn itself off (package renamed or not registered?)");
 				}
 
 				RenderCoreLock committed = RenderCoreMirrorFiles.ReadLock(RenderCoreMirrorUnityPaths.LockPath);
@@ -99,7 +99,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			catch (Exception exception)
 			{
 				// Нечитаемая папка пакета, сбой парсера и т.п.: без StrictMode Unity продолжила бы сборку без проверки — не пускаем.
-				return Error(RenderCoreMirrorPaths.MirrorAssemblyName, "проверка зеркала упала: " + exception);
+				return Error(RenderCoreMirrorPaths.MirrorAssemblyName, "mirror check failed with an exception: " + exception);
 			}
 		}
 

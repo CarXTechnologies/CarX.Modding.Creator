@@ -21,7 +21,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 	[Category("Validation")]
 	public class RenderCoreMirrorUpToDateTests
 	{
-		private const string UpdateHint = "ModSystem/Render Core/Update Lock From Project Render Core → закоммитить CarX.Modding.Creator → поднять сабмодуль";
+		private const string UpdateHint = "ModSystem/Render Core/Update Lock From Project Render Core → commit CarX.Modding.Creator → bump the submodule";
 
 		private static readonly string[] s_clientTemplates = { "Opaque", "Cutout", "Emission", "Collision" };
 
@@ -60,7 +60,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			List<RenderCoreFinding> failures = result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).ToList();
 			Assert.That(failures, Is.Empty,
-				"rendercore меняет то, что запечено в моды; решает команда модов (RenderCoreMirrorAnnotations).\n" + string.Join("\n", failures));
+				"rendercore changes what is baked into mods; the mods team decides (RenderCoreMirrorAnnotations).\n" + string.Join("\n", failures));
 		}
 
 		[Test]
@@ -70,7 +70,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			if (!RenderCoreMirrorUnityPaths.IsLoaderLoaded())
 			{
-				Assert.Ignore("загрузчик CarX.Modding не загружен: шаблоны клиента проверять негде");
+				Assert.Ignore("loader CarX.Modding is not loaded: there are no client templates to check");
 			}
 
 			RenderCoreLock live = ExtractLive(package, RenderCoreScope.Default);
@@ -82,12 +82,12 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			{
 				string path = $"{loaderAssetDirectory}/Resources/{template}.mat";
 				Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-				Assert.That(material != null, Is.True, $"нет шаблона {path}");
+				Assert.That(material != null, Is.True, $"template {path} is missing");
 
 				string keyword = material.shaderKeywords.FirstOrDefault(candidate => candidate.StartsWith("MAT_", StringComparison.Ordinal));
-				Assert.That(keyword, Is.Not.Null, $"{path}: нет keyword'а варианта MAT_*");
-				Assert.That(live.TryGetVariant(keyword, out _), Is.True, $"{path}: {keyword} не вариант карт rendercore");
-				Assert.That(live.GetPassKind(RenderCoreLock.ForwardPass, keyword), Does.StartWith("multi_compile"), $"{path}: {keyword} в Forward");
+				Assert.That(keyword, Is.Not.Null, $"{path}: no MAT_* variant keyword");
+				Assert.That(live.TryGetVariant(keyword, out _), Is.True, $"{path}: {keyword} is not a rendercore map variant");
+				Assert.That(live.GetPassKind(RenderCoreLock.ForwardPass, keyword), Does.StartWith("multi_compile"), $"{path}: {keyword} in Forward");
 			}
 
 			// Шейдеры загрузчика (VAT, Layered PBR) включают файлы rendercore по пути: перенос файла ломает их только при компиляции шейдера.
@@ -105,7 +105,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 					if (!File.Exists(Path.Combine(package.resolvedPath, include)))
 					{
-						problems.Add($"{file}: #include \"Packages/{RenderCoreMirrorPaths.RenderCorePackageName}/{include}\" — файла нет");
+						problems.Add($"{file}: #include \"Packages/{RenderCoreMirrorPaths.RenderCorePackageName}/{include}\" — file does not exist");
 					}
 
 					if (include.EndsWith(MaterialDefinitionsParser.DefinitionsFileName, StringComparison.Ordinal))
@@ -114,14 +114,14 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 						if (include != definitions)
 						{
-							problems.Add($"{file}: {include}, а снимок читает {definitions}");
+							problems.Add($"{file}: {include}, but the lock reads {definitions}");
 						}
 					}
 				}
 			}
 
 			Assert.That(problems, Is.Empty, string.Join("\n", problems));
-			Assert.That(definitionIncludes, Is.GreaterThan(0), "шейдеры загрузчика больше не включают StandardMaterialDefinitions.hlsl: обновить проверку");
+			Assert.That(definitionIncludes, Is.GreaterThan(0), "loader shaders no longer include StandardMaterialDefinitions.hlsl: update this check");
 		}
 
 		private static PackageInfo RequireRenderCore()
@@ -136,10 +136,10 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			// Тот же признак игры, что у RenderCoreMirrorBuildGuard: загрузчик есть — пакет обязателен.
 			if (RenderCoreMirrorUnityPaths.IsLoaderLoaded())
 			{
-				Assert.Fail($"загрузчик CarX.Modding есть, а пакета {RenderCoreMirrorPaths.RenderCorePackageName} нет: проверка зеркала не должна выключаться");
+				Assert.Fail($"loader CarX.Modding is present, but package {RenderCoreMirrorPaths.RenderCorePackageName} is missing: the mirror check must not turn itself off");
 			}
 
-			Assert.Ignore($"пакета {RenderCoreMirrorPaths.RenderCorePackageName} в проекте нет (MapUploader): зеркало проверяют тесты таблицы SDK");
+			Assert.Ignore($"package {RenderCoreMirrorPaths.RenderCorePackageName} is not in the project (MapUploader): the mirror is covered by the SDK table tests");
 			return null;
 		}
 
@@ -151,7 +151,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			}
 			catch (RenderCoreMirrorException exception)
 			{
-				Assert.Fail($"rendercore не разобран: {RenderCoreFinding.FromException(exception)}. Расширить парсер зеркала (Editor/RenderCoreMirror).");
+				Assert.Fail($"cannot parse rendercore: {RenderCoreFinding.FromException(exception)}. Extend the mirror parser (Editor/RenderCoreMirror).");
 				throw;
 			}
 		}

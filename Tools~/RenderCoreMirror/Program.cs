@@ -18,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		public const int ExitBreaking = 3;
 		public const int ExitError = 4;
 
-		internal const string SourceUsage = "(--rendercore <папка пакета> | --git <репозиторий rendercore> --ref <commit> [--override <имя файла>=<ref>]...)";
+		internal const string SourceUsage = "(--rendercore <package folder> | --git <rendercore repository> --ref <commit> [--override <file name>=<ref>]...)";
 
 		private static int Main(string[] args)
 		{
@@ -26,8 +26,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			var commands = new Dictionary<string, RenderCoreMirrorCommand>(StringComparer.Ordinal)
 			{
-				["extract"] = new RenderCoreMirrorCommand($"extract {SourceUsage} --out <RenderCoreLock.txt> [--scope-from <снимок>]", Extract),
-				["check"] = new RenderCoreMirrorCommand($"check {SourceUsage} (--lock <RenderCoreLock.txt> | --sdk <папка CarX.Modding.Creator>)", Check)
+				["extract"] = new RenderCoreMirrorCommand($"extract {SourceUsage} --out <RenderCoreLock.txt> [--scope-from <lock file>]", Extract),
+				["check"] = new RenderCoreMirrorCommand($"check {SourceUsage} (--lock <RenderCoreLock.txt> | --sdk <CarX.Modding.Creator folder>)", Check)
 			};
 
 			GenerationCommands.Register(commands);
@@ -63,7 +63,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if ((directory == null) == (repository == null))
 			{
-				throw new RenderCoreMirrorUsageException("нужен ровно один источник: --rendercore <папка> или --git <репозиторий> --ref <commit>");
+				throw new RenderCoreMirrorUsageException("exactly one source required: --rendercore <folder> or --git <repository> --ref <commit>");
 			}
 
 			if (directory != null)
@@ -79,7 +79,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 				if (separator <= 0 || separator == entry.Length - 1)
 				{
-					throw new RenderCoreMirrorUsageException($"--override ожидает <имя файла>=<ref>, получено '{entry}'");
+					throw new RenderCoreMirrorUsageException($"--override expects <file name>=<ref>, got '{entry}'");
 				}
 
 				overrides[entry.Substring(0, separator)] = entry.Substring(separator + 1);
@@ -102,7 +102,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 
 			if (sdk == null)
 			{
-				throw new RenderCoreMirrorUsageException("нужна опция --lock <RenderCoreLock.txt> или --sdk <папка CarX.Modding.Creator>");
+				throw new RenderCoreMirrorUsageException("option --lock <RenderCoreLock.txt> or --sdk <CarX.Modding.Creator folder> is required");
 			}
 
 			return Path.Combine(sdk, "Editor", "RenderCoreMirror", RenderCoreLockText.FileName);
@@ -112,7 +112,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		{
 			if (!File.Exists(path))
 			{
-				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "снимок не найден");
+				throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, path, line: 0, "lock file not found");
 			}
 
 			return RenderCoreLockText.Read(RenderCoreText.Decode(File.ReadAllBytes(path)), path);
@@ -153,7 +153,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			int stale = findings.Count(finding => finding.tier == RenderCoreFindingTier.Stale);
 			int breaking = findings.Count(finding => finding.tier == RenderCoreFindingTier.Breaking);
 			int errors = findings.Count(finding => finding.tier == RenderCoreFindingTier.Error);
-			Console.WriteLine($"Итого: Error {errors}, Breaking {breaking}, Stale {stale}, Info {info}");
+			Console.WriteLine($"Total: Error {errors}, Breaking {breaking}, Stale {stale}, Info {info}");
 			return ExitCodeFor(RenderCoreFinding.GetWorstTier(findings));
 		}
 
@@ -181,8 +181,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			RenderCoreLock lockData = RenderCoreExtractor.Extract(source, scope);
 			bool written = WriteText(output, RenderCoreLockText.Write(lockData));
 
-			Console.WriteLine($"{source.Description}: кандидатов {lockData.variants.Count}, LockContentHash {RenderCoreLockText.ContentHash(lockData)}");
-			Console.WriteLine(written ? $"записан {output}" : $"не изменился {output}");
+			Console.WriteLine($"{source.Description}: {lockData.variants.Count} candidates, LockContentHash {RenderCoreLockText.ContentHash(lockData)}");
+			Console.WriteLine(written ? $"written {output}" : $"unchanged {output}");
 			return ExitClean;
 		}
 
@@ -198,20 +198,20 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			string sdk = arguments.Get("sdk");
 			string table = sdk == null ? null : ReadTextOrEmpty(RenderCoreMirrorPaths.GetGeneratedTablePath(sdk));
 
-			Console.WriteLine($"{lockPath} ({RenderCoreLockText.ContentHash(committed)}) против {source.Description}");
+			Console.WriteLine($"{lockPath} ({RenderCoreLockText.ContentHash(committed)}) vs {source.Description}");
 			return ReportFindings(RenderCoreMirrorPipeline.Check(committed, source, RenderCoreMirrorAnnotations.Create(), table));
 		}
 
 		private static void PrintUsage(Dictionary<string, RenderCoreMirrorCommand> commands)
 		{
-			Console.Error.WriteLine("RenderCoreMirror — снимок вариантов Standard-шейдера rendercore для SDK модов. Команды:");
+			Console.Error.WriteLine("RenderCoreMirror — snapshot of the rendercore Standard shader variants for the mod SDK. Commands:");
 
 			foreach (RenderCoreMirrorCommand command in commands.Values)
 			{
 				Console.Error.WriteLine("  " + command.usage);
 			}
 
-			Console.Error.WriteLine("Коды выхода: 0 — чисто или только Info, 1 — аргументы, 2 — Stale, 3 — Breaking, 4 — Error.");
+			Console.Error.WriteLine("Exit codes: 0 — clean or Info only, 1 — invalid arguments, 2 — Stale, 3 — Breaking, 4 — Error.");
 		}
 
 		/// <summary>Коммит рабочей копии для provenance (с "-dirty" при правках в папке) или null вне git.</summary>
