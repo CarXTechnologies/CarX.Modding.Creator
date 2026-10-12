@@ -63,18 +63,30 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			CancellationToken cancellationToken);
 
 		/// <summary>
-		/// Register a new entry together with its built content and return the key it was given.
-		/// Implementations must not create the entry when the payload cannot be published - a half made entry is
-		/// worse than none, since the caller has no way to tell the two apart afterwards.
+		/// Регистрирует новую запись вместе с собранным содержимым и возвращает выданный ей ключ.
+		/// Реализация не должна создавать запись, если содержимое нельзя опубликовать: недоделанная запись хуже
+		/// никакой, потому что вызывающий потом не отличит одну от другой.
 		/// </summary>
+		/// <param name="progress">
+		/// Получатель хода операции, может быть null. Содержимое загружается вместе с записью, поэтому прогресс тот же,
+		/// что у <see cref="UploadItemAsync"/>.
+		/// </param>
 		public Task<ModOperationResult<ModItemKey>> CreateItemAsync(
 			ModCreateRequest request,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken);
 
-		/// <summary>Push a built map onto an existing entry.</summary>
+		/// <summary>Загружает собранную карту в существующую запись.</summary>
+		/// <param name="progress">
+		/// Получатель хода операции, может быть null. Сообщается этап и общая доля всей операции, которая не убывает;
+		/// доля 1 - только после успешного ответа площадки. Отчёты приходят на потоке, где идёт операция (в редакторе -
+		/// главный поток), уже прореженными: при смене этапа, иначе при смене целого процента или целого мебибайта
+		/// этапа и не чаще десяти раз в секунду; начало, конец подготовки и успех приходят без ожидания интервала, см.
+		/// <see cref="ModUploadProgressThrottle"/>.
+		/// </param>
 		public Task<ModOperationResult> UploadItemAsync(
 			ModUploadRequest request,
-			IProgress<float> progress,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken);
 
 		/// <summary>

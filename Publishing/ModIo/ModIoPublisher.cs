@@ -147,8 +147,12 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 
 		public async Task<ModOperationResult<ModItemKey>> CreateItemAsync(
 			ModCreateRequest request,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new ModIoUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult<ModItemKey>.Fail("mod.io is not initialized.");
@@ -195,23 +199,52 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetVersion(request.Version)
 				.SetChangelog(request.Changelog)
 				.SetPlatform(ModfileBuilder.Platform.Windows)
+#if CARX_MODDING_MODIO_UPLOAD_PROGRESS
+				.SetUploadProgress(reporter)
+#endif
 				.FinishModfile();
 
-			var (error, mod) = await builder.Publish();
+			reporter.ReportPrepared();
+
+			Error error;
+			Mod mod;
+
+			try
+			{
+				(error, mod) = await builder.Publish();
+			}
+			catch (Exception exception) when (builder.EditTarget != null)
+			{
+				// AddMod уже создал запись, а работу модфайла с диском (zip, File.Open) плагин не защищает: исключение
+				// ввода-вывода выходит из Publish мимо Results. Запись без модфайла оставлять нельзя и здесь.
+				return await RemoveIncompleteModAsync(builder.EditTarget.Id, exception.Message);
+			}
 
 			if (error)
 			{
 				return ModOperationResult<ModItemKey>.Fail($"mod.io refused to create the mod: {Describe(error, builder)}");
 			}
 
+			// Для новой записи Publish возвращает Error.None, как только прошёл AddMod; отказ в модфайле виден только в
+			// Results. Запись без модфайла оставлять нельзя (см. комментарий выше), поэтому она удаляется.
+			if (HasFailedResults(builder))
+			{
+				return await RemoveIncompleteModAsync(mod.Id, Describe(Error.None, builder));
+			}
+
+			reporter.ReportSucceeded();
+
 			return ModOperationResult<ModItemKey>.Ok(new ModItemKey(VendorId, mod.Id.ToString()));
 		}
 
 		public async Task<ModOperationResult> UploadItemAsync(
 			ModUploadRequest request,
-			IProgress<float> progress,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new ModIoUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult.Fail("mod.io is not initialized.");
@@ -232,9 +265,6 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 			{
 				return ModOperationResult.Fail($"Could not read mod {modId} from mod.io: {getError.GetMessage()}");
 			}
-
-			// The plugin has no progress callback for uploads, so the bar can only be moved at the boundaries.
-			progress?.Report(0f);
 
 			var builder = mod.Edit();
 
@@ -274,15 +304,25 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetChangelog(request.Changelog)
 				// Only Windows is supported by this iteration of the uploader.
 				.SetPlatform(ModfileBuilder.Platform.Windows)
+#if CARX_MODDING_MODIO_UPLOAD_PROGRESS
+				// Плагин с CARX PATCH 2 сообщает упаковку и передачу модфайла каждый кадр; reporter переводит это в общую
+				// шкалу. Без патча (плагин игры) отчётов о модфайле нет, см. ModIoUploadProgressReporter.
+				.SetUploadProgress(reporter)
+#endif
 				.FinishModfile();
+
+			reporter.ReportPrepared();
 
 			var (error, _) = await builder.Publish();
 
-			progress?.Report(1f);
+			if (error)
+			{
+				return ModOperationResult.Fail($"mod.io refused the upload of mod {modId}: {Describe(error, builder)}");
+			}
 
-			return error
-				? ModOperationResult.Fail($"mod.io refused the upload of mod {modId}: {Describe(error, builder)}")
-				: ModOperationResult.Ok($"Mod {modId} uploaded.");
+			reporter.ReportSucceeded();
+
+			return ModOperationResult.Ok($"Mod {modId} uploaded.");
 		}
 
 		public async Task<ModOperationResult> DeleteItemAsync(ModItemKey key, CancellationToken cancellationToken)
@@ -430,16 +470,53 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		/// Builds a message out of the top level error plus whatever the builder recorded per field, because a
 		/// multi field publish reports "something failed" at the top and the useful detail only in the results list.
 		/// </summary>
+		/// <remarks>
+		/// Без ошибки верхнего уровня (новая запись создана, отказала её часть) сообщение состоит только из отказов по
+		/// частям.
+		/// </remarks>
 		private static string Describe(Error error, ModBuilder builder)
 		{
-			var failures = builder.Results
+			string[] failures = (builder.Results ?? new List<(ChangeFlags, Error)>())
 				.Where(result => result.Item2)
 				.Select(result => $"{result.Item1}: {result.Item2.GetMessage()}")
 				.ToArray();
 
-			return failures.Length == 0
-				? error.GetMessage()
-				: $"{error.GetMessage()} ({string.Join("; ", failures)})";
+			if (failures.Length == 0)
+			{
+				return error.GetMessage();
+			}
+
+			return error
+				? $"{error.GetMessage()} ({string.Join("; ", failures)})"
+				: string.Join("; ", failures);
+		}
+
+		/// <summary>Отказала ли какая-то часть публикации, о которой <see cref="ModBuilder.Publish"/> сам не сообщает.</summary>
+		private static bool HasFailedResults(ModBuilder builder)
+		{
+			List<(ChangeFlags, Error)> results = builder.Results;
+
+			return results != null && results.Any(result => result.Item2);
+		}
+
+		/// <summary>
+		/// Удаляет запись, которую mod.io создал, но без принятого содержимого, тем же способом, что и
+		/// <see cref="DeleteItemAsync"/>, и возвращает отказ создания с причиной и итогом удаления.
+		/// </summary>
+		private async Task<ModOperationResult<ModItemKey>> RemoveIncompleteModAsync(long modId, string contentError)
+		{
+			// Без токена операции: отмена не должна оставить запись, из-за которой не читается список работ пользователя.
+			ModOperationResult cleanup = await DeleteItemAsync(
+				new ModItemKey(VendorId, modId.ToString()),
+				CancellationToken.None);
+
+			return cleanup.Success
+				? ModOperationResult<ModItemKey>.Fail(
+					$"mod.io created mod {modId} but refused its content: {contentError}. The incomplete mod was deleted.")
+				: ModOperationResult<ModItemKey>.Fail(
+					$"mod.io created mod {modId} but refused its content: {contentError}. Deleting the incomplete mod " +
+					$"failed as well ({cleanup.Message}); delete mod {modId} on mod.io, a mod without a file breaks " +
+					"reading the list of your creations.");
 		}
 	}
 }

@@ -22,15 +22,36 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		// Staging-каталоги остаются редактируемыми; опубликованная карта — один контейнер.
 		public static void Pack(string destination, params string[] catalogs)
 		{
-			Pack(destination, TextureEncoding, catalogs);
+			Pack(destination, TextureEncoding, onProgress: null, catalogs);
+		}
+
+		/// <summary>Упаковывает карту с кодировкой текстур из настроек, сообщая ход упаковки.</summary>
+		/// <param name="onProgress">См. <see cref="Pack(string, BinaryTextureEncoding, Action{string, float}, string[])"/>.</param>
+		public static void Pack(string destination, Action<string, float> onProgress, params string[] catalogs)
+		{
+			Pack(destination, TextureEncoding, onProgress, catalogs);
 		}
 
 		public static void Pack(string destination, BinaryTextureEncoding textureEncoding, params string[] catalogs)
+		{
+			Pack(destination, textureEncoding, onProgress: null, catalogs);
+		}
+
+		/// <summary>Упаковывает staging-каталоги в один бинарный контейнер карты.</summary>
+		/// <param name="onProgress">
+		/// Ход упаковки, может быть null: описание шага на английском и общая доля 0..1, которая не убывает. Вызывается
+		/// синхронно на вызывающем потоке во время упаковки - на каждом документе, перед каждой перекодируемой текстурой
+		/// (они занимают почти всё время) и на основных этапах; доля 1 - после записи контейнера.
+		/// </param>
+		public static void Pack(string destination, BinaryTextureEncoding textureEncoding, Action<string, float> onProgress, params string[] catalogs)
 		{
 			if (textureEncoding != BinaryTextureEncoding.Bc7 && textureEncoding != BinaryTextureEncoding.Rgba32)
 			{
 				throw new ArgumentOutOfRangeException(nameof(textureEncoding));
 			}
+
+			var progress = new BinaryMapPackProgress(onProgress);
+			progress.ReportCollecting();
 
 			SortedDictionary<string, string> files = CollectFiles(catalogs);
 			bool hasMeta = files.Keys.Any(name => !name.Contains('/') && name.EndsWith(".json"));
@@ -42,7 +63,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(destination)));
-			BinaryModArchive.Write(destination, ConvertResources(files, textureEncoding), formatVersion: 2);
+			BinaryModArchive.Write(destination, ConvertResources(files, textureEncoding, progress), formatVersion: 2);
+			progress.ReportPacked();
 		}
 
 		private static SortedDictionary<string, string> CollectFiles(string[] catalogs)
@@ -72,15 +94,24 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return files;
 		}
 
-		private static IEnumerable<KeyValuePair<string, byte[]>> ConvertResources(SortedDictionary<string, string> files, BinaryTextureEncoding textureEncoding)
+		// Ленивый: работа и отчёты о ходе идут по мере того, как BinaryModArchive.Write читает ресурсы.
+		private static IEnumerable<KeyValuePair<string, byte[]>> ConvertResources(SortedDictionary<string, string> files, BinaryTextureEncoding textureEncoding, BinaryMapPackProgress progress)
 		{
-			var textures = new BinaryTexturePreparation(files, textureEncoding);
+			var textures = new BinaryTexturePreparation(files, textureEncoding, progress);
 			var geometries = new HashSet<string>(StringComparer.Ordinal);
 			using SHA256 sha = SHA256.Create();
+
+			int imageCount = files.Keys.Count(IsImage);
+			progress.BeginConverting(files.Count - imageCount, imageCount);
 
 			foreach (KeyValuePair<string, string> file in files)
 			{
 				string name = file.Key;
+
+				if (!IsImage(name))
+				{
+					progress.ReportDocument(name);
+				}
 
 				if (name.EndsWith(BinaryModModelCodec.Extension, StringComparison.OrdinalIgnoreCase))
 				{
@@ -119,6 +150,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 			}
 
+			progress.ReportImages();
+
 			foreach (KeyValuePair<string, string> file in files)
 			{
 				if (IsImage(file.Key) && textures.KeepOriginal(file.Key))
@@ -126,6 +159,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					yield return new KeyValuePair<string, byte[]>(file.Key, File.ReadAllBytes(file.Value));
 				}
 			}
+
+			progress.ReportWriting();
 		}
 
 		private static IEnumerable<KeyValuePair<string, byte[]>> ConvertGeometry(string name, string path, SHA256 sha, HashSet<string> geometries)

@@ -22,6 +22,16 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 		public const string SteamDefine = "CARX_MODDING_STEAM";
 		public const string ModIoDefine = "CARX_MODDING_MODIO";
 
+		/// <summary>
+		/// Плагин mod.io несёт CARX PATCH 2 (ModfileBuilder.SetUploadProgress, Modio.Mods.Builder.ModfileUploadProgress):
+		/// только с ним публикатор mod.io передаёт настоящий прогресс упаковки и передачи модфайла. Без дефайна
+		/// публикатор собирается и с непропатченным плагином (как в игре).
+		/// </summary>
+		public const string ModIoUploadProgressDefine = "CARX_MODDING_MODIO_UPLOAD_PROGRESS";
+
+		/// <summary>Тип, который есть только в плагине mod.io с CARX PATCH 2.</summary>
+		private const string ModIoUploadProgressTypeName = "Modio.Mods.Builder.ModfileUploadProgress, Modio";
+
 		/// <summary>Assembly name prefixes that mean the vendor SDK is present, keyed by the define they enable.</summary>
 		private static readonly (string define, string[] assemblyPrefixes)[] s_vendorSdks =
 		{
@@ -56,7 +66,10 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 			Sync();
 		}
 
-		/// <summary>Recomputes the vendor defines. Triggers a recompile only when something actually changed.</summary>
+		/// <summary>
+		/// Recomputes the vendor defines and <see cref="ModIoUploadProgressDefine"/>. Triggers a recompile only when
+		/// something actually changed.
+		/// </summary>
 		public static void Sync()
 		{
 			NamedBuildTarget buildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
@@ -90,6 +103,24 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 				{
 					defines.Remove(define);
 					Debug.Log($"[CarX.Modding] SDK for {define} is gone; disabling that publisher.");
+				}
+
+				changed = true;
+			}
+
+			bool uploadProgressPresent = Type.GetType(ModIoUploadProgressTypeName) != null;
+
+			if (uploadProgressPresent != defines.Contains(ModIoUploadProgressDefine))
+			{
+				if (uploadProgressPresent)
+				{
+					defines.Add(ModIoUploadProgressDefine);
+					Debug.Log($"[CarX.Modding] The mod.io plugin reports modfile upload progress; enabling {ModIoUploadProgressDefine}.");
+				}
+				else
+				{
+					defines.Remove(ModIoUploadProgressDefine);
+					Debug.Log($"[CarX.Modding] The mod.io plugin does not report modfile upload progress; disabling {ModIoUploadProgressDefine}.");
 				}
 
 				changed = true;

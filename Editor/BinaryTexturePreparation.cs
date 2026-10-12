@@ -13,6 +13,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	/// Подготовка текстур карты к бинарному контейнеру: перекодирование в <see cref="BinaryTexture"/>,
 	/// упаковка шероховатости/металличности/альфы в одну карту и запекание цвета эмиссии.
 	/// Готовые ресурсы именуются по SHA-256 содержимого и отдаются через <see cref="Drain"/>.
+	/// О каждой перекодируемой текстуре сообщается в <see cref="BinaryMapPackProgress"/> до перекодирования.
 	/// </summary>
 	internal sealed class BinaryTexturePreparation
 	{
@@ -21,16 +22,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private readonly SortedDictionary<string, string> m_files;
 		private readonly BinaryTextureEncoding m_encoding;
+		private readonly BinaryMapPackProgress m_progress;
 		private readonly Dictionary<string, string> m_prepared = new(StringComparer.Ordinal);
 		private readonly HashSet<string> m_emitted = new(StringComparer.Ordinal);
 		private readonly Queue<KeyValuePair<string, byte[]>> m_pending = new();
 		private readonly HashSet<string> m_consumed = new(StringComparer.OrdinalIgnoreCase);
 		private readonly HashSet<string> m_retained = new(StringComparer.OrdinalIgnoreCase);
 
-		public BinaryTexturePreparation(SortedDictionary<string, string> files, BinaryTextureEncoding encoding)
+		public BinaryTexturePreparation(SortedDictionary<string, string> files, BinaryTextureEncoding encoding, BinaryMapPackProgress progress)
 		{
 			m_files = files;
 			m_encoding = encoding;
+			m_progress = progress ?? throw new ArgumentNullException(nameof(progress));
 		}
 
 		public IEnumerable<KeyValuePair<string, byte[]>> Drain()
@@ -92,9 +95,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				foreach (VertexAnimationSurface surface in asset.surfaces)
 				{
-					surface.diffuseBytes = Bake(surface.diffusePng, surface.diffuseBytes, linear: false);
-					surface.normalBytes = Bake(surface.normalPng, surface.normalBytes, linear: true);
-					surface.maskBytes = Bake(surface.maskPng, surface.maskBytes, linear: true);
+					surface.diffuseBytes = Bake(asset.name + " diffuse", surface.diffusePng, surface.diffuseBytes, linear: false);
+					surface.normalBytes = Bake(asset.name + " normal", surface.normalPng, surface.normalBytes, linear: true);
+					surface.maskBytes = Bake(asset.name + " mask", surface.maskPng, surface.maskBytes, linear: true);
 					surface.diffusePng = null;
 					surface.normalPng = null;
 					surface.maskPng = null;
@@ -130,6 +133,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (material.emission)
 			{
+				m_progress.ReportTexture("emission of " + material.name);
 				PrepareEmission(document, properties);
 			}
 
@@ -140,6 +144,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (packed.Length != 0 || alphaScale < AlphaScaleThreshold)
 			{
+				m_progress.ReportTexture("packed map of " + material.name);
 				string name = Emit(document, PackSurface(document, packed, alphaScale));
 				properties.RemoveAll(property => packed.Contains(property));
 				properties.Add(new BinaryMaterialProperty { semantic = BinaryTexture.PackedSemantic, type = BinaryMaterialPropertyType.Texture, texture = name });
@@ -168,12 +173,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return BinaryModArchive.Normalize(path);
 		}
 
-		private byte[] Bake(string text, byte[] bytes, bool linear)
+		/// <param name="label">Что кодируется, для хода упаковки.</param>
+		private byte[] Bake(string label, string text, byte[] bytes, bool linear)
 		{
 			if (bytes == null && string.IsNullOrEmpty(text))
 			{
 				return null;
 			}
+
+			m_progress.ReportTexture(label);
 
 			return BinaryTextureBaker.Encode(bytes ?? Convert.FromBase64String(text), linear, m_encoding);
 		}
@@ -216,6 +224,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (!m_prepared.TryGetValue(key, out string result))
 			{
+				m_progress.ReportTexture(path);
 				result = Emit(document, BinaryTextureBaker.Encode(File.ReadAllBytes(file), linear, m_encoding));
 				m_prepared.Add(key, result);
 			}
