@@ -22,7 +22,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		[Min(128)] public int colliderMaxTriangles = DefaultColliderMaxTriangles;
 		// Кусок материала меньше порога переносится в соседний сектор того же типа, а не становится отдельным сабмешем/мешем. 0 — выключено.
 		[Min(0)] public int minSectorTriangles = DefaultMinSectorTriangles;
-		public bool simplifyColliders = true;
+		// По умолчанию выключено: упрощённая сетка коллайдера расходится с видимой геометрией (кочки, щели на стыках дороги).
+		public bool simplifyColliders = false;
 		[Range(0.1f, 1)] public float colliderTriangleRatio = 0.5f;
 		[Min(0)] public float colliderErrorMeters = 0.01f;
 		public bool generateSectorLods = true;
