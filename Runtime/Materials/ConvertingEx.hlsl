@@ -4,8 +4,8 @@ sampler2D _MainTex;
 float4 _MainTex_ST;
 
 float _NormalScale;
-// Проходы альфы: x - remap min, y - remap max, z - множитель альфы до ремапа (HDRP Lit: lerp(min, max, a * baseColor.a)),
-// w - порог Alpha Clipping HDRP (только проход альфа-теста)
+// Alpha passes: x - remap min, y - remap max, z - alpha multiplier before the remap (HDRP Lit: lerp(min, max, a * baseColor.a)),
+// w - HDRP Alpha Clipping threshold (alpha-test pass only)
 float4 _AlphaRemap;
 
 struct appdata
@@ -40,12 +40,12 @@ fixed4 CopyFourthChannel(v2f i) : SV_Target
 	return fixed4(alpha, alpha, alpha, 1.0);
 }
 
-// Альфа-тест rendercore оставляет texel при B - dither * 0.45 - 0.15 > 0 (полоса дизеринга 0.15..0.6), HDRP режет жёстко по порогу.
-// Порог HDRP переносится в середину полосы (покрытие 50%), порог -/+ 0.05 - на её края. Та же формула - RenderCoreAlphaClip.ToRenderCore.
+// Render core alpha test keeps a texel when B - dither * 0.45 - 0.15 > 0 (dither band 0.15..0.6); HDRP clips hard at the threshold.
+// The HDRP threshold maps to the band centre (50% coverage), threshold -/+ the window to its edges. Same formula: RenderCoreAlphaClip.ToRenderCore.
 fixed4 CopyFourthChannelAlphaTest(v2f i) : SV_Target
 {
 	float alpha = lerp(_AlphaRemap.x, _AlphaRemap.y, tex2D(_MainTex, i.uv).a * _AlphaRemap.z);
-	// RenderCoreAlphaClip.ToRenderCore: окно min(0.05, порог, 1 - порог), у порога почти 0 или 1 - жёсткий шаг.
+	// Window min(0.05, threshold, 1 - threshold); a threshold of about 0 or 1 is a hard step.
 	float window = min(_AlphaRemap.w, 1.0 - _AlphaRemap.w);
 	alpha = window <= 0.5 / 255.0 ? step(_AlphaRemap.w, alpha) : saturate(0.375 + (alpha - _AlphaRemap.w) * (0.225 / min(window, 0.05)));
 	return fixed4(alpha, alpha, alpha, 1.0);
