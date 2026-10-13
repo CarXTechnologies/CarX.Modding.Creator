@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -51,6 +52,62 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.IsTrue(ModRenderCoreVariants.IsColorTexture("u_sTexture1"));
 			Assert.IsFalse(ModRenderCoreVariants.IsColorTexture("u_sPackedMap"));
 			Assert.IsFalse(ModRenderCoreVariants.IsColorTexture("u_sNormalMap"));
+		}
+
+		[Test]
+		public void SuggestPicksFoliageVariantsForFoliage()
+		{
+			// Двусторонний материал с вырезом: освещение растительности; с нормалью — полный вариант, без неё — простой.
+			Assert.AreEqual("MAT_FOLIAGE_ALPHATEST",
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true));
+			Assert.AreEqual("MAT_FOLIAGE_SIMPLE_ALPHATEST",
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true));
+
+			// Не растительность — прежний вариант альфа-теста, и с нормалью, и без неё.
+			Assert.AreEqual("MAT_ROUGHNESS_NORMAL_ALPHATEST",
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: false));
+			Assert.AreEqual("MAT_ROUGHNESS_NORMAL_ALPHATEST",
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false));
+		}
+
+		[Test]
+		public void SuggestWithoutFoliageMatchesThreeArgumentOverload()
+		{
+			foreach (ModRenderCoreRenderType renderType in Enum.GetValues(typeof(ModRenderCoreRenderType)))
+			{
+				foreach (bool hasNormal in new[] { false, true })
+				{
+					foreach (bool hasEmission in new[] { false, true })
+					{
+						string subject = $"{renderType}/normal={hasNormal}/emission={hasEmission}";
+						string plain = ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission);
+						string foliage = ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission, isFoliage: true);
+
+						Assert.AreEqual(plain, ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission, isFoliage: false), subject);
+						Assert.IsFalse(plain != null && plain.StartsWith("MAT_FOLIAGE_"), subject);
+
+						// Без своей подсказки растительность получает ту же, что и не растительность; своя — всегда доступный вариант того же RenderType.
+						if (foliage != plain)
+						{
+							Assert.IsNotNull(foliage, subject);
+							Assert.IsTrue(ModRenderCoreVariants.TryGet(foliage, out ModRenderCoreVariant variant), subject);
+							Assert.AreEqual(renderType, variant.renderType, subject);
+						}
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void FoliageWithoutOwnSuggestionFallsBackToPlain()
+		{
+			Assert.AreEqual(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false),
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: true));
+			Assert.AreEqual(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Transparent, hasNormal: false, hasEmission: false),
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Transparent, hasNormal: false, hasEmission: false, isFoliage: true));
+			Assert.IsNotNull(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: true));
+			Assert.AreEqual(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: true),
+				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: true, isFoliage: true));
 		}
 
 		[Test]

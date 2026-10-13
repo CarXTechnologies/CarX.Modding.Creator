@@ -91,7 +91,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		/// <summary>
 		/// Проход шейдера конвертации с параметрами прохода альфы <paramref name="alphaRemap"/>:
-		/// x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа (альфа = lerp(x, y, a * z)).
+		/// x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа (альфа = lerp(x, y, a * z)), w — порог Alpha Clipping
+		/// для прохода альфа-теста (см. <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
 		/// </summary>
 		public static Texture2D Blit(Texture2D source, int pass, float normalScale, Vector4 alphaRemap)
 		{

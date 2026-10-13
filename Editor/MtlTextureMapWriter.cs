@@ -16,6 +16,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const int AlphaPass = 1;
 		private const int RoughnessPass = 2;
 		private const int NormalPass = 3;
+		private const int AlphaTestPass = 4;
 
 		private static readonly string[] s_baseProperties = { "_BaseColorMap", "_BaseColorMap0", "_MainTex" };
 		private static readonly string[] s_maskProperties = { "_MaskMap0", "_MaskMap" };
@@ -37,10 +38,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			mtl.AppendFormat("map_Kd {0}{1}", tilingOptions, Path.GetFileName(basePath)).AppendLine();
 
 			bool hasAlpha = blendMode != MaterialBlendMode.Opaque;
+			bool isAlphaTest = blendMode == MaterialBlendMode.AlphaTest;
 			Vector4 alphaRemap = GetAlphaMapRemap(material, blendMode);
 
-			// Суффикс ремапа: одна base map с разными Alpha Remapping не должна схлопнуться в один файл.
-			string alphaName = stableId + "_dissolve" + GetAlphaRemapSuffix(alphaRemap);
+			// Суффикс ремапа: одна base map с разными Alpha Remapping не должна схлопнуться в один файл. Суффикс порога альфа-теста ещё и
+			// отличает карту от прежней сырой альфы и от прозрачной копии той же карты.
+			string alphaName = stableId + "_dissolve" + GetAlphaRemapSuffix(alphaRemap) + (isAlphaTest ? "_c" + FormatSuffixNumber(alphaRemap.w) : string.Empty);
 			string alphaPath = hasAlpha ? ExportTextureUtility.GetTexturePath(collectionProvider, baseMap, alphaName, directory) : null;
 
 			if (hasAlpha)
@@ -67,7 +70,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 				if (packAlpha)
 				{
-					PackConverted(collectionProvider, ExportTextureUtility.Blit(readable, AlphaPass, normalScale: 1f, alphaRemap), alphaName, directory);
+					PackConverted(collectionProvider, ExportTextureUtility.Blit(readable, isAlphaTest ? AlphaTestPass : AlphaPass, normalScale: 1f, alphaRemap), alphaName,
+						directory);
 				}
 			}
 			finally
@@ -215,33 +219,52 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Значение d (.mtl) прозрачного материала с учётом Alpha Remapping HDRP Lit (_AlphaRemapMin/_AlphaRemapMax), как в шейдере HDRP:
+		/// Значение d (.mtl) прозрачного или альфа-тест материала с учётом Alpha Remapping HDRP Lit (_AlphaRemapMin/_AlphaRemapMax), как в шейдере HDRP:
 		/// AlphaBlend — lerp(min, max, a * _BaseColor.a), AlphaTest — lerp(min, max, a) * _BaseColor.a, где a — альфа base map (без карты — 1).
-		/// При AlphaBlend с ремапом и base map вся альфа запечена в map_d, поэтому d = 1.
+		/// Клиент домножает map_d на d. При AlphaBlend с ремапом и base map вся альфа запечена в map_d, поэтому d = 1. При AlphaTest с base map
+		/// в map_d запечены альфа, _BaseColor.a и порог (<see cref="RenderCoreAlphaClip"/>), поэтому d = 1: иначе клиент сделал бы материал прозрачным.
 		/// </summary>
 		public static float GetDissolve(Material material, MaterialBlendMode blendMode)
 		{
 			float baseAlpha = GetBaseAlpha(material);
+			bool hasRemap = TryGetAlphaRemap(material, out float remapMin, out float remapMax);
 
-			if (!TryGetAlphaRemap(material, out float remapMin, out float remapMax))
+			if (blendMode != MaterialBlendMode.AlphaTest && !hasRemap)
 			{
 				return baseAlpha;
 			}
 
 			bool hasBaseMap = FindTexture(material, s_baseProperties, out _) != null;
 
-			if (blendMode == MaterialBlendMode.AlphaBlend)
+			if (hasBaseMap)
 			{
-				return hasBaseMap ? 1.0f : Mathf.Lerp(remapMin, remapMax, baseAlpha);
+				return 1.0f;
 			}
 
-			return hasBaseMap ? baseAlpha : remapMax * baseAlpha;
+			if (blendMode == MaterialBlendMode.AlphaTest)
+			{
+				return hasRemap ? remapMax * baseAlpha : baseAlpha;
+			}
+
+			return Mathf.Lerp(remapMin, remapMax, baseAlpha);
 		}
 
-		/// <summary>Параметры прохода альфы <see cref="ExportTextureUtility.Blit(Texture2D, int, float, Vector4)"/>: x, y — диапазон ремапа, z — множитель до ремапа.</summary>
+		/// <summary>
+		/// Параметры прохода альфы <see cref="ExportTextureUtility.Blit(Texture2D, int, float, Vector4)"/>: x, y — диапазон ремапа, z — множитель до ремапа,
+		/// w — порог Alpha Clipping (только для прохода альфа-теста). AlphaTest: lerp(min, max, a) * _BaseColor.a = lerp(min * _BaseColor.a, max * _BaseColor.a, a) —
+		/// множитель уходит в диапазон, проход переносит порог в полосу дизеринга rendercore (см. <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
+		/// </summary>
 		private static Vector4 GetAlphaMapRemap(Material material, MaterialBlendMode blendMode)
 		{
-			if (!TryGetAlphaRemap(material, out float remapMin, out float remapMax))
+			bool hasRemap = TryGetAlphaRemap(material, out float remapMin, out float remapMax);
+
+			if (blendMode == MaterialBlendMode.AlphaTest)
+			{
+				float colorAlpha = GetBaseAlpha(material);
+				return new Vector4(remapMin * colorAlpha, remapMax * colorAlpha, 1.0f, RenderCoreAlphaClip.GetCutoff(material));
+			}
+
+			if (!hasRemap)
 			{
 				return new Vector4(0.0f, 1.0f, 1.0f, 0.0f);
 			}
@@ -275,13 +298,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return value.ToString("F3", CultureInfo.InvariantCulture).Replace('.', '_').Replace('-', 'm');
 		}
 
-		/// <summary>Диапазон Alpha Remapping HDRP Lit. false — ремапа нет или он тождественный (0..1).</summary>
+		/// <summary>
+		/// Переносится ли Alpha Remapping HDRP: только у Transparent (_SurfaceType 1). Инспектор HDRP показывает ремап лишь там; у Opaque,
+		/// в том числе с Alpha Clipping, шейдер применяет оставшееся в материале значение, но автор его не видит и не задаёт, поэтому
+		/// экспорт его не учитывает.
+		/// </summary>
+		internal static bool AppliesAlphaRemap(Material material)
+		{
+			return material != null && material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") >= 0.5f;
+		}
+
+		/// <summary>Диапазон Alpha Remapping HDRP Lit. false — ремапа нет, он тождественный (0..1) или не переносится (<see cref="AppliesAlphaRemap"/>).</summary>
 		private static bool TryGetAlphaRemap(Material material, out float remapMin, out float remapMax)
 		{
 			remapMin = 0.0f;
 			remapMax = 1.0f;
 
-			if (!material.HasProperty("_AlphaRemapMin") || !material.HasProperty("_AlphaRemapMax"))
+			if (!AppliesAlphaRemap(material) || !material.HasProperty("_AlphaRemapMin") || !material.HasProperty("_AlphaRemapMax"))
 			{
 				return false;
 			}

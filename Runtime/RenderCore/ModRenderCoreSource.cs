@@ -18,7 +18,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		/// <summary>Packed map: каналы собираются из Mask Map, альфы Base Map и Normal Map по раскладке свойства.</summary>
 		Surface = 4,
 
-		// 5 — бывший AlphaCutoff: порог альфа-теста задаёт сам шейдер rendercore (фиксированный, с дизерингом), из HDRP он не переносится.
+		// 5 — бывший AlphaCutoff: порог альфа-теста задаёт сам шейдер rendercore (фиксированный, с дизерингом), в u_vThirdColor он не передаётся;
+		// порог HDRP Export from material запекает в канал отсечения packed map (RenderCoreAlphaClip.ToRenderCore).
 
 		/// <summary>Параметры эмиссии: постоянная яркость по интенсивности Emissive Color.</summary>
 		EmissionParameters = 6

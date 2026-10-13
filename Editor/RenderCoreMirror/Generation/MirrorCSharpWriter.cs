@@ -183,7 +183,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		private static void WriteSuggestion(StringBuilder builder, MirrorSuggestion suggestion, bool last)
 		{
 			Line(builder, $"{VariantIndent}new ModRenderCoreSuggestion(ModRenderCoreRenderType.{suggestion.renderType}, hasNormal: {Bool(suggestion.hasNormal)}, " +
-				$"hasEmission: {Bool(suggestion.hasEmission)}, {Literal(suggestion.variant)}){(last ? "" : ",")}");
+				$"hasEmission: {Bool(suggestion.hasEmission)}, isFoliage: {Bool(suggestion.isFoliage)}, {Literal(suggestion.variant)}){(last ? "" : ",")}");
 		}
 
 		/// <summary>Флаги в порядке значений: "ModRenderCoreVertexStreams.Position | ModRenderCoreVertexStreams.Normal".</summary>

@@ -121,9 +121,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return ModPbrSurfaceType.AlphaBlend;
 		}
 
-		/// <summary>Alpha Remapping слоя HDRP Layered Lit (_AlphaRemapMin{i}/_AlphaRemapMax{i}). false — ремапа нет или он тождественный (0..1).</summary>
+		/// <summary>
+		/// Alpha Remapping слоя HDRP Layered Lit (_AlphaRemapMin{i}/_AlphaRemapMax{i}). false — ремапа нет, он тождественный (0..1) или
+		/// материал не Transparent (<see cref="MtlTextureMapWriter.AppliesAlphaRemap"/>).
+		/// </summary>
 		private static bool TryGetAlphaRemap(Material material, int index, out Vector2 alphaRemap)
 		{
+			if (!MtlTextureMapWriter.AppliesAlphaRemap(material))
+			{
+				alphaRemap = new Vector2(0, 1);
+				return false;
+			}
+
 			alphaRemap = new Vector2(GetFloat(material, "_AlphaRemapMin" + index, fallback: 0), GetFloat(material, "_AlphaRemapMax" + index, fallback: 1));
 
 			return !Mathf.Approximately(alphaRemap.x, 0) || !Mathf.Approximately(alphaRemap.y, 1);

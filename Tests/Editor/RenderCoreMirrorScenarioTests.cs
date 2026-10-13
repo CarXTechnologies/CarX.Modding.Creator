@@ -73,6 +73,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(table, Does.Not.Contain("\r"));
 			Assert.That(table, Does.Contain("public const string LockContentHash = \"" + RenderCoreLockText.ContentHash(baseline) + "\";"));
 			Assert.That(table, Does.Contain("// Не предлагаются (нет аннотации): —"));
+			Assert.That(table, Does.Contain("new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false, " +
+				$"\"{AlphaTestVariant}\")\n"));
 			Assert.That(table, Does.Contain("Value(\"u_fParams\", \"Emission Parameters\""));
 			Assert.That(table, Does.Contain("new Vector4(0, 0, 0, 1), new[] { \"Inverse Period\", \"Rising Time\", \"Emission Delta\", \"Min Emission\" })"));
 		}
@@ -432,12 +434,50 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			MirrorAnnotationSet annotations = RenderCoreMirrorAnnotations.Create();
 			var suggestions = new List<MirrorSuggestion>(annotations.suggestions)
 			{
-				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, "MAT_INTERIOR")
+				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, isFoliage: true, "MAT_INTERIOR")
 			};
 
 			MirrorGenerationResult result = MirrorGenerator.Generate(ReadCommittedLock(), annotations.WithSuggestions(suggestions));
 
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.Suggestion }), Describe(result.findings));
+			Assert.That(Find(result.findings, MirrorFindingCodes.Suggestion).subject, Is.EqualTo("Opaque/normal=True/emission=True/foliage=True"));
+		}
+
+		[Test]
+		public void SuggestionOfOtherRenderTypeBlocks()
+		{
+			MirrorAnnotationSet annotations = RenderCoreMirrorAnnotations.Create();
+			var suggestions = new List<MirrorSuggestion>(annotations.suggestions)
+			{
+				// Двусторонний непрозрачный материал без выреза: вариант альфа-теста резал бы то, что в HDRP не режется.
+				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST")
+			};
+
+			MirrorGenerationResult result = MirrorGenerator.Generate(ReadCommittedLock(), annotations.WithSuggestions(suggestions));
+
+			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.Suggestion }), Describe(result.findings));
+			RenderCoreFinding finding = Find(result.findings, MirrorFindingCodes.Suggestion);
+			Assert.That(finding.tier, Is.EqualTo(RenderCoreFindingTier.Breaking));
+			Assert.That(finding.message, Does.Contain("RenderType AlphaTest"));
+		}
+
+		[Test]
+		public void RepeatedSuggestionKeyBlocks()
+		{
+			MirrorAnnotationSet annotations = RenderCoreMirrorAnnotations.Create();
+			var suggestions = new List<MirrorSuggestion>(annotations.suggestions)
+			{
+				// Тот же ключ, что у подсказки MAT_FOLIAGE_ALPHATEST: Suggest никогда её не вернёт.
+				new MirrorSuggestion(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_ROUGHNESS_NORMAL_ALPHATEST")
+			};
+
+			MirrorGenerationResult result = MirrorGenerator.Generate(ReadCommittedLock(), annotations.WithSuggestions(suggestions));
+
+			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.Suggestion }), Describe(result.findings));
+			RenderCoreFinding finding = Find(result.findings, MirrorFindingCodes.Suggestion);
+			Assert.That(finding.tier, Is.EqualTo(RenderCoreFindingTier.Error));
+			Assert.That(finding.subject, Is.EqualTo("AlphaTest/normal=True/emission=False/foliage=True"));
+			Assert.That(result.Succeeded, Is.False);
 		}
 
 		[Test]
@@ -624,8 +664,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorSuggestion[] suggestions =
 			{
-				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, EmissionVariant),
-				new MirrorSuggestion(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, AlphaTestVariant)
+				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, isFoliage: false, EmissionVariant),
+				new MirrorSuggestion(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false, AlphaTestVariant)
 			};
 
 			MirrorPassReview[] passReviews =

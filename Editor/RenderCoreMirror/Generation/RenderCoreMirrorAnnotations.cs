@@ -15,7 +15,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 	///   revision — ревизия запечённого контракта; документы мода хранят её, клиент применяет только совпадающую.
 	/// Contracts — замороженные контракты (вариант, ревизия): только дописываются. Новая ревизия = новая запись; старые не правятся
 	/// (реестр отпечатков в RenderCoreMirrorTableTests это проверяет).
-	/// Suggestions — какой вариант Export from material предлагает для материала HDRP (первая подходящая).
+	/// Suggestions — какой вариант Export from material предлагает для материала HDRP по ключу (RenderType, нормаль, эмиссия, растительность);
+	///   ключ уникален, вариант доступен и с тем же RenderType (RCM080). Растительность — двусторонний материал с вырезом по альфе: без своей
+	///   подсказки ModRenderCoreVariants.Suggest берёт подсказку того же ключа без растительности.
 	/// AlphaTestPasses — проверенные конфигурации проходов выреза (DepthOnly/ShadowCaster): вырез модов альфа-теста делают они, Forward
 	///   рисует с ZTest Equal. reviewedHash — что человек посмотрел в rendercore (Defs, особенности, потоки, Func и программа прохода);
 	///   при расхождении генератор отказывает (RCM045) и печатает текущее значение.
@@ -167,14 +169,17 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 		public static readonly IReadOnlyList<MirrorSuggestion> Suggestions = new[]
 		{
-			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
-			Suggest(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
-			Suggest(MirrorRenderType.Transparent, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
-			Suggest(MirrorRenderType.Transparent, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
-			Suggest(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, "MAT_EMISSION"),
-			Suggest(MirrorRenderType.Opaque, hasNormal: false, hasEmission: true, "MAT_EMISSION"),
-			Suggest(MirrorRenderType.Opaque, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL"),
-			Suggest(MirrorRenderType.Opaque, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL")
+			// Листва, хвоя, трава: освещение растительности; вырез — тот же общий ALPHATEST по packed B.
+			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST"),
+			Suggest(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_SIMPLE_ALPHATEST"),
+			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
+			Suggest(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
+			Suggest(MirrorRenderType.Transparent, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
+			Suggest(MirrorRenderType.Transparent, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
+			Suggest(MirrorRenderType.Opaque, hasNormal: true, hasEmission: true, isFoliage: false, "MAT_EMISSION"),
+			Suggest(MirrorRenderType.Opaque, hasNormal: false, hasEmission: true, isFoliage: false, "MAT_EMISSION"),
+			Suggest(MirrorRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL"),
+			Suggest(MirrorRenderType.Opaque, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL")
 		};
 
 		public static MirrorAnnotationSet Create()
@@ -209,9 +214,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new MirrorPassReview(pass, keywords, reviewedHash);
 		}
 
-		private static MirrorSuggestion Suggest(MirrorRenderType renderType, bool hasNormal, bool hasEmission, string variant)
+		private static MirrorSuggestion Suggest(MirrorRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage, string variant)
 		{
-			return new MirrorSuggestion(renderType, hasNormal, hasEmission, variant);
+			return new MirrorSuggestion(renderType, hasNormal, hasEmission, isFoliage, variant);
 		}
 	}
 }

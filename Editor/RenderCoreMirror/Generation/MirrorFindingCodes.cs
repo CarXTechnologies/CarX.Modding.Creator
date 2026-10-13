@@ -96,7 +96,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// <summary>Тело EditorUtils.SetupMaterialVariant не совпадает с проверенным (сверить клиент и обновить отпечаток). Breaking.</summary>
 		public const string Setup = "RCM070";
 
-		/// <summary>Подсказка Export from material ссылается на неаннотированный или недоступный вариант. Breaking.</summary>
+		/// <summary>
+		/// Подсказка Export from material ссылается на неаннотированный или недоступный вариант либо на вариант другого RenderType — Breaking;
+		/// ключ подсказки (RenderType, нормаль, эмиссия, растительность) повторяется — Error.
+		/// </summary>
 		public const string Suggestion = "RCM080";
 
 		/// <summary>Кандидат снимка без аннотации: в таблицу не попадает. Info.</summary>

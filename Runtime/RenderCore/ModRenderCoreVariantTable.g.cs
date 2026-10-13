@@ -223,14 +223,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			return new[]
 			{
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Transparent, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Transparent, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: true, "MAT_EMISSION"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: false, hasEmission: true, "MAT_EMISSION"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL"),
-				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: false, hasEmission: false, "MAT_ROUGHNESS_METALNESS_NORMAL")
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_SIMPLE_ALPHATEST"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Transparent, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Transparent, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: true, isFoliage: false, "MAT_EMISSION"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: false, hasEmission: true, isFoliage: false, "MAT_EMISSION"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL"),
+				new ModRenderCoreSuggestion(ModRenderCoreRenderType.Opaque, hasNormal: false, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_METALNESS_NORMAL")
 			};
 		}
 	}

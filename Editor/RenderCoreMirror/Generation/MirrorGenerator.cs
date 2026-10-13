@@ -505,17 +505,36 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
+		/// <summary>
+		/// Каждая подсказка (и растительности) ведёт на доступный вариант таблицы с тем же RenderType; ключ (RenderType, нормаль, эмиссия,
+		/// растительность) не повторяется — иначе ModRenderCoreVariants.Suggest молча берёт первую.
+		/// </summary>
 		private static void CheckSuggestions(MirrorAnnotationSet annotations, List<MirrorVariant> variants, List<RenderCoreFinding> findings)
 		{
+			var keys = new HashSet<string>(StringComparer.Ordinal);
+
 			foreach (MirrorSuggestion suggestion in annotations.suggestions)
 			{
+				string key = suggestion.Key;
+
+				if (!keys.Add(key))
+				{
+					Add(findings, MirrorFindingCodes.Suggestion, RenderCoreFindingTier.Error, key,
+						$"suggestion key is repeated ({suggestion.variant}): only the first one is ever chosen, keep one");
+				}
+
 				MirrorVariant variant = variants.FirstOrDefault(candidate => candidate.name == suggestion.variant);
 
 				if (variant == null || !variant.Available)
 				{
-					Add(findings, MirrorFindingCodes.Suggestion, RenderCoreFindingTier.Breaking,
-						$"{suggestion.renderType}/normal={suggestion.hasNormal}/emission={suggestion.hasEmission}",
+					Add(findings, MirrorFindingCodes.Suggestion, RenderCoreFindingTier.Breaking, key,
 						$"suggestion points to {suggestion.variant}, which is not among the available table variants");
+				}
+				else if (variant.renderType != suggestion.renderType)
+				{
+					Add(findings, MirrorFindingCodes.Suggestion, RenderCoreFindingTier.Breaking, key,
+						$"suggestion for {suggestion.renderType} points to {suggestion.variant} with RenderType {variant.renderType}: the mod material " +
+						"would cut out or blend unlike the HDRP one");
 				}
 			}
 		}

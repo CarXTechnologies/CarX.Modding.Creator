@@ -63,19 +63,21 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return s_byName.TryGetValue(name, out variant);
 		}
 
-		/// <summary>Вариант, который Export from material предлагает для материала HDRP, или null.</summary>
+		/// <summary>Вариант, который Export from material предлагает для материала HDRP (не растительности), или null.</summary>
 		public static string Suggest(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission)
 		{
-			foreach (ModRenderCoreSuggestion suggestion in s_suggestions)
-			{
-				if (suggestion.renderType == renderType && suggestion.hasNormal == hasNormal && suggestion.hasEmission == hasEmission &&
-					TryGet(suggestion.variant, out _))
-				{
-					return suggestion.variant;
-				}
-			}
+			return Suggest(renderType, hasNormal, hasEmission, isFoliage: false);
+		}
 
-			return null;
+		/// <summary>
+		/// Вариант, который Export from material предлагает для материала HDRP, или null. Растительность (isFoliage: двусторонний материал
+		/// с вырезом по альфе) получает свою подсказку таблицы (AlphaTest: MAT_FOLIAGE_ALPHATEST с нормалью, MAT_FOLIAGE_SIMPLE_ALPHATEST без
+		/// неё), а без своей — ту же, что и не растительность.
+		/// </summary>
+		public static string Suggest(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
+		{
+			string variant = FindSuggestion(renderType, hasNormal, hasEmission, isFoliage);
+			return variant == null && isFoliage ? FindSuggestion(renderType, hasNormal, hasEmission, isFoliage: false) : variant;
 		}
 
 		/// <summary>
@@ -91,6 +93,21 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public static bool HasSupportedStreams(ModRenderCoreVariant variant)
 		{
 			return (variant.requiredStreams & ~SupportedStreams) == ModRenderCoreVertexStreams.None;
+		}
+
+		/// <summary>Первая подсказка с точно таким ключом, ведущая на доступный вариант; только чтение неизменяемой таблицы.</summary>
+		private static string FindSuggestion(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
+		{
+			foreach (ModRenderCoreSuggestion suggestion in s_suggestions)
+			{
+				if (suggestion.renderType == renderType && suggestion.hasNormal == hasNormal && suggestion.hasEmission == hasEmission &&
+					suggestion.isFoliage == isFoliage && TryGet(suggestion.variant, out _))
+				{
+					return suggestion.variant;
+				}
+			}
+
+			return null;
 		}
 
 		private static Dictionary<string, ModRenderCoreVariant> BuildLookup(ModRenderCoreVariant[] variants, out string[] duplicates)

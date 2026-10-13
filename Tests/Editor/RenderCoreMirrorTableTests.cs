@@ -156,6 +156,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 							}
 
 							ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false);
+							ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true);
 						}
 					}
 					catch (Exception exception)
@@ -187,12 +188,36 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		[Test]
 		public void SuggestionsResolveToOfferedVariants()
 		{
+			Assert.That(RenderCoreMirrorAnnotations.Suggestions.Any(suggestion => suggestion.isFoliage), Is.True, "no foliage suggestions");
+
 			foreach (MirrorSuggestion suggestion in RenderCoreMirrorAnnotations.Suggestions)
 			{
-				string variant = ModRenderCoreVariants.Suggest((ModRenderCoreRenderType)suggestion.renderType, suggestion.hasNormal, suggestion.hasEmission);
+				ModRenderCoreRenderType renderType = (ModRenderCoreRenderType)suggestion.renderType;
+				string variant = ModRenderCoreVariants.Suggest(renderType, suggestion.hasNormal, suggestion.hasEmission, suggestion.isFoliage);
 
-				Assert.That(variant, Is.Not.Null, suggestion.variant);
-				Assert.That(ModRenderCoreVariants.Offered.Any(offered => offered.name == variant), Is.True, variant);
+				// Ключи уникальны (RCM080): каждая подсказка достижима и ведёт ровно на свой вариант.
+				Assert.That(variant, Is.EqualTo(suggestion.variant), suggestion.Key);
+				Assert.That(ModRenderCoreVariants.Offered.Any(offered => offered.name == variant && offered.renderType == renderType), Is.True, suggestion.Key);
+
+				if (!suggestion.isFoliage)
+				{
+					Assert.That(ModRenderCoreVariants.Suggest(renderType, suggestion.hasNormal, suggestion.hasEmission), Is.EqualTo(variant), suggestion.Key);
+				}
+			}
+		}
+
+		[Test]
+		public void FoliageSuggestionsRefineNonFoliageKeys()
+		{
+			MirrorSuggestion[] foliage = RenderCoreMirrorAnnotations.Suggestions.Where(suggestion => suggestion.isFoliage).ToArray();
+
+			Assert.That(foliage.Select(suggestion => suggestion.variant), Is.EquivalentTo(new[] { "MAT_FOLIAGE_ALPHATEST", "MAT_FOLIAGE_SIMPLE_ALPHATEST" }));
+
+			foreach (MirrorSuggestion suggestion in foliage)
+			{
+				// У того же ключа есть подсказка без растительности: растительность — уточнение, а не единственный путь к варианту.
+				Assert.That(RenderCoreMirrorAnnotations.Suggestions.Any(other => !other.isFoliage && other.renderType == suggestion.renderType &&
+					other.hasNormal == suggestion.hasNormal && other.hasEmission == suggestion.hasEmission), Is.True, suggestion.Key);
 			}
 		}
 

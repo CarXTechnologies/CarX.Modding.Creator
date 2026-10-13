@@ -24,7 +24,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// <summary>Замороженные контракты (вариант, ревизия); только дописываются.</summary>
 		public readonly IReadOnlyList<MirrorBakedContract> contracts;
 
-		/// <summary>Подсказки Export from material в порядке приоритета (первая подходящая выигрывает).</summary>
+		/// <summary>Подсказки Export from material; ключ (RenderType, нормаль, эмиссия, растительность) уникален (RCM080).</summary>
 		public readonly IReadOnlyList<MirrorSuggestion> suggestions;
 
 		/// <summary>Проверенные конфигурации проходов выреза альфа-теста (DepthOnly/ShadowCaster).</summary>

@@ -22,9 +22,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const int SolidTextureSize = 4;
 		private const int NormalPass = 3;
 		private const float WhiteTolerance = 0.001f;
-		private const float HdrpDefaultAlphaCutoff = 0.5f;
 		private const string ChannelNames = "RGBA";
 		private const float OcclusionTolerance = 0.5f / 255;
+
+		/// <summary>Доля texel'ей в окне дизеринга вокруг порога, начиная с которой автор получает заметку: штриховка заметна.</summary>
+		private const float DitheredShareThreshold = 0.1f;
 
 		/// <summary>Плоская нормаль в RGB (0, 0, 1).</summary>
 		private static readonly Color FlatNormal = new(0.5f, 0.5f, 1, 1);
@@ -36,6 +38,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		/// Для альфа-теста вариант, у которого канал отсечения несёт ещё и AO (<see cref="ModRenderCoreChannel.AmbientOcclusionAlpha"/>),
 		/// не предлагается, пока есть другой: rendercore отсекал бы непрозрачные в HDRP, но затенённые texel'и. Поэтому материалу
 		/// без карты нормалей достаётся вариант с нормалью: <see cref="Bake"/> запишет плоскую нормаль, AO при этом не переносится.
+		/// Растительности (<see cref="IsFoliage"/>) зеркало предлагает вариант листвы: с картой нормалей и без неё.
 		/// </summary>
 		public static string SuggestVariant(Material source)
 		{
@@ -43,17 +46,31 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			ModRenderCoreRenderType renderType = ToRenderType(MtlMaterialWriter.DetectBlendMode(source));
 			bool hasNormal = hdrp.GetTexture("_NormalMap", layer: 0) != null;
 			bool hasEmission = hdrp.EmissiveColor.maxColorComponent > 0;
-			return SuggestVariant(renderType, hasNormal, hasEmission);
+			return SuggestVariant(renderType, hasNormal, hasEmission, IsFoliage(source));
+		}
+
+		/// <summary>
+		/// Растительность: включены Alpha Clipping и Double-Sided (HDRP _AlphaCutoffEnable и _DoubleSidedEnable; так же у материалов ShaderGraph,
+		/// у которых эти свойства есть). Такой материал без маркера рендерится запасным Cutout-вариантом без освещения листвы. Null — false.
+		/// </summary>
+		public static bool IsFoliage(Material material)
+		{
+			return material != null && IsToggleOn(material, "_AlphaCutoffEnable") && IsToggleOn(material, "_DoubleSidedEnable");
+		}
+
+		private static bool IsToggleOn(Material material, string property)
+		{
+			return material.HasProperty(property) && material.GetFloat(property) > 0;
 		}
 
 		/// <summary>Выбор <see cref="SuggestVariant(Material)"/> по уже определённым настройкам материала; только таблица, без Unity API.</summary>
-		private static string SuggestVariant(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission)
+		private static string SuggestVariant(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
 		{
 			string[] candidates =
 			{
-				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission),
-				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission: false),
-				ModRenderCoreVariants.Suggest(renderType, !hasNormal, hasEmission: false),
+				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission, isFoliage),
+				ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission: false, isFoliage),
+				ModRenderCoreVariants.Suggest(renderType, !hasNormal, hasEmission: false, isFoliage),
 				FirstOffered(renderType)
 			};
 			string first = null;
@@ -176,8 +193,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 					AddManualChannels(property, manual);
 				}
-
-				AddAlphaThresholdNote(hdrp, variant, manual);
 			}
 			finally
 			{
@@ -230,27 +245,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				{
 					manual.Add($"{property.label} {ChannelNames[i]} (color mask)");
 				}
-			}
-		}
-
-		/// <summary>
-		/// Порог Alpha Clipping HDRP не переносится: альфа-тест rendercore режет по своему фиксированному порогу с дизерингом.
-		/// Значение HDRP по умолчанию (0.5) не сообщается, чтобы не шуметь на каждом материале.
-		/// </summary>
-		private static void AddAlphaThresholdNote(HdrpMaterial hdrp, ModRenderCoreVariant variant, List<string> manual)
-		{
-			if (variant.renderType != ModRenderCoreRenderType.AlphaTest || !hdrp.IsAlphaClipping)
-			{
-				return;
-			}
-
-			float threshold = hdrp.AlphaCutoff;
-
-			if (!Mathf.Approximately(threshold, HdrpDefaultAlphaCutoff))
-			{
-				manual.Add(string.Format(CultureInfo.InvariantCulture,
-					"alpha threshold {0:0.###} (render core clips at its own fixed, dithered threshold; the HDRP Alpha Clipping threshold is not transferred)",
-					threshold));
 			}
 		}
 
@@ -330,8 +324,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Packed map по раскладке каналов свойства из Mask Map, альфы Base Map и Normal Map слоя. Канал AO × альфа альфа-тест rendercore
-		/// читает целиком, поэтому затенённые texel'и, непрозрачные в HDRP, могут отсекаться: если такие есть, автор получает заметку.
+		/// Packed map по раскладке каналов свойства из Mask Map, альфы Base Map и Normal Map слоя. У альфа-теста с Alpha Clipping исходника
+		/// в канал альфы пишется альфа HDRP, перенесённая с порогом в полосу дизеринга rendercore (<see cref="RenderCoreAlphaClip.ToRenderCore"/>).
+		/// Заметки автору: канал AO × альфа альфа-тест rendercore читает целиком, поэтому затенённые texel'и, непрозрачные в HDRP, могут
+		/// отсекаться; заметная доля texel'ей с альфой у самого порога (<see cref="RenderCoreAlphaClip.Window"/>) рендерится штриховкой дизеринга.
 		/// </summary>
 		private static Texture2D BakeSurface(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, ModRenderCoreRenderType renderType, TextureOutput output,
 			List<string> manual)
@@ -339,7 +335,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			int layer = property.layer;
 			IReadOnlyList<ModRenderCoreChannel> channels = property.channels;
 			int coverageChannel = IndexOf(channels, ModRenderCoreChannel.AmbientOcclusionAlpha);
+			int clipChannel = coverageChannel >= 0 ? coverageChannel : IndexOf(channels, ModRenderCoreChannel.Alpha);
 			bool occludesCoverage = false;
+			int ditheredTexels = 0;
 			bool usesAlpha = channels.Any(channel => channel == ModRenderCoreChannel.Alpha || channel == ModRenderCoreChannel.AmbientOcclusionAlpha);
 			bool usesNormal = channels.Any(channel => channel == ModRenderCoreChannel.NormalX || channel == ModRenderCoreChannel.NormalY);
 
@@ -377,6 +375,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 						surface.Channel(channels[3], maskPixel, baseAlpha, normalPixel, mask != null));
 					packed.Set(x, y, pixel);
 					occludesCoverage = occludesCoverage || (coverageChannel >= 0 && surface.OccludesOpaqueTexel(maskPixel, baseAlpha, mask != null));
+
+					if (clipChannel >= 0 && surface.IsDithered(baseAlpha))
+					{
+						ditheredTexels++;
+					}
 				}
 			}
 
@@ -385,6 +388,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				char channel = ChannelNames[coverageChannel];
 				manual.Add($"{property.label} {channel} (ambient occlusion also lowers alpha-test coverage: texels that are opaque in HDRP but occluded " +
 					$"may be clipped; a variant whose {channel} is alpha only avoids it)");
+			}
+
+			float ditheredShare = (float)ditheredTexels / (width * height);
+
+			if (ditheredShare >= DitheredShareThreshold)
+			{
+				manual.Add(string.Format(CultureInfo.InvariantCulture,
+					"{0} {1} ({2:0}% of texels have alpha within {3:0.##} of the alpha clipping threshold {4:0.###}: render core dithers them " +
+					"instead of a hard cut; sharper alpha edges avoid it)",
+					property.label, ChannelNames[clipChannel], ditheredShare * 100, RenderCoreAlphaClip.Window, hdrp.AlphaCutoff));
 			}
 
 			return output.Save(property.name, packed, isColor: false);
@@ -452,11 +465,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			public Color EmissiveColor => m_material.HasProperty("_EmissiveColor") ? m_material.GetColor("_EmissiveColor") : Color.black;
 
-			/// <summary>Alpha Clipping HDRP включён.</summary>
-			public bool IsAlphaClipping => GetFloat("_AlphaCutoffEnable", fallback: 0) > 0;
+			/// <summary>Alpha Clipping включён: у HDRP — _AlphaCutoffEnable, у прочих шейдеров — признаки вырезки по альфе (<see cref="MaterialBlendMode.AlphaTest"/>).</summary>
+			public bool IsAlphaClipping => MtlMaterialWriter.DetectBlendMode(m_material) == MaterialBlendMode.AlphaTest;
 
-			/// <summary>Порог Alpha Clipping HDRP (общий для слоёв Layered Lit).</summary>
-			public float AlphaCutoff => GetFloat("_AlphaCutoff", fallback: HdrpDefaultAlphaCutoff);
+			/// <summary>Порог Alpha Clipping (общий для слоёв Layered Lit), см. <see cref="RenderCoreAlphaClip.GetCutoff"/>.</summary>
+			public float AlphaCutoff => RenderCoreAlphaClip.GetCutoff(m_material);
+
+			public bool AppliesAlphaRemap => MtlTextureMapWriter.AppliesAlphaRemap(m_material);
 
 			public string Key(string name, int layer)
 			{
@@ -494,26 +509,50 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			private readonly bool m_isAlphaBlend;
 			private readonly bool m_isAlphaClipping;
 			private readonly float m_alphaCutoff;
+			private readonly bool m_mapsAlphaClip;
 
 			public SurfaceInputs(HdrpMaterial hdrp, int layer, ModRenderCoreRenderType renderType)
 			{
 				m_smoothnessRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_SmoothnessRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_SmoothnessRemapMax", layer), fallback: 1));
 				m_metallicRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_MetallicRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_MetallicRemapMax", layer), fallback: 1));
 				m_aoRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_AORemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_AORemapMax", layer), fallback: 1));
-				m_alphaRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_AlphaRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_AlphaRemapMax", layer), fallback: 1));
+				// Ремап альфы — только у Transparent, как его показывает инспектор HDRP (MtlTextureMapWriter.AppliesAlphaRemap).
+				m_alphaRemap = hdrp.AppliesAlphaRemap
+					? new Vector2(hdrp.GetFloat(hdrp.Key("_AlphaRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_AlphaRemapMax", layer), fallback: 1))
+					: new Vector2(0, 1);
 				m_smoothness = hdrp.GetFloat(hdrp.Key("_Smoothness", layer), fallback: 0.5f);
 				m_metallic = hdrp.GetFloat(hdrp.Key("_Metallic", layer), fallback: 0);
 				m_colorAlpha = hdrp.GetColor("_BaseColor", layer).a;
 				m_isAlphaBlend = renderType == ModRenderCoreRenderType.Transparent;
 				m_isAlphaClipping = hdrp.IsAlphaClipping;
 				m_alphaCutoff = hdrp.AlphaCutoff;
+				m_mapsAlphaClip = renderType == ModRenderCoreRenderType.AlphaTest && m_isAlphaClipping;
 			}
 
-			/// <summary>Texel непрозрачен в HDRP (без Alpha Clipping — любой, с ним — не ниже порога), но AO у него меньше 1.</summary>
+			/// <summary>
+			/// Texel непрозрачен в HDRP (без Alpha Clipping — любой, с ним — не ниже порога), но AO снижает его покрытие альфа-тестом rendercore:
+			/// <see cref="RenderCoreAlphaClip.Coverage"/> от AO × альфа ниже, чем от одной альфы.
+			/// </summary>
 			public bool OccludesOpaqueTexel(Color mask, float baseAlpha, bool hasMask)
 			{
 				bool isOpaque = !m_isAlphaClipping || Alpha(baseAlpha) >= m_alphaCutoff;
-				return isOpaque && AmbientOcclusion(mask, hasMask) < 1 - OcclusionTolerance;
+				float ambientOcclusion = AmbientOcclusion(mask, hasMask);
+				float alpha = PackedAlpha(baseAlpha);
+
+				return isOpaque && ambientOcclusion < 1 - OcclusionTolerance
+					&& RenderCoreAlphaClip.Coverage(ambientOcclusion * alpha) < RenderCoreAlphaClip.Coverage(alpha);
+			}
+
+			/// <summary>Альфа HDRP у порога: альфа-тест rendercore оставляет texel лишь частично (дизеринг), а HDRP режет жёстко.</summary>
+			public bool IsDithered(float baseAlpha)
+			{
+				if (!m_mapsAlphaClip)
+				{
+					return false;
+				}
+
+				float coverage = RenderCoreAlphaClip.Coverage(PackedAlpha(baseAlpha));
+				return coverage > 0 && coverage < 1;
 			}
 
 			public float Channel(ModRenderCoreChannel channel, Color mask, float baseAlpha, Color normal, bool hasMask)
@@ -527,9 +566,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					case ModRenderCoreChannel.AmbientOcclusion:
 						return AmbientOcclusion(mask, hasMask);
 					case ModRenderCoreChannel.Alpha:
-						return Alpha(baseAlpha);
+						return PackedAlpha(baseAlpha);
 					case ModRenderCoreChannel.AmbientOcclusionAlpha:
-						return AmbientOcclusion(mask, hasMask) * Alpha(baseAlpha);
+						return AmbientOcclusion(mask, hasMask) * PackedAlpha(baseAlpha);
 					case ModRenderCoreChannel.NormalX:
 						return normal.r;
 					case ModRenderCoreChannel.NormalY:
@@ -547,7 +586,17 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return hasMask ? Mathf.Lerp(m_aoRemap.x, m_aoRemap.y, mask.g) : 1;
 			}
 
-			/// <summary>Прозрачный: lerp(min, max, a · color.a); альфа-тест и прочие: lerp(min, max, a) · color.a.</summary>
+			/// <summary>
+			/// Альфа в packed map: у альфа-теста с Alpha Clipping исходника — альфа HDRP, перенесённая с порогом в полосу дизеринга rendercore
+			/// (<see cref="RenderCoreAlphaClip.ToRenderCore"/>), иначе — альфа HDRP как есть.
+			/// </summary>
+			private float PackedAlpha(float baseAlpha)
+			{
+				float alpha = Alpha(baseAlpha);
+				return m_mapsAlphaClip ? RenderCoreAlphaClip.ToRenderCore(alpha, m_alphaCutoff) : alpha;
+			}
+
+			/// <summary>Альфа HDRP. Прозрачный: lerp(min, max, a · color.a); альфа-тест и прочие: lerp(min, max, a) · color.a.</summary>
 			private float Alpha(float baseAlpha)
 			{
 				return m_isAlphaBlend
