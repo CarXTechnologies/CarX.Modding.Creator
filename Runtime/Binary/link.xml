@@ -1,6 +1,7 @@
 <linker>
-  <!-- BinaryModData reads only these known DTO fields, including in IL2CPP builds. -->
+  <!-- BinaryModData reads only the known DTO fields of the format namespace, including in IL2CPP builds.
+       The namespace element preserves exactly this namespace, not nested ones. -->
   <assembly fullname="CarX.Modding.Creator">
-    <type fullname="Plugins.CarX.Modding.Creator.Runtime.*" preserve="all" />
+    <namespace fullname="Plugins.CarX.Modding.Creator.Runtime" preserve="all" />
   </assembly>
 </linker>
