@@ -40,7 +40,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return stream.ToArray();
 		}
 
-		public static BinaryModModel Read(BinaryReader reader)
+		public static BinaryModModel Read(BinaryReader reader, BinaryModModelReadBudget budget)
 		{
 			string name = BinaryModModelCodec.ReadString(reader);
 			var model = new BinaryModModel
@@ -51,10 +51,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			for (int i = 0; i < model.meshes.Length; i++)
 			{
-				byte[] raw = ReadBlock(reader);
+				byte[] raw = ReadBlock(reader, budget);
 				using var payload = new MemoryStream(raw, false);
 				using var meshReader = new BinaryReader(payload, Encoding.UTF8);
-				model.meshes[i] = DecodeMesh(meshReader);
+				model.meshes[i] = DecodeMesh(meshReader, budget);
 
 				if (payload.Position != payload.Length)
 				{
@@ -111,7 +111,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			writer.Write(stored);
 		}
 
-		private static byte[] ReadBlock(BinaryReader reader)
+		private static byte[] ReadBlock(BinaryReader reader, BinaryModModelReadBudget budget)
 		{
 			byte compression = reader.ReadByte();
 			int rawLength = reader.ReadInt32();
@@ -126,6 +126,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				throw new InvalidDataException("Invalid binary mesh block header.");
 			}
 
+			// До выделения памяти под распакованный блок: сумма по модели и степень сжатия ограничены бюджетом.
+			budget.TakeBlock(rawLength, storedLength, compressed: compression == 1);
 			byte[] stored = reader.ReadBytes(storedLength);
 			byte[] raw = compression == 0 ? stored : Inflate(stored, rawLength);
 
@@ -237,7 +239,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			}
 		}
 
-		private static BinaryModMesh DecodeMesh(BinaryReader reader)
+		private static BinaryModMesh DecodeMesh(BinaryReader reader, BinaryModModelReadBudget budget)
 		{
 			string name = BinaryModModelCodec.ReadString(reader);
 			byte flags = reader.ReadByte();
@@ -262,6 +264,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				throw new InvalidDataException("Binary mesh requires 32-bit indices.");
 			}
 
+			// Постоянные атрибуты разворачиваются в массивы на все вершины, поэтому вершины считаются по всей модели.
+			budget.TakeVertices(count);
 			mesh.vertices = new Vector3[count];
 
 			for (int i = 0; i < count; i++)
@@ -286,16 +290,17 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			for (int subIndex = 0; subIndex < mesh.subMeshes.Length; subIndex++)
 			{
-				mesh.subMeshes[subIndex] = ReadSubMesh(reader, count, wide);
+				mesh.subMeshes[subIndex] = ReadSubMesh(reader, count, wide, budget);
 			}
 
 			return mesh;
 		}
 
-		private static BinaryModSubMesh ReadSubMesh(BinaryReader reader, int vertexCount, bool wide)
+		private static BinaryModSubMesh ReadSubMesh(BinaryReader reader, int vertexCount, bool wide, BinaryModModelReadBudget budget)
 		{
 			string material = BinaryModModelCodec.ReadString(reader);
 			int length = BinaryModModelCodec.ReadCount(reader, BinaryModModelCodec.MaxIndices, wide ? 4 : 2);
+			budget.TakeIndices(length);
 
 			if (length % 3 != 0)
 			{

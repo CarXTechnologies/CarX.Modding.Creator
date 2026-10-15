@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -25,19 +26,26 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		/// Загрузка текстуры сразу в нужном цветовом пространстве и без CPU-копии
 		/// (раньше sRGB-текстура для linear-слота пересоздавалась через GetPixels32 и оставалась читаемой).
 		/// </summary>
-		public async Task<Texture2D> LoadTextureAsync(string catalog, bool linear)
+		public Task<Texture2D> LoadTextureAsync(string catalog, bool linear)
 		{
-			for (int i = 0; i < m_loadFormat.Length; i++)
-			{
-				byte[] bytes = await m_fileProvider.LoadAsync(catalog, m_loadFormat[i]);
+			return LoadTextureAsync(catalog, linear, CancellationToken.None);
+		}
 
-				if (bytes is { Length: >= 1 })
-				{
-					return Decode(bytes, linear);
-				}
+		/// <summary>
+		/// То же с отменой: проверяется до чтения каждого формата и перед декодированием на главном потоке.
+		/// Уже начатое чтение из архива доходит до конца — <see cref="IModFileProvider.LoadAsync"/> токен не принимает.
+		/// </summary>
+		public async Task<Texture2D> LoadTextureAsync(string catalog, bool linear, CancellationToken cancellationToken)
+		{
+			byte[] bytes = await LoadBytesAsync(catalog, cancellationToken);
+
+			if (bytes == null)
+			{
+				return null;
 			}
 
-			return null;
+			cancellationToken.ThrowIfCancellationRequested();
+			return Decode(bytes, linear);
 		}
 
 		public override byte[] Pack(string catalog, Texture2D resource)

@@ -31,14 +31,26 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public static BinaryModModel Read(string path)
 		{
+			return Read(path, BinaryModModelReadLimits.Default);
+		}
+
+		/// <summary>Чтение с лимитами на всю модель (например, из бюджета загрузки мода).</summary>
+		public static BinaryModModel Read(string path, BinaryModModelReadLimits limits)
+		{
 			using FileStream stream = File.OpenRead(path);
-			return Read(stream);
+			return Read(stream, limits);
 		}
 
 		public static BinaryModModel Read(byte[] bytes)
 		{
+			return Read(bytes, BinaryModModelReadLimits.Default);
+		}
+
+		/// <summary>Чтение с лимитами на всю модель (например, из бюджета загрузки мода).</summary>
+		public static BinaryModModel Read(byte[] bytes, BinaryModModelReadLimits limits)
+		{
 			using var stream = new MemoryStream(bytes, false);
-			return Read(stream);
+			return Read(stream, limits);
 		}
 
 		internal static int ReadCount(BinaryReader reader, int maximum, int stride)
@@ -84,8 +96,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return Encoding.UTF8.GetString(reader.ReadBytes(length));
 		}
 
-		private static BinaryModModel Read(Stream stream)
+		private static BinaryModModel Read(Stream stream, BinaryModModelReadLimits limits)
 		{
+			var budget = new BinaryModModelReadBudget(limits);
 			using var reader = new BinaryReader(stream, Encoding.UTF8, true);
 
 			if (reader.ReadUInt32() != Magic)
@@ -97,7 +110,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			if (version == 2)
 			{
-				return BinaryModModelCodecV2.Read(reader);
+				return BinaryModModelCodecV2.Read(reader, budget);
 			}
 
 			if (version != 1)
@@ -105,7 +118,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				throw new InvalidDataException("Unsupported binary mod mesh version: " + version);
 			}
 
-			BinaryModModel model = ReadV1(reader);
+			BinaryModModel model = ReadV1(reader, budget);
 
 			if (stream.Position != stream.Length)
 			{
@@ -115,7 +128,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return model;
 		}
 
-		private static BinaryModModel ReadV1(BinaryReader reader)
+		private static BinaryModModel ReadV1(BinaryReader reader, BinaryModModelReadBudget budget)
 		{
 			string name = ReadString(reader);
 			var model = new BinaryModModel
@@ -135,6 +148,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				};
 
 				int count = ReadCount(reader, MaxVertices, stride: 48);
+				budget.TakeVertices(count);
 				mesh.vertices = new Vector3[count];
 				mesh.normals = new Vector3[count];
 				mesh.uvs = new Vector2[count];
@@ -152,7 +166,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 				for (int s = 0; s < mesh.subMeshes.Length; s++)
 				{
-					mesh.subMeshes[s] = ReadSubMeshV1(reader, count);
+					mesh.subMeshes[s] = ReadSubMeshV1(reader, count, budget);
 				}
 
 				model.meshes[k] = mesh;
@@ -161,10 +175,12 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return model;
 		}
 
-		private static BinaryModSubMesh ReadSubMeshV1(BinaryReader reader, int vertexCount)
+		private static BinaryModSubMesh ReadSubMeshV1(BinaryReader reader, int vertexCount, BinaryModModelReadBudget budget)
 		{
 			string material = ReadString(reader);
-			var indices = new int[ReadCount(reader, MaxIndices, stride: 4)];
+			int length = ReadCount(reader, MaxIndices, stride: 4);
+			budget.TakeIndices(length);
+			var indices = new int[length];
 
 			if (indices.Length % 3 != 0)
 			{

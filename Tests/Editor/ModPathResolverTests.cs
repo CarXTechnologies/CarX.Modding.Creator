@@ -32,6 +32,33 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.IsNull(fullPath);
 		}
 
+		// DefaultFileProvider вызывает TryResolveInside напрямую: его собственные проверки (UNC, "..", префикс корня)
+		// не должны полагаться на отсечение абсолютных путей в TryResolveRelative.
+		[TestCase("../secret.txt")]
+		[TestCase("textures/../../secret.txt")]
+		[TestCase("textures/../../x")]
+		[TestCase("..\\secret.txt")]
+		[TestCase("//server/share/file.png")]
+		[TestCase("\\\\server\\share\\file.png")]
+		[TestCase("\\\\?\\C:\\Windows\\win.ini")]
+		[TestCase("C:/Windows/win.ini")]
+		[TestCase("/etc/passwd")]
+		[TestCase(".")]
+		[TestCase("")]
+		public void ResolveInsideRejectsPathOutsideModDirectory(string path)
+		{
+			Assert.IsFalse(ModPathResolver.TryResolveInside(s_root, path, out string fullPath));
+			Assert.IsNull(fullPath);
+		}
+
+		[TestCase("")]
+		[TestCase(null)]
+		public void ResolveInsideRejectsEmptyRoot(string root)
+		{
+			Assert.IsFalse(ModPathResolver.TryResolveInside(root, "textures/road.png", out string fullPath));
+			Assert.IsNull(fullPath);
+		}
+
 		[Test]
 		public void AcceptsAbsolutePathInsideModDirectory()
 		{

@@ -78,7 +78,19 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					return false;
 				}
 
+				// ITU T.81 B.1.1.2: перед кодом маркера допускается любое число байтов-заполнителей 0xFF.
+				while (position + 9 < bytes.Length && bytes[position + 1] == 0xFF)
+				{
+					position++;
+				}
+
 				byte marker = bytes[position + 1];
+
+				// EOI и SOS: заголовки кончились, а кадр (SOF) так и не встретился.
+				if (marker == 0xD9 || marker == 0xDA)
+				{
+					return false;
+				}
 
 				// Маркеры без длины сегмента.
 				if (marker == 0xD8 || marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7))

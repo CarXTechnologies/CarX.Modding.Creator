@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
@@ -180,12 +182,72 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		{
 			byte[] bytes = BinaryModData.Write(new SchemaOld.EvolvingDto { name = "x", count = 1 });
 
-			// Последнее поле (name) — ссылка на строку; длина значения записана перед ним. Портим длину.
+			// Последнее поле (name) — ссылка на строку (4 байта); длина значения записана перед ним.
+			// Длина меньше фактической проходит проверку счётчика и ловится только сверкой прочитанного размера поля.
 			int lengthOffset = bytes.Length - 8;
-			byte[] wrongLength = BitConverter.GetBytes(8);
+			byte[] wrongLength = BitConverter.GetBytes(2);
 			Array.Copy(wrongLength, 0, bytes, lengthOffset, wrongLength.Length);
 
-			Assert.Throws<InvalidDataException>(() => BinaryModData.Read<SchemaOld.EvolvingDto>(bytes));
+			InvalidDataException exception = Assert.Throws<InvalidDataException>(() => BinaryModData.Read<SchemaOld.EvolvingDto>(bytes));
+			StringAssert.Contains("unexpected size", exception.Message);
+		}
+
+		[Test]
+		public void EverySchemaClassHasParameterlessConstructor()
+		{
+			// Без конструктора без параметров BinaryModData создаёт объект в обход инициализаторов,
+			// и поле, добавленное в DTO позже, у старых модов окажется null.
+			Assembly runtime = typeof(ModMeta).Assembly;
+			IEnumerable<Type> roots = runtime.GetTypes()
+				.Where(type => type.IsClass && !type.IsAbstract && typeof(IModResources).IsAssignableFrom(type))
+				.Concat(new[]
+				{
+					typeof(BinaryGeometryGroup),
+					typeof(BinaryMaterialLibrary),
+					typeof(ModPbrMaterial),
+					typeof(ModRenderCoreMaterial),
+					typeof(VertexAnimationSurface)
+				});
+
+			var pending = new Stack<Type>(roots);
+			var visited = new HashSet<Type>();
+			var missing = new List<string>();
+
+			while (pending.Count > 0)
+			{
+				Type type = pending.Pop();
+
+				if (!visited.Add(type) || type.Namespace != typeof(ModMeta).Namespace || type.IsEnum)
+				{
+					continue;
+				}
+
+				if (!type.IsValueType &&
+					type.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, Type.EmptyTypes, modifiers: null) == null)
+				{
+					missing.Add(type.Name);
+				}
+
+				foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+				{
+					if (!field.IsNotSerialized)
+					{
+						pending.Push(GetSchemaElementType(field.FieldType));
+					}
+				}
+			}
+
+			CollectionAssert.IsEmpty(missing, "Schema classes without a parameterless constructor: " + string.Join(", ", missing));
+		}
+
+		private static Type GetSchemaElementType(Type type)
+		{
+			if (type.IsArray)
+			{
+				return type.GetElementType();
+			}
+
+			return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>) ? type.GetGenericArguments()[0] : type;
 		}
 
 		private static ModMeta CreateModMeta()

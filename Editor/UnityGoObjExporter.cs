@@ -31,15 +31,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		/// <summary>
 		/// Сбрасывает состояние экспорта: очереди, кэши id и текстур, GPU-ресурсы Blit,
-		/// и возвращает настройки импорта исходных ассетов. Вызывается в конце сборки мода.
+		/// прокси-материалы маркера Material и возвращает настройки импорта исходных ассетов.
+		/// Вызывается в конце сборки мода (MapUploader — в finally сборки, в том числе после ошибки или отмены).
 		/// </summary>
 		public static void ClearCache()
 		{
-			s_pendingObjects.Clear();
-			ExportTextureUtility.ClearCache();
-			MeshExportUtility.ClearCache();
+			ClearExportState();
 			RenderCoreMaterialOverrides.Clear();
-			ExportImporterSettings.RestoreAll();
 		}
 
 		/// <summary>
@@ -107,11 +105,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			finally
 			{
-				s_pendingObjects.Clear();
-				ExportTextureUtility.ClearCache();
-				MeshExportUtility.ClearCache();
-				ExportImporterSettings.RestoreAll();
+				// Прокси-материалы маркера Material здесь не сбрасываются: RenderCoreMaterialOverrides.Enabled задаёт
+				// сборка мода целиком, и он живёт до ClearCache в её конце.
+				ClearExportState();
 			}
+		}
+
+		private static void ClearExportState()
+		{
+			s_pendingObjects.Clear();
+			ExportTextureUtility.ClearCache();
+			MeshExportUtility.ClearCache();
+			ExportImporterSettings.RestoreAll();
 		}
 
 		private static List<ExportGroup> GroupPendingObjects()

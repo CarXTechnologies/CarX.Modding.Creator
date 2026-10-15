@@ -1,10 +1,12 @@
+using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 {
 	/// <summary>
 	/// Base for the per vendor credential assets (Steam app id, mod.io game id and api key).
-	/// These deliberately live in the always compiled core assembly rather than next to the vendor implementation:
+	/// These deliberately live in the Editor only Publishing core assembly, compiled regardless of vendor SDK defines,
+	/// rather than next to the vendor implementation:
 	/// removing a vendor SDK from a project must not turn its saved settings asset into a broken script reference.
 	/// </summary>
 	/// <remarks>
@@ -43,14 +45,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		/// <summary>
 		/// Persists edits a publisher made to this asset, such as the picked game.
-		/// A no-op outside the editor, where these assets are read only anyway.
 		/// </summary>
 		public void Save()
 		{
-#if UNITY_EDITOR
-			UnityEditor.EditorUtility.SetDirty(this);
-			UnityEditor.AssetDatabase.SaveAssetIfDirty(this);
-#endif
+			EditorUtility.SetDirty(this);
+			AssetDatabase.SaveAssetIfDirty(this);
 		}
 
 		/// <summary>Whether this asset holds everything the vendor needs, with the reason when it does not.</summary>

@@ -20,6 +20,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private const int MaxBlock = 256 * 1024 * 1024;
 		private const int MaxEntries = 100000;
 		private const int EntryHeaderSize = 56;
+		private const int HashSize = 32;
+		// Deflate сжимает до ~1000:1: без границы ресурс в килобайты объявляет размер до MaxBlock, и память под него
+		// выделяется до распаковки и CRC. Реальные документы и геометрия сжимаются на порядки слабее.
+		private const int MaxCompressionRatio = 256;
+		private const int CompressionCheckBytes = 1024 * 1024;
 
 		public IEnumerable<string> Names => m_entries.Keys;
 
@@ -80,14 +85,26 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					offset = reader.ReadInt64(),
 					stored = reader.ReadInt32(),
 					size = reader.ReadInt32(),
-					compression = reader.ReadByte(),
-					hash = reader.ReadBytes(32),
-					checksum = reader.ReadUInt32()
+					compression = reader.ReadByte()
 				};
+
+				// SHA256 нужен только сборке для общих ресурсов: при чтении он не хранится.
+				if (stream.Length - stream.Position < HashSize)
+				{
+					throw new EndOfStreamException();
+				}
+
+				stream.Position += HashSize;
+				entry.checksum = reader.ReadUInt32();
 
 				if (!IsValid(entry, indexOffset) || !m_entries.TryAdd(name, entry))
 				{
 					throw new InvalidDataException("Invalid binary mod resource entry.");
+				}
+
+				if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxCompressionRatio)
+				{
+					throw new InvalidDataException("Binary resource exceeds the compression ratio limit: " + name);
 				}
 			}
 
@@ -108,6 +125,41 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			}
 
 			return name;
+		}
+
+		/// <summary>Перечисление может отдавать ресурсы лениво; PNG и геометрия повторно не сжимаются.</summary>
+		public static void Write(string path, IEnumerable<KeyValuePair<string, byte[]>> resources, int formatVersion = 1)
+		{
+			if (formatVersion < 1 || formatVersion > 2)
+			{
+				throw new ArgumentOutOfRangeException(nameof(formatVersion));
+			}
+
+			string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+
+			try
+			{
+				WriteFile(temporary, resources, formatVersion);
+
+				// Заменяем исходный файл, только если новый индекс целиком читается.
+				_ = new BinaryModArchive(temporary);
+
+				if (File.Exists(path))
+				{
+					File.Replace(temporary, path, destinationBackupFileName: null);
+				}
+				else
+				{
+					File.Move(temporary, path);
+				}
+			}
+			finally
+			{
+				if (File.Exists(temporary))
+				{
+					File.Delete(temporary);
+				}
+			}
 		}
 
 		public bool Contains(string name)
@@ -195,41 +247,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			}
 
 			return bytes;
-		}
-
-		/// <summary>Перечисление может отдавать ресурсы лениво; PNG и геометрия повторно не сжимаются.</summary>
-		public static void Write(string path, IEnumerable<KeyValuePair<string, byte[]>> resources, int formatVersion = 1)
-		{
-			if (formatVersion < 1 || formatVersion > 2)
-			{
-				throw new ArgumentOutOfRangeException(nameof(formatVersion));
-			}
-
-			string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-
-			try
-			{
-				WriteFile(temporary, resources, formatVersion);
-
-				// Заменяем исходный файл, только если новый индекс целиком читается.
-				_ = new BinaryModArchive(temporary);
-
-				if (File.Exists(path))
-				{
-					File.Replace(temporary, path, null);
-				}
-				else
-				{
-					File.Move(temporary, path);
-				}
-			}
-			finally
-			{
-				if (File.Exists(temporary))
-				{
-					File.Delete(temporary);
-				}
-			}
 		}
 
 		private static void WriteFile(string path, IEnumerable<KeyValuePair<string, byte[]>> resources, int formatVersion)
@@ -333,8 +350,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		private static bool IsValid(Entry entry, long indexOffset)
 		{
-			return entry.hash.Length == 32 &&
-				entry.offset >= 16 &&
+			return entry.offset >= 16 &&
 				entry.stored >= 0 &&
 				entry.stored <= MaxBlock &&
 				entry.size >= 0 &&

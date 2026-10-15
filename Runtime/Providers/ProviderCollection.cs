@@ -40,11 +40,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			m_defaultVersion = defaultVersion;
 		}
 
-		public bool SupportsVersion(string version)
-		{
-			return providers.Any(provider => provider.version == version && provider.providers != null);
-		}
-
 		private VersionProvider FindVersionProvider(string version)
 		{
 			VersionProvider versionProvider = providers.FirstOrDefault(provider => provider.version == version);

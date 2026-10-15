@@ -28,5 +28,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			this.Id = id;
 			this.Version = version;
 		}
+
+		// Для BinaryModData: поля, которых нет в документе, получают значения инициализаторов, а не default.
+		private LodHierarchyMeta()
+		{
+		}
 	}
 }

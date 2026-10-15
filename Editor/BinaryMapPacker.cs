@@ -67,6 +67,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			progress.ReportPacked();
 		}
 
+		// Пакуются все файлы staging-каталогов: вызывающий код очищает их перед пересборкой (MapUploader — ClearDirectory
+		// перед Rebuild Map и Meta), иначе в архив попадут файлы групп прошлых сборок, на которые ничто не ссылается.
 		private static SortedDictionary<string, string> CollectFiles(string[] catalogs)
 		{
 			var files = new SortedDictionary<string, string>(StringComparer.Ordinal);

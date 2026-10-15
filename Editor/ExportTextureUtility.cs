@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
@@ -213,12 +214,18 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private static Texture2D Decompress(Texture2D compressedTexture)
 		{
+			// sRGB-исходник при сэмплинге переводится в linear; sRGB-цель кодирует его обратно, и в PNG попадают исходные байты.
+			// С linear-целью цвет base/emissive в PNG получился бы темнее.
+			RenderTextureReadWrite readWrite = GraphicsFormatUtility.IsSRGBFormat(compressedTexture.graphicsFormat)
+				? RenderTextureReadWrite.sRGB
+				: RenderTextureReadWrite.Linear;
+
 			RenderTexture temporary = RenderTexture.GetTemporary(
 				compressedTexture.width,
 				compressedTexture.height,
 				0,
 				RenderTextureFormat.Default,
-				RenderTextureReadWrite.Linear);
+				readWrite);
 
 			try
 			{
