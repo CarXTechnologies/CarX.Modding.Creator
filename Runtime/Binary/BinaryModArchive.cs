@@ -21,9 +21,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private const int MaxEntries = 100000;
 		private const int EntryHeaderSize = 56;
 		private const int HashSize = 32;
-		// Deflate сжимает до ~1000:1: без границы ресурс в килобайты объявляет размер до MaxBlock, и память под него
-		// выделяется до распаковки и CRC. Реальные документы и геометрия сжимаются на порядки слабее.
-		private const int MaxCompressionRatio = 256;
+		// Без границы ресурс в килобайты объявляет размер до MaxBlock, и память под него выделяется до распаковки и CRC.
+		// Граница — теоретический предел deflate (1032:1): больше честное сжатие дать не может, значит размер подделан.
+		// Строже нельзя: однотонные текстуры (маски, заливки) и однородная геометрия законно сжимаются в сотни раз
+		public const int MaxDeflateCompressionRatio = 1032;
 		private const int CompressionCheckBytes = 1024 * 1024;
 
 		public IEnumerable<string> Names => m_entries.Keys;
@@ -102,7 +103,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					throw new InvalidDataException("Invalid binary mod resource entry.");
 				}
 
-				if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxCompressionRatio)
+				if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxDeflateCompressionRatio)
 				{
 					throw new InvalidDataException("Binary resource exceeds the compression ratio limit: " + name);
 				}

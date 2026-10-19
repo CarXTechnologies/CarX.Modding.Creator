@@ -12,7 +12,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			maxVertices: BinaryModModelCodec.MaxVertices,
 			maxIndices: BinaryModModelCodec.MaxIndices,
 			maxRawBytes: 1024L * 1024 * 1024,
-			maxCompressionRatio: 64);
+			maxCompressionRatio: BinaryModArchive.MaxDeflateCompressionRatio);
 
 		/// <summary>Сумма вершин по всем мешам модели.</summary>
 		public int MaxVertices { get; }
