@@ -42,7 +42,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// <summary>Область вариантов карт: та же, с которой извлекается снимок.</summary>
 		public static RenderCoreScope Scope => RenderCoreScope.Default;
 
-		public static readonly IReadOnlyList<MirrorVariantAnnotation> Variants = new[]
+		public static IReadOnlyList<MirrorVariantAnnotation> Variants { get; } = new[]
 		{
 			Variant("MAT_DEFAULT", revision: 1, layoutKey: "Base", reviewedDecodeHash: "2bbff0fe734d", MirrorVertexColors.None, channels: null,
 				unavailableReason: null),
@@ -112,7 +112,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				unavailableReason: NoSecondUv)
 		};
 
-		public static readonly IReadOnlyList<MirrorBakedContract> Contracts = new[]
+		public static IReadOnlyList<MirrorBakedContract> Contracts { get; } = new[]
 		{
 			Contract("MAT_DEFAULT", revision: 1, MirrorVertexColors.None, "u_sTexture=srgb"),
 			Contract("MAT_DEFAULT_ALPHABLEND", revision: 1, MirrorVertexColors.None, "u_sPackedMap=linear:Zero,Zero,Alpha,Zero", "u_sTexture=srgb"),
@@ -161,13 +161,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// Все предлагаемые варианты альфа-теста режутся общей веткой ALPHATEST: ни DepthOnly, ни ShadowCaster не объявляют их keyword'ы
 		/// (ключ раскладки "depth:generic shadow:generic"). Проверено: вырез по packed B, порог фиксированный, вершинные потоки — UV0.
 		/// </summary>
-		public static readonly IReadOnlyList<MirrorPassReview> AlphaTestPasses = new[]
+		public static IReadOnlyList<MirrorPassReview> AlphaTestPasses { get; } = new[]
 		{
 			PassReview("DepthOnly", keywords: "ALPHATEST", reviewedHash: "ce5a1c54d109"),
 			PassReview("ShadowCaster", keywords: "ALPHATEST", reviewedHash: "cee4cd902811")
 		};
 
-		public static readonly IReadOnlyList<MirrorSuggestion> Suggestions = new[]
+		public static IReadOnlyList<MirrorSuggestion> Suggestions { get; } = new[]
 		{
 			// Листва, хвоя, трава: освещение растительности; вырез — тот же общий ALPHATEST по packed B.
 			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST"),

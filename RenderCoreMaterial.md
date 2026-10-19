@@ -52,7 +52,7 @@ Command line, without Unity (`dotnet run --project Tools~/RenderCoreMirror -- <c
 
 Details are in `Tools~/RenderCoreMirror/README.md`.
 
-In the game project the mirror is checked, never written: the `RenderCoreMirrorUpToDateTests` test (category `Validation`, run by BuildFlow) fails on Stale, Breaking or Error, and a pre-build guard throws on Breaking or Error in non-development builds (an error log in development builds; `CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1` skips it). The fix is always: run **Update Lock From Project Render Core**, commit `CarX.Modding.Creator`, bump the submodule. In MapUploader the Validation test is ignored; the SDK tests there prove that the committed table equals `generate(committed lock, annotations)`.
+In the game project the mirror is checked, never written: the `RenderCoreMirrorUpToDateTests` test (category `Validation`, run by BuildFlow) fails on Stale, Breaking or Error, and a pre-build guard only logs an error on Stale, Breaking or Error: it never fails the game build, because it runs for every platform, including those without mods, and a rendercore update must not block a release until the SDK submodule is bumped (`CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1` skips it). The fix is always: run **Update Lock From Project Render Core**, commit `CarX.Modding.Creator`, bump the submodule. In MapUploader the Validation test is ignored; the SDK tests there prove that the committed table equals `generate(committed lock, annotations)`.
 
 ### Finding tiers
 

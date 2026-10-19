@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Plugins.CarX.Modding.Creator.RenderCoreMirror;
-using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -15,9 +14,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 	/// Проверка зеркала rendercore перед сборкой игры: живой пакет против закоммиченного снимка, ворота генератора и актуальность таблицы
 	/// (RenderCoreMirrorPipeline.Check). Ничего не пишет — git status после сборки чистый. Без пакета rendercore и без загрузчика CarX.Modding
 	/// (MapUploader) сразу выходит; загрузчик есть, а пакета нет — Error: в игре проверка сама не выключается.
-	/// Breaking/Error — BuildFailedException в не-development сборке (опубликованные моды отрисуются неверно) и ошибка в логе в development;
-	/// Stale — ошибка в логе; Info — молча. Любое исключение проверки — тоже Error (fail closed): Unity без StrictMode только логирует
-	/// исключения IPreprocessBuildWithReport и продолжает сборку. Аварийный выход: CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1.
+	/// Сборку не роняет: Stale/Breaking/Error и любое исключение проверки — ошибка в логе, Info — молча. Guard выполняется в сборке игры на всех
+	/// платформах, включая те, где моды не загружаются, и обновление rendercore не должно блокировать релиз до подъёма сабмодуля SDK.
+	/// Блокирующая проверка — тест RenderCoreMirrorUpToDateTests (категория Validation, шаг валидации BuildFlow).
+	/// Отключить проверку: CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1.
 	/// </summary>
 	internal sealed class RenderCoreMirrorBuildGuard : IPreprocessBuildWithReport
 	{
@@ -50,17 +50,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return;
 			}
 
-			string message = LogPrefix + $"rendercore mirror does not match the package ({worst}). {Hint}\n" +
-				string.Join("\n", findings.Where(finding => finding.tier > RenderCoreFindingTier.Info));
-			// Опции этой сборки, а не галочка Build Settings: BuildFlow собирает через BuildPipeline с явными опциями.
-			bool development = (report.summary.options & BuildOptions.Development) != 0;
-
-			if (worst >= RenderCoreFindingTier.Breaking && !development)
-			{
-				throw new BuildFailedException(message);
-			}
-
-			Debug.LogError(message);
+			Debug.LogError(LogPrefix + $"rendercore mirror does not match the package ({worst}). {Hint}\n" +
+				string.Join("\n", findings.Where(finding => finding.tier > RenderCoreFindingTier.Info)));
 		}
 
 		/// <summary>Находки проверки или null, если проверять нечего (MapUploader: ни rendercore, ни загрузчика).</summary>
@@ -98,7 +89,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (Exception exception)
 			{
-				// Нечитаемая папка пакета, сбой парсера и т.п.: без StrictMode Unity продолжила бы сборку без проверки — не пускаем.
+				// Нечитаемая папка пакета, сбой парсера и т.п.: сообщаем в лог, а не пропускаем проверку молча.
 				return Error(RenderCoreMirrorPaths.MirrorAssemblyName, "mirror check failed with an exception: " + exception);
 			}
 		}

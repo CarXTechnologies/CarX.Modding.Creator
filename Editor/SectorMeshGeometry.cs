@@ -12,18 +12,36 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public struct Vertex : IEquatable<Vertex>
 		{
-			public Vector3 position, normal;
+			public Vector3 position;
+			public Vector3 normal;
 			public Vector2 uv;
 			public Color color;
-			public bool Equals(Vertex other) => position.Equals(other.position) && normal.Equals(other.normal) && uv.Equals(other.uv) && color.Equals(other.color);
-			public override bool Equals(object obj) => obj is Vertex other && Equals(other);
-			public override int GetHashCode() => HashCode.Combine(position, normal, uv, color);
-			public static Vertex Lerp(Vertex a, Vertex b, float t) => new Vertex
+
+			public bool Equals(Vertex other)
 			{
-				position = Vector3.LerpUnclamped(a.position, b.position, t),
-				normal = Vector3.LerpUnclamped(a.normal, b.normal, t),
-				uv = Vector2.LerpUnclamped(a.uv, b.uv, t), color = Color.LerpUnclamped(a.color, b.color, t)
-			};
+				return position.Equals(other.position) && normal.Equals(other.normal) && uv.Equals(other.uv) && color.Equals(other.color);
+			}
+
+			public override bool Equals(object obj)
+			{
+				return obj is Vertex other && Equals(other);
+			}
+
+			public override int GetHashCode()
+			{
+				return HashCode.Combine(position, normal, uv, color);
+			}
+
+			public static Vertex Lerp(Vertex a, Vertex b, float t)
+			{
+				return new Vertex
+				{
+					position = Vector3.LerpUnclamped(a.position, b.position, t),
+					normal = Vector3.LerpUnclamped(a.normal, b.normal, t),
+					uv = Vector2.LerpUnclamped(a.uv, b.uv, t),
+					color = Color.LerpUnclamped(a.color, b.color, t)
+				};
+			}
 		}
 
 		public sealed class Builder
@@ -34,16 +52,28 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			public int TriangleCount => m_indices.Count / 3;
 			public IReadOnlyList<Vertex> Vertices => m_vertices;
 			public IReadOnlyList<int> Indices => m_indices;
+
 			public void Add(Vertex a, Vertex b, Vertex c)
 			{
-				if (m_lookup == null) throw new InvalidOperationException("Sector geometry chunk is sealed.");
-				if (Vector3.Cross(b.position - a.position, c.position - a.position).sqrMagnitude == 0) return;
-				foreach (var vertex in new[] { a, b, c })
+				if (m_lookup == null)
+				{
+					throw new InvalidOperationException("Sector geometry chunk is sealed.");
+				}
+
+				if (Vector3.Cross(b.position - a.position, c.position - a.position).sqrMagnitude == 0)
+				{
+					return;
+				}
+
+				foreach (Vertex vertex in new[] { a, b, c })
 				{
 					if (!m_lookup.TryGetValue(vertex, out int index))
 					{
-						index = m_vertices.Count; m_lookup.Add(vertex, index); m_vertices.Add(vertex);
+						index = m_vertices.Count;
+						m_lookup.Add(vertex, index);
+						m_vertices.Add(vertex);
 					}
+
 					m_indices.Add(index);
 				}
 			}
@@ -62,7 +92,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public static Mesh Create(string name, Vector3 origin, bool collider, IReadOnlyList<Builder> parts)
 		{
 			int vertexCount = 0;
-			foreach (Builder part in parts) vertexCount += part.Vertices.Count;
+
+			foreach (Builder part in parts)
+			{
+				vertexCount += part.Vertices.Count;
+			}
+
 			var mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
 			var positions = new Vector3[vertexCount];
 			var normals = new Vector3[vertexCount];
@@ -70,23 +105,47 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			var colors = new Color[vertexCount];
 			var subMeshes = new int[parts.Count][];
 			int offset = 0;
+
 			for (int p = 0; p < parts.Count; p++)
 			{
 				IReadOnlyList<Vertex> vertices = parts[p].Vertices;
+
 				for (int i = 0; i < vertices.Count; i++)
 				{
-					Vertex v = vertices[i]; positions[offset + i] = v.position - origin;
-					normals[offset + i] = v.normal.normalized; uv[offset + i] = v.uv; colors[offset + i] = v.color;
+					Vertex v = vertices[i];
+					positions[offset + i] = v.position - origin;
+					normals[offset + i] = v.normal.normalized;
+					uv[offset + i] = v.uv;
+					colors[offset + i] = v.color;
 				}
+
 				var local = new int[parts[p].Indices.Count];
-				for (int i = 0; i < local.Length; i++) local[i] = parts[p].Indices[i];
+
+				for (int i = 0; i < local.Length; i++)
+				{
+					local[i] = parts[p].Indices[i];
+				}
+
 				int[] optimized = MeshOptimizerNative.Optimize(local, vertices.Count);
-				for (int i = 0; i < optimized.Length; i++) optimized[i] += offset;
+
+				for (int i = 0; i < optimized.Length; i++)
+				{
+					optimized[i] += offset;
+				}
+
 				subMeshes[p] = optimized;
 				offset += vertices.Count;
 			}
+
 			mesh.vertices = positions;
-			if (!collider) { mesh.normals = normals; mesh.uv = uv; mesh.colors = colors; }
+
+			if (!collider)
+			{
+				mesh.normals = normals;
+				mesh.uv = uv;
+				mesh.colors = colors;
+			}
+
 			SetSubMeshes(mesh, subMeshes);
 			return mesh;
 		}
@@ -95,51 +154,87 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			Action<Vector3Int, Vertex, Vertex, Vertex> emit, CancellationToken token)
 		{
 			int pieces = 0;
+
 			void Split(List<Vertex> polygon, int depth)
 			{
 				token.ThrowIfCancellationRequested();
-				if (polygon.Count < 3) return;
+
+				if (polygon.Count < 3)
+				{
+					return;
+				}
+
 				if (++pieces > 100000 || depth > 64)
+				{
 					throw new InvalidOperationException("A triangle spans too many sectors. Increase the optimization sector size or fix the source mesh.");
-				var min = polygon[0].position; var max = min;
-				foreach (var v in polygon) { min = Vector3.Min(min, v.position); max = Vector3.Max(max, v.position); }
+				}
+
+				Vector3 min = polygon[0].position;
+				Vector3 max = min;
+
+				foreach (Vertex v in polygon)
+				{
+					min = Vector3.Min(min, v.position);
+					max = Vector3.Max(max, v.position);
+				}
+
 				for (int axis = 0; axis < 3; axis++)
 				{
 					int lo = Mathf.FloorToInt(min[axis] / sectorSize);
 					int hi = Mathf.CeilToInt(max[axis] / sectorSize) - 1;
-					if (hi <= lo) continue;
+
+					if (hi <= lo)
+					{
+						continue;
+					}
+
 					float plane = (lo + (hi - lo + 1) / 2) * sectorSize;
 					Split(Clip(polygon, axis, plane, true), depth + 1);
 					Split(Clip(polygon, axis, plane, false), depth + 1);
 					return;
 				}
-				var center = (min + max) * 0.5f;
+
+				Vector3 center = (min + max) * 0.5f;
 				var cell = new Vector3Int(Mathf.FloorToInt(center.x / sectorSize), Mathf.FloorToInt(center.y / sectorSize), Mathf.FloorToInt(center.z / sectorSize));
-				for (int i = 1; i + 1 < polygon.Count; i++) emit(cell, polygon[0], polygon[i], polygon[i + 1]);
+
+				for (int i = 1; i + 1 < polygon.Count; i++)
+				{
+					emit(cell, polygon[0], polygon[i], polygon[i + 1]);
+				}
 			}
+
 			Split(new List<Vertex> { a, b, c }, 0);
 		}
 
 		private static List<Vertex> Clip(List<Vertex> polygon, int axis, float plane, bool lower)
 		{
 			var output = new List<Vertex>(polygon.Count + 1);
-			var previous = polygon[polygon.Count - 1];
+			Vertex previous = polygon[polygon.Count - 1];
 			bool insidePrevious = lower ? previous.position[axis] <= plane : previous.position[axis] >= plane;
-			foreach (var current in polygon)
+
+			foreach (Vertex current in polygon)
 			{
 				bool inside = lower ? current.position[axis] <= plane : current.position[axis] >= plane;
+
 				if (inside != insidePrevious)
 				{
 					// Canonical endpoint order gives both halves and adjacent triangles identical boundary vertices.
-					var a = previous.position[axis] < current.position[axis] ? previous : current;
-					var b = previous.position[axis] < current.position[axis] ? current : previous;
-					var v = Vertex.Lerp(a, b, (plane - a.position[axis]) / (b.position[axis] - a.position[axis]));
+					Vertex a = previous.position[axis] < current.position[axis] ? previous : current;
+					Vertex b = previous.position[axis] < current.position[axis] ? current : previous;
+					Vertex v = Vertex.Lerp(a, b, (plane - a.position[axis]) / (b.position[axis] - a.position[axis]));
 					v.position[axis] = plane;
 					output.Add(v);
 				}
-				if (inside) output.Add(current);
-				previous = current; insidePrevious = inside;
+
+				if (inside)
+				{
+					output.Add(current);
+				}
+
+				previous = current;
+				insidePrevious = inside;
 			}
+
 			return output;
 		}
 
@@ -151,17 +246,39 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		/// </summary>
 		public static byte[] LockSectorBorders(Mesh mesh, float size)
 		{
-			var positions = mesh.vertices; var locks = new byte[positions.Length];
+			Vector3[] positions = mesh.vertices;
+			var locks = new byte[positions.Length];
+
 			for (int sub = 0; sub < mesh.subMeshCount; sub++)
 			{
 				int[] indices = mesh.GetTriangles(sub);
-				if (indices.Length == 0) continue;
-				var min = positions[indices[0]]; var max = min;
-				foreach (int index in indices) { min = Vector3.Min(min, positions[index]); max = Vector3.Max(max, positions[index]); }
+
+				if (indices.Length == 0)
+				{
+					continue;
+				}
+
+				Vector3 min = positions[indices[0]];
+				Vector3 max = min;
+
 				foreach (int index in indices)
+				{
+					min = Vector3.Min(min, positions[index]);
+					max = Vector3.Max(max, positions[index]);
+				}
+
+				foreach (int index in indices)
+				{
 					for (int axis = 0; axis < 3; axis++)
-						if (max[axis] - min[axis] > GridEpsilon && IsOnGrid(positions[index][axis], size)) locks[index] = 1;
+					{
+						if (max[axis] - min[axis] > GridEpsilon && IsOnGrid(positions[index][axis], size))
+						{
+							locks[index] = 1;
+						}
+					}
+				}
 			}
+
 			return locks;
 		}
 
@@ -169,36 +286,74 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public static Mesh Compact(Mesh source, int[][] subMeshIndices, string name)
 		{
 			var result = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
-			var vertices = source.vertices; var normals = source.normals; var uv = source.uv; var colors = source.colors;
-			var map = new Dictionary<int, int>(); var order = new List<int>(); var remapped = new int[subMeshIndices.Length][];
+			Vector3[] vertices = source.vertices;
+			Vector3[] normals = source.normals;
+			Vector2[] uv = source.uv;
+			Color[] colors = source.colors;
+			var map = new Dictionary<int, int>();
+			var order = new List<int>();
+			var remapped = new int[subMeshIndices.Length][];
+
 			for (int sub = 0; sub < subMeshIndices.Length; sub++)
 			{
 				int[] indices = subMeshIndices[sub];
 				remapped[sub] = new int[indices.Length];
+
 				for (int i = 0; i < indices.Length; i++)
 				{
-					if (!map.TryGetValue(indices[i], out int index)) { index = order.Count; map.Add(indices[i], index); order.Add(indices[i]); }
+					if (!map.TryGetValue(indices[i], out int index))
+					{
+						index = order.Count;
+						map.Add(indices[i], index);
+						order.Add(indices[i]);
+					}
+
 					remapped[sub][i] = index;
 				}
 			}
+
 			result.vertices = order.ConvertAll(i => vertices[i]).ToArray();
-			if (normals.Length == vertices.Length) result.normals = order.ConvertAll(i => normals[i]).ToArray();
-			if (uv.Length == vertices.Length) result.uv = order.ConvertAll(i => uv[i]).ToArray();
-			if (colors.Length == vertices.Length) result.colors = order.ConvertAll(i => colors[i]).ToArray();
-			SetSubMeshes(result, remapped); return result;
+
+			if (normals.Length == vertices.Length)
+			{
+				result.normals = order.ConvertAll(i => normals[i]).ToArray();
+			}
+
+			if (uv.Length == vertices.Length)
+			{
+				result.uv = order.ConvertAll(i => uv[i]).ToArray();
+			}
+
+			if (colors.Length == vertices.Length)
+			{
+				result.colors = order.ConvertAll(i => colors[i]).ToArray();
+			}
+
+			SetSubMeshes(result, remapped);
+			return result;
 		}
 
 		public static int TriangleCount(Mesh mesh)
 		{
 			long indices = 0;
-			for (int sub = 0; sub < mesh.subMeshCount; sub++) indices += mesh.GetIndexCount(sub);
+
+			for (int sub = 0; sub < mesh.subMeshCount; sub++)
+			{
+				indices += mesh.GetIndexCount(sub);
+			}
+
 			return (int)(indices / 3);
 		}
 
 		private static void SetSubMeshes(Mesh mesh, int[][] subMeshes)
 		{
 			mesh.subMeshCount = subMeshes.Length;
-			for (int sub = 0; sub < subMeshes.Length; sub++) mesh.SetTriangles(subMeshes[sub], sub, calculateBounds: false);
+
+			for (int sub = 0; sub < subMeshes.Length; sub++)
+			{
+				mesh.SetTriangles(subMeshes[sub], sub, calculateBounds: false);
+			}
+
 			mesh.RecalculateBounds();
 		}
 

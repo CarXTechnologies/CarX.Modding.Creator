@@ -44,7 +44,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// Особенности, смысл которых правила знают (раскладка, слоты, цвет вершин). WINDOW и ROAD_SIGN_EMISSION раскладку не меняют — только
 		/// глобальную яркость эмиссии. Прочие (VERTEXCOLOR, UVANIM, TILING, MINIMAP, …) у предлагаемого варианта — RCM042.
 		/// </summary>
-		public static readonly IReadOnlyList<string> KnownFeatures = new[]
+		public static IReadOnlyList<string> KnownFeatures { get; } = new[]
 		{
 			AlphaBlend, AlphaTest, AmbientOcclusion, ColorMask, Emission, Foliage, Metalness, Normal, RoadSignEmission, Roughness, Window
 		};

@@ -6,7 +6,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 	/// <summary>Значение по умолчанию свойства (x, y, z, w) без UnityEngine; в таблицу пишется как new Vector4(...).</summary>
 	public readonly struct MirrorVector : IEquatable<MirrorVector>
 	{
-		public static readonly MirrorVector One = new MirrorVector(1, 1, 1, 1);
+		public static MirrorVector One { get; } = new MirrorVector(1, 1, 1, 1);
 
 		public readonly float x;
 		public readonly float y;

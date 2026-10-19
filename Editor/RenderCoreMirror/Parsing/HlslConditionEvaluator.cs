@@ -17,7 +17,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 	public sealed class HlslConditionEvaluator
 	{
 		/// <summary>Макросы компилятора и платформы: значение зависит от сборки, а не от варианта.</summary>
-		public static readonly IReadOnlyList<string> PlatformPrefixes = new[] { "SHADER_API_", "SHADER_TARGET", "SHADER_STAGE_", "UNITY_" };
+		public static IReadOnlyList<string> PlatformPrefixes { get; } = new[] { "SHADER_API_", "SHADER_TARGET", "SHADER_STAGE_", "UNITY_" };
 
 		private const int MaxMacroDepth = 16;
 
@@ -405,7 +405,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		/// <summary>Значение выражения #if: число или «неизвестно» (зависит от keyword'а времени выполнения или платформы).</summary>
 		private readonly struct HlslValue
 		{
-			public static readonly HlslValue Unknown = new HlslValue(number: 0, known: false);
+			public static HlslValue Unknown { get; } = new HlslValue(number: 0, known: false);
 
 			public readonly long number;
 			public readonly bool known;

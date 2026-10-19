@@ -8,7 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	/// </summary>
 	public sealed class BinaryModModelReadLimits
 	{
-		public static readonly BinaryModModelReadLimits Default = new(
+		public static BinaryModModelReadLimits Default { get; } = new(
 			maxVertices: BinaryModModelCodec.MaxVertices,
 			maxIndices: BinaryModModelCodec.MaxIndices,
 			maxRawBytes: 1024L * 1024 * 1024,

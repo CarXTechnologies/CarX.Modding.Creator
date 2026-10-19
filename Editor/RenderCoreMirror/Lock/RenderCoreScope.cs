@@ -11,7 +11,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 	public sealed class RenderCoreScope
 	{
 		/// <summary>Область вариантов карт. Аннотации генератора должны ссылаться на неё, а не держать копию.</summary>
-		public static readonly RenderCoreScope Default = new RenderCoreScope(
+		public static RenderCoreScope Default { get; } = new RenderCoreScope(
 			new[] { "MAT_CAR_", "MAT_PARTICLE" },
 			new[] { "MAT_SLOD", "MAT_MATTESHADOW", "MAT_SKIDMARK", "MAT_UNSUPPORTED" });
 

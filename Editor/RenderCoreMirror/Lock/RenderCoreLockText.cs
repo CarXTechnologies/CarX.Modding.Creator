@@ -18,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public const string FileName = "RenderCoreLock.txt";
 
 		/// <summary>Порядок видов записей в файле.</summary>
-		public static readonly IReadOnlyList<string> RecordKinds = new[]
+		public static IReadOnlyList<string> RecordKinds { get; } = new[]
 		{
 			"format", "provenance", "scope", "file", "enum", "rendertype", "variant", "prop", "shaderprop", "defines", "streams", "decode", "decodeline", "pass",
 			"passconfig", "setup", "setupline"

@@ -10,7 +10,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public const string Extension = ".cxtex";
 		public const string PackedSemantic = "cx_packed";
-		public const int MaxDimension = 16384;
+		/// <summary>
+		/// Максимальная сторона .cxtex — та же, что у PNG/JPEG мода (<see cref="TexturePngProvider.MaxImageDimension"/>): SDK не собирает
+		/// текстуру больше, а игра отклоняет её по заголовку (<see cref="Inspect"/>) до выделения видеопамяти.
+		/// </summary>
+		public const int MaxDimension = 8192;
 		private const uint Magic = 0x58545843; // CXTX
 		private const int HeaderSize = 28;
 		private const int FormatVersion = 1;
@@ -53,7 +57,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			if (width < 1 || height < 1 || width > MaxDimension || height > MaxDimension || mips < 1 ||
 				(encoding != BinaryTextureEncoding.Rgba32 && encoding != BinaryTextureEncoding.Bc7))
 			{
-				throw new InvalidDataException("Invalid binary texture dimensions/encoding.");
+				throw new InvalidDataException($"Invalid binary texture {width}x{height} ({encoding}): sides must be within 1..{MaxDimension}.");
 			}
 
 			int fullChain = 1;

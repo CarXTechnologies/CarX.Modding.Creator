@@ -8,8 +8,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class TexturePngProvider : Provider<Texture2D>
 	{
-		/// <summary>Максимальная сторона PNG/JPEG из мода: больше — отклоняется до декодирования.</summary>
-		public const int MaxImageDimension = 8192;
+		/// <summary>Максимальная сторона PNG/JPEG из мода: больше — отклоняется до декодирования. Общая с .cxtex.</summary>
+		public const int MaxImageDimension = BinaryTexture.MaxDimension;
 
 		public override bool IsThread() => false;
 
@@ -59,7 +59,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			if (BinaryTexture.IsBinary(bytes))
 			{
-				// Цветовое пространство бинарной текстуры задаёт SDK при сборке.
+				// Цветовое пространство бинарной текстуры задаёт SDK при сборке. Сторону больше MaxImageDimension Load отклоняет
+				// по заголовку (BinaryTexture.Inspect) до создания текстуры — как PNG/JPEG ниже.
 				return BinaryTexture.Load(bytes);
 			}
 

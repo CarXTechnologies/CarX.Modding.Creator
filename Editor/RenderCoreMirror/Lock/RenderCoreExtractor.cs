@@ -19,7 +19,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public const string PackageManifest = "package.json";
 
 		/// <summary>Разделители additionalKeywords, как в EditorUtils.SetupMaterialVariant.</summary>
-		public static readonly char[] KeywordSeparators = { ' ', ',', ';', '.' };
+		public static char[] KeywordSeparators { get; } = { ' ', ',', ';', '.' };
 
 		private static readonly Regex s_version = new Regex("\"version\"\\s*:\\s*\"(?<version>[^\"]*)\"", RegexOptions.CultureInvariant);
 

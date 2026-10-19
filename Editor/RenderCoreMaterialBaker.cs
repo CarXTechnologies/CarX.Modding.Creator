@@ -29,7 +29,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const float DitheredShareThreshold = 0.1f;
 
 		/// <summary>Плоская нормаль в RGB (0, 0, 1).</summary>
-		private static readonly Color FlatNormal = new(0.5f, 0.5f, 1, 1);
+		private static readonly Color s_flatNormal = new(0.5f, 0.5f, 1, 1);
 
 		/// <summary>
 		/// Вариант по настройкам материала HDRP (альфа-тест, прозрачность, эмиссия, карта нормалей) из подсказок зеркала rendercore.
@@ -303,7 +303,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (normalMap == null)
 			{
-				return output.Save(property.name, Solid(FlatNormal), isColor: false);
+				return output.Save(property.name, Solid(s_flatNormal), isColor: false);
 			}
 
 			if (Mathf.Approximately(scale, 1))
@@ -367,7 +367,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					float u = (x + 0.5f) / width;
 					Color maskPixel = mask?.Sample(u, v) ?? Color.white;
 					float baseAlpha = alphaSource?.Sample(u, v).a ?? 1;
-					Color normalPixel = normal?.Sample(u, v) ?? FlatNormal;
+					Color normalPixel = normal?.Sample(u, v) ?? s_flatNormal;
 					var pixel = new Color(
 						surface.Channel(channels[0], maskPixel, baseAlpha, normalPixel, mask != null),
 						surface.Channel(channels[1], maskPixel, baseAlpha, normalPixel, mask != null),
@@ -686,16 +686,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>PNG-ассеты в папке RenderCore: имя — материал, вариант и свойство; цветовые — sRGB, остальные — линейные.</summary>
+		/// <summary>
+		/// PNG-ассеты в папке RenderCore: имя — материал, хэш его стабильного id, вариант и свойство; цветовые — sRGB, остальные — линейные.
+		/// Хэш id нужен, потому что папка общая: одноимённые материалы из разных FBX одной папки или из пакетов (Assets/RenderCore)
+		/// иначе перезаписали бы текстуры друг друга.
+		/// </summary>
 		private sealed class TextureOutput
 		{
+			private const int SourceIdHashLength = 8;
+
 			private readonly string m_folder;
 			private readonly string m_prefix;
 
 			public TextureOutput(Material source, string variant)
 			{
 				m_folder = GetOutputFolder(source);
-				m_prefix = string.Concat(source.name.Split(Path.GetInvalidFileNameChars())) + "_" + variant + "_";
+				string sourceId = MeshExportUtility.GetTextHash(MeshExportUtility.GetStableObjectId(source)).Substring(0, SourceIdHashLength);
+				m_prefix = string.Concat(source.name.Split(Path.GetInvalidFileNameChars())) + "_" + sourceId + "_" + variant + "_";
 			}
 
 			public Texture2D Save(string propertyName, PixelGrid pixels, bool isColor)

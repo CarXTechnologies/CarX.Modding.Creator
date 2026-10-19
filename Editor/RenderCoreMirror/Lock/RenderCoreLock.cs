@@ -37,10 +37,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public const string UnknownValue = "unknown";
 
 		/// <summary>Проходы, для которых снимок пишет объявления keyword'ов.</summary>
-		public static readonly IReadOnlyList<string> TrackedPasses = new[] { "Forward", "ForwardGhost", "DepthOnly", "ShadowCaster" };
+		public static IReadOnlyList<string> TrackedPasses { get; } = new[] { "Forward", "ForwardGhost", "DepthOnly", "ShadowCaster" };
 
 		/// <summary>Проходы, которые делают вырез альфа-теста: Forward рисует с ZTest Equal поверх их глубины.</summary>
-		public static readonly IReadOnlyList<string> AlphaTestPasses = new[] { DepthOnlyPass, ShadowCasterPass };
+		public static IReadOnlyList<string> AlphaTestPasses { get; } = new[] { DepthOnlyPass, ShadowCasterPass };
 
 		/// <summary>Keyword альфа-теста: только он даёт вырез в DepthOnly/ShadowCaster (Forward рисует с ZTest Equal).</summary>
 		public const string AlphaTestKeyword = "ALPHATEST";
