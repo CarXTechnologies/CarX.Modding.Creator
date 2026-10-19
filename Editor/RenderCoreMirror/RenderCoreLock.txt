@@ -1,0 +1,312 @@
+# Снимок rendercore для зеркала вариантов Standard-шейдера. Сгенерирован, руками не править.
+# Обновить: ModSystem/Render Core/Update Lock From Project Render Core или Tools~/RenderCoreMirror (extract).
+format	2
+provenance	package	3.1.0
+provenance	commit	dc37c839506f6da1a7d7b2170b1b70a1d8b9db43
+provenance	tool	2
+scope	excludeName	MAT_MATTESHADOW|MAT_SKIDMARK|MAT_SLOD|MAT_UNSUPPORTED
+scope	excludePrefix	MAT_CAR_|MAT_PARTICLE
+file	definitions	Runtime/Shaders/Surfaces/Materials/Standard/StandardMaterialDefinitions.hlsl
+file	defs:BaseMaterialDefs	Runtime/Shaders/Surfaces/Materials/Standard/Definitions/BaseMaterialDefs.hlsl
+file	defs:InteriorMaterialDefs	Runtime/Shaders/Surfaces/Materials/Standard/Definitions/InteriorMaterialDefs.hlsl
+file	defs:LayeredMaterialDefs	Runtime/Shaders/Surfaces/Materials/Standard/Definitions/LayeredMaterialDefs.hlsl
+file	enum	Editor/Editors/MaterialEditors/MaterialVariantData.cs
+file	func:BaseMaterialFunc	Runtime/Shaders/Surfaces/Materials/Standard/Functions/BaseMaterialFunc.hlsl
+file	func:InteriorMaterialFunc	Runtime/Shaders/Surfaces/Materials/Standard/Functions/InteriorMaterialFunc.hlsl
+file	func:LayeredMaterialFunc	Runtime/Shaders/Surfaces/Materials/Standard/Functions/LayeredMaterialFunc.hlsl
+file	functions	Runtime/Shaders/Surfaces/Materials/Standard/StandardMaterialFunctions.hlsl
+file	package	package.json
+file	settings	Editor/Settings/MaterialEditorSettings.asset
+file	setup	Editor/Utils/EditorUtils.cs
+file	shader	Runtime/Shaders/Surfaces/Standard.shader
+enum	MAT_COLORMASK_ROUGHNESS_METALNESS	4103
+enum	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	4111
+enum	MAT_DEFAULT	1
+enum	MAT_DEFAULT_ALPHABLEND	513
+enum	MAT_DEFAULT_ALPHATEST	1025
+enum	MAT_EMISSION	1048591
+enum	MAT_FOLIAGE_ALPHATEST	8389643
+enum	MAT_FOLIAGE_SIMPLE_ALPHATEST	8389633
+enum	MAT_INTERIOR	1064971
+enum	MAT_LAYERS4	8235
+enum	MAT_ROAD_SIGN_EMISSION	1310735
+enum	MAT_ROUGHNESS	3
+enum	MAT_ROUGHNESS_ALPHABLEND	515
+enum	MAT_ROUGHNESS_ALPHATEST	1027
+enum	MAT_ROUGHNESS_METALNESS_NORMAL	15
+enum	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	527
+enum	MAT_ROUGHNESS_NORMAL	11
+enum	MAT_ROUGHNESS_NORMAL_ALPHABLEND	523
+enum	MAT_ROUGHNESS_NORMAL_ALPHATEST	1035
+enum	MAT_ROUGHNESS_NORMAL_EMISSION	1048587
+enum	MAT_WINDOW	1048655
+rendertype	AlphaTest	2
+rendertype	Opaque	0
+rendertype	Transparent	1
+variant	MAT_COLORMASK_ROUGHNESS_METALNESS	id=4103	label=MAT_COLORMASK_ROUGHNESS_METALNESS	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	id=4111	label=MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_DEFAULT	id=1	label=MAT_DEFAULT	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_DEFAULT_ALPHABLEND	id=513	label=MAT_DEFAULT_ALPHABLEND	queueBase=3000	queueOffset=0	renderType=1	keywords=	entries=1
+variant	MAT_DEFAULT_ALPHATEST	id=1025	label=MAT_DEFAULT_ALPHATEST	queueBase=2450	queueOffset=0	renderType=2	keywords=ALPHATEST	entries=1
+variant	MAT_EMISSION	id=1048591	label=MAT_EMISSION	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_FOLIAGE_ALPHATEST	id=8389643	label=MAT_FOLIAGE_ALPHATEST	queueBase=2450	queueOffset=50	renderType=2	keywords=ALPHATEST	entries=1
+variant	MAT_FOLIAGE_SIMPLE_ALPHATEST	id=8389633	label=MAT_FOLIAGE_SIMPLE_ALPHATEST	queueBase=2450	queueOffset=50	renderType=2	keywords=ALPHATEST	entries=1
+variant	MAT_INTERIOR	id=1064971	label=MAT_INTERIOR	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_LAYERS4	id=8235	label=MAT_LAYERS4	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_ROAD_SIGN_EMISSION	id=1310735	label=MAT_ROAD_SIGN_EMISSION	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_ROUGHNESS	id=3	label=MAT_ROUGHNESS	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_ROUGHNESS_ALPHABLEND	id=515	label=MAT_ROUGHNESS_ALPHABLEND	queueBase=3000	queueOffset=0	renderType=1	keywords=	entries=1
+variant	MAT_ROUGHNESS_ALPHATEST	id=1027	label=MAT_ROUGHNESS_ALPHATEST	queueBase=2450	queueOffset=0	renderType=2	keywords=ALPHATEST	entries=1
+variant	MAT_ROUGHNESS_METALNESS_NORMAL	id=15	label=MAT_ROUGHNESS_METALNESS_NORMAL	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	id=527	label=MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	queueBase=3000	queueOffset=0	renderType=1	keywords=	entries=1
+variant	MAT_ROUGHNESS_NORMAL	id=11	label=MAT_ROUGHNESS_NORMAL	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_ROUGHNESS_NORMAL_ALPHABLEND	id=523	label=MAT_ROUGHNESS_NORMAL_ALPHABLEND	queueBase=3000	queueOffset=0	renderType=1	keywords=	entries=1
+variant	MAT_ROUGHNESS_NORMAL_ALPHATEST	id=1035	label=MAT_ROUGHNESS_NORMAL_ALPHATEST	queueBase=2450	queueOffset=0	renderType=2	keywords=ALPHATEST	entries=1
+variant	MAT_ROUGHNESS_NORMAL_EMISSION	id=1048587	label=MAT_ROUGHNESS_NORMAL_EMISSION	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+variant	MAT_WINDOW	id=1048655	label=MAT_WINDOW	queueBase=2000	queueOffset=0	renderType=0	keywords=	entries=1
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS	0	u_vColor	type=0	label=Mask Color	tooltip=The color used to paint the object using the mask.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS	2	u_sPackedMap	type=4	label=Packed Map	tooltip=Packed parameters into texture. R - roughness, G - metalness, B - blend mask, A - unused.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	0	u_vColor	type=0	label=Mask Color	tooltip=The color used to paint the object using the mask.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	2	u_sPackedMap	type=4	label=Packed Map	tooltip=Packed parameters into texture. R - roughness, G - metalness, B - blend mask, A - unused.	vectorLabels=
+prop	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_DEFAULT	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_DEFAULT_ALPHABLEND	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_DEFAULT_ALPHABLEND	1	u_sPackedMap	type=4	label=Alpha Map	tooltip=Packed alpha texture. R - unused, G - unused, B - alpha, A - unused.	vectorLabels=
+prop	MAT_DEFAULT_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
+prop	MAT_DEFAULT_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_DEFAULT_ALPHATEST	2	u_sPackedMap	type=4	label=Alpha Map	tooltip=Packed alpha texture. R - unused, G - unused, B - alpha, A - unused.	vectorLabels=
+prop	MAT_EMISSION	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_EMISSION	1	u_sTexture1	type=4	label=Emission Map	tooltip=Default emission texture.	vectorLabels=
+prop	MAT_EMISSION	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Default surface packed parameters. R - roughness, G - metalness, B - ao, Alpha - unused.	vectorLabels=
+prop	MAT_EMISSION	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Default surface normals.	vectorLabels=
+prop	MAT_EMISSION	4	u_fParams	type=1	label=Emission Parameters	tooltip=Parameters of emission brightness by color. X - inverse period, Y - rising time, Z - delta between max and min emission amount, W - min emission amount	vectorLabels=Inverse Period|Rising Time|Emissin Delta|Min Emission
+prop	MAT_FOLIAGE_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
+prop	MAT_FOLIAGE_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_FOLIAGE_ALPHATEST	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Default surface packed parameters. R - roughness, G - ao, B - alpha, A - unused.	vectorLabels=
+prop	MAT_FOLIAGE_ALPHATEST	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Default surface normals.	vectorLabels=
+prop	MAT_FOLIAGE_SIMPLE_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
+prop	MAT_FOLIAGE_SIMPLE_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_FOLIAGE_SIMPLE_ALPHATEST	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Default surface packed parameters. R - unused, G - ao, B - alpha, A - unused.	vectorLabels=
+prop	MAT_INTERIOR	0	u_vColor	type=0	label=Aspect Ratio	tooltip=Red channel stores aspect ratio. For example, if one room in atlas has 2:1 aspect ratio, red channel will be 0.5. This parameter is controlled only by the red channel value.	vectorLabels=
+prop	MAT_INTERIOR	1	u_sTexture	type=4	label=Exterior Map	tooltip=Exterior texture for interior mapping.	vectorLabels=
+prop	MAT_INTERIOR	2	u_sTexture2	type=4	label=Interior Map	tooltip=Interior texture for interior mapping. The alpha channel stores information about the depth of the atlas.	vectorLabels=
+prop	MAT_INTERIOR	3	u_sTexture1	type=4	label=Emission Map	tooltip=Emission texture for interior mapping.	vectorLabels=
+prop	MAT_INTERIOR	4	u_fTiling	type=2	label=Interiors Count	tooltip=The number of interiors horizontally and vertically.	vectorLabels=
+prop	MAT_INTERIOR	5	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface texture for interior mapping. R - roughness, G - metalness, B - unused, A - unused.	vectorLabels=
+prop	MAT_INTERIOR	6	u_sNormalMap	type=4	label=Normal Map	tooltip=Surface normals texture for interior mapping.	vectorLabels=
+prop	MAT_LAYERS4	0	u_sTexture	type=4	label=First Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_LAYERS4	1	u_sTexture1	type=4	label=Second Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_LAYERS4	2	u_sTexture2	type=4	label=Third Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_LAYERS4	3	u_sTexture3	type=4	label=Fourth Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_LAYERS4	4	u_sPackedMap	type=4	label=First Surface Map	tooltip=Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness.	vectorLabels=
+prop	MAT_LAYERS4	5	u_sPackedMap1	type=4	label=Second Surface Map	tooltip=Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness.	vectorLabels=
+prop	MAT_LAYERS4	6	u_sPackedMap2	type=4	label=Third Surface Map	tooltip=Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness.	vectorLabels=
+prop	MAT_LAYERS4	7	u_sPackedMap3	type=4	label=Fourth Surface Map	tooltip=Surface packed parameters. R - normal.x, G - normal.y, B - ao, A - roughness.	vectorLabels=
+prop	MAT_LAYERS4	8	u_fParams	type=1	label=Multipliers	tooltip=uv coordinates multiplier per each uv-set.	vectorLabels=First UV Multiplier|Second UV Multiplier|Third UV Multiplier|Fourth UV Multiplier
+prop	MAT_ROAD_SIGN_EMISSION	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROAD_SIGN_EMISSION	1	u_sTexture1	type=4	label=Road Sign Emission Map	tooltip=RGB emission mask for road signs.	vectorLabels=
+prop	MAT_ROAD_SIGN_EMISSION	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Default surface packed parameters. R - roughness, G - metalness, B - ao, Alpha - unused.	vectorLabels=
+prop	MAT_ROAD_SIGN_EMISSION	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Default surface normals.	vectorLabels=
+prop	MAT_ROAD_SIGN_EMISSION	4	u_fParams	type=1	label=Road Sign Emission Parameters	tooltip=Parameters of emission brightness by color. X - inverse period, Y - rising time, Z - delta between max and min emission amount, W - min emission amount	vectorLabels=Inverse Period|Rising Time|Emissin Delta|Min Emission
+prop	MAT_ROUGHNESS	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHABLEND	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHABLEND	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHATEST	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - metalness, B - ao, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL	2	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - metalness, B - alpha, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	2	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL	2	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHABLEND	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHABLEND	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - alpha, A- unused.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHABLEND	2	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHATEST	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - alpha, A- unused.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_ALPHATEST	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_EMISSION	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_EMISSION	1	u_sTexture1	type=4	label=Emission Map	tooltip=Texture of emission.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_EMISSION	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_EMISSION	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Texture of surface normals.	vectorLabels=
+prop	MAT_ROUGHNESS_NORMAL_EMISSION	4	u_fParams	type=1	label=Emission Parameters	tooltip=A set of different parameters for emission. X - inverse period, Y - rising time. Z - delta between max and min emission amount, W - min emission amount.	vectorLabels=Inverse Period|Rising Time|Delta Emission|Min Emission Amount
+prop	MAT_WINDOW	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
+prop	MAT_WINDOW	1	u_sTexture1	type=4	label=Emission Map	tooltip=Default emission texture.	vectorLabels=
+prop	MAT_WINDOW	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Default surface packed parameters. R - roughness, G - metalness, B - ao, A - unused.	vectorLabels=
+prop	MAT_WINDOW	3	u_sNormalMap	type=4	label=Normal Map	tooltip=Default surface normals.	vectorLabels=
+prop	MAT_WINDOW	4	u_fParams	type=1	label=Emission Parameters	tooltip=Parameters of emission brightness by color. X - inverse period, Y - rising time, Z - delta between max and min emission amount, W - min emission amount	vectorLabels=Inverse Period|Rising Time|Emissin Delta|Min Emission
+shaderprop	u_fParams	type=Vector	default=(0.5,0.0,0.0,1.0)	gamma=0
+shaderprop	u_fTiling	type=Float	default=1	gamma=0
+shaderprop	u_sNormalMap	type=2D	default=bump	gamma=0
+shaderprop	u_sPackedMap	type=2D	default=bump	gamma=0
+shaderprop	u_sPackedMap1	type=2D	default=bump	gamma=0
+shaderprop	u_sPackedMap2	type=2D	default=bump	gamma=0
+shaderprop	u_sPackedMap3	type=2D	default=bump	gamma=0
+shaderprop	u_sTexture	type=2D	default=white	gamma=1
+shaderprop	u_sTexture1	type=2D	default=black	gamma=1
+shaderprop	u_sTexture2	type=2D	default=black	gamma=1
+shaderprop	u_sTexture3	type=2D	default=black	gamma=1
+shaderprop	u_vColor	type=Color	default=(1,1,1,1)	gamma=1
+shaderprop	u_vThirdColor	type=Color	default=(1,1,1,1)	gamma=1
+defines	MAT_COLORMASK_ROUGHNESS_METALNESS	defs=BaseMaterialDefs	features=MATERIALFEATURE_COLORMASK,MATERIALFEATURE_METALNESS,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	defs=BaseMaterialDefs	features=MATERIALFEATURE_COLORMASK,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_DEFAULT	defs=BaseMaterialDefs	features=	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,GhostMerge,Merge,PunctualShadow,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_DEFAULT_ALPHABLEND	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHABLEND	other=Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,GhostMerge,Merge,PunctualShadow,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_DEFAULT_ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,GhostMerge,Merge,PunctualShadow,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_EMISSION	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_EMISSION,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_FOLIAGE_ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST,MATERIALFEATURE_AO,MATERIALFEATURE_FOLIAGE,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DiffusionFunc,DirectionalShadow,FRAGMENT_NEED_BACKSIDE_NORMALS,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,GLOBAL_LIGHTING_SOFTER_NORMAL,IGNORE_WET_PROCESS,Merge,PunctualShadow,Reflection,ReflectionEnv,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_FOLIAGE_SIMPLE_ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST,MATERIALFEATURE_AO,MATERIALFEATURE_FOLIAGE	other=ContactShadow,Diffusion,DiffusionEnv,DiffusionFunc,DirectionalShadow,FRAGMENT_NEED_BACKSIDE_NORMALS,FRAGMENT_NEED_NORMAL,GLOBAL_LIGHTING_SOFTER_NORMAL,GhostMerge,IGNORE_WET_PROCESS,Merge,PunctualShadow,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_INTERIOR	defs=InteriorMaterialDefs	features=MATERIALFEATURE_EMISSION,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS,MATERIALFEATURE_WINDOW	other=ClearcoatReflection,ClearcoatReflectionEnv,DISABLE_PUNCTUAL_LIGHTS,Diffusion,DiffusionEnv,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_TEXCOORD0,Fog,IGNORE_SSAO,Merge,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_TANGENT	libs=ShadingModels.hlsl
+defines	MAT_LAYERS4	defs=LayeredMaterialDefs	features=	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_DISABLE_SCREEN_DITHER,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_POSITION,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROAD_SIGN_EMISSION	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_EMISSION,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROAD_SIGN_EMISSION,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_ALPHABLEND	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHABLEND,MATERIALFEATURE_AO,MATERIALFEATURE_ROUGHNESS	other=Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST,MATERIALFEATURE_AO,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_METALNESS_NORMAL	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHABLEND,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_NORMAL	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_NORMAL_ALPHABLEND	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHABLEND,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_NORMAL_ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_ROUGHNESS_NORMAL_EMISSION	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_EMISSION,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS	other=ContactShadow,Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+defines	MAT_WINDOW	defs=BaseMaterialDefs	features=MATERIALFEATURE_AO,MATERIALFEATURE_EMISSION,MATERIALFEATURE_METALNESS,MATERIALFEATURE_NORMAL,MATERIALFEATURE_ROUGHNESS,MATERIALFEATURE_WINDOW	other=Diffusion,DiffusionEnv,DirectionalShadow,FRAGMENT_NEED_NORMAL,FRAGMENT_NEED_REFLECT,FRAGMENT_NEED_TANGENT,FRAGMENT_NEED_VIEW,Merge,PunctualShadow,Reflection,ReflectionEnv,SCREEN_SPACE_REFLECTIONS_ALLOWED,VERTEX_NEED_NORMAL,VERTEX_NEED_TANGENT	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl
+streams	MAT_COLORMASK_ROUGHNESS_METALNESS	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_DEFAULT	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_DEFAULT_ALPHABLEND	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_DEFAULT_ALPHATEST	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_EMISSION	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_FOLIAGE_ALPHATEST	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_FOLIAGE_SIMPLE_ALPHATEST	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_INTERIOR	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0,INPUT_NEED_TEXCOORD1
+streams	MAT_LAYERS4	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROAD_SIGN_EMISSION	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_ALPHABLEND	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_ALPHATEST	INPUT_NEED_NORMAL,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_METALNESS_NORMAL	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_NORMAL	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_NORMAL_ALPHABLEND	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_NORMAL_ALPHATEST	INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_ROUGHNESS_NORMAL_EMISSION	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+streams	MAT_WINDOW	INPUT_NEED_COLOR,INPUT_NEED_NORMAL,INPUT_NEED_TANGENT,INPUT_NEED_TEXCOORD0
+decode	MAT_COLORMASK_ROUGHNESS_METALNESS	func=BaseMaterialFunc	hash=28ce2a3515a3
+decode	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	func=BaseMaterialFunc	hash=6d351be6cb92
+decode	MAT_DEFAULT	func=BaseMaterialFunc	hash=2bbff0fe734d
+decode	MAT_DEFAULT_ALPHABLEND	func=BaseMaterialFunc	hash=f7b4b0fe70f7
+decode	MAT_DEFAULT_ALPHATEST	func=BaseMaterialFunc	hash=994ec483c0f8
+decode	MAT_EMISSION	func=BaseMaterialFunc	hash=29ab28dc2384
+decode	MAT_FOLIAGE_ALPHATEST	func=BaseMaterialFunc	hash=0885199ed7d9
+decode	MAT_FOLIAGE_SIMPLE_ALPHATEST	func=BaseMaterialFunc	hash=9c7ead25cb89
+decode	MAT_INTERIOR	func=InteriorMaterialFunc	hash=550745410d88
+decode	MAT_LAYERS4	func=LayeredMaterialFunc	hash=c86c330d411d
+decode	MAT_ROAD_SIGN_EMISSION	func=BaseMaterialFunc	hash=b81c1f6de961
+decode	MAT_ROUGHNESS	func=BaseMaterialFunc	hash=ae8f407f8c00
+decode	MAT_ROUGHNESS_ALPHABLEND	func=BaseMaterialFunc	hash=f5d976a5eacd
+decode	MAT_ROUGHNESS_ALPHATEST	func=BaseMaterialFunc	hash=b65b556fc272
+decode	MAT_ROUGHNESS_METALNESS_NORMAL	func=BaseMaterialFunc	hash=2da9d53b278c
+decode	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	func=BaseMaterialFunc	hash=1ea8d2c2c751
+decode	MAT_ROUGHNESS_NORMAL	func=BaseMaterialFunc	hash=af4f388cfded
+decode	MAT_ROUGHNESS_NORMAL_ALPHABLEND	func=BaseMaterialFunc	hash=bbe009805610
+decode	MAT_ROUGHNESS_NORMAL_ALPHATEST	func=BaseMaterialFunc	hash=7acc19d9baaa
+decode	MAT_ROUGHNESS_NORMAL_EMISSION	func=BaseMaterialFunc	hash=4016783f2d91
+decode	MAT_WINDOW	func=BaseMaterialFunc	hash=eac9e24de3f7
+pass	DepthOnly	ALPHATEST	multi_compile_local
+pass	DepthOnly	MAT_COLORMASK_ROUGHNESS_METALNESS	absent
+pass	DepthOnly	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	absent
+pass	DepthOnly	MAT_DEFAULT	absent
+pass	DepthOnly	MAT_DEFAULT_ALPHABLEND	absent
+pass	DepthOnly	MAT_DEFAULT_ALPHATEST	absent
+pass	DepthOnly	MAT_EMISSION	absent
+pass	DepthOnly	MAT_FOLIAGE_ALPHATEST	absent
+pass	DepthOnly	MAT_FOLIAGE_SIMPLE_ALPHATEST	absent
+pass	DepthOnly	MAT_INTERIOR	absent
+pass	DepthOnly	MAT_LAYERS4	multi_compile_local
+pass	DepthOnly	MAT_ROAD_SIGN_EMISSION	absent
+pass	DepthOnly	MAT_ROUGHNESS	absent
+pass	DepthOnly	MAT_ROUGHNESS_ALPHABLEND	absent
+pass	DepthOnly	MAT_ROUGHNESS_ALPHATEST	absent
+pass	DepthOnly	MAT_ROUGHNESS_METALNESS_NORMAL	absent
+pass	DepthOnly	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	absent
+pass	DepthOnly	MAT_ROUGHNESS_NORMAL	absent
+pass	DepthOnly	MAT_ROUGHNESS_NORMAL_ALPHABLEND	absent
+pass	DepthOnly	MAT_ROUGHNESS_NORMAL_ALPHATEST	absent
+pass	DepthOnly	MAT_ROUGHNESS_NORMAL_EMISSION	absent
+pass	DepthOnly	MAT_WINDOW	absent
+pass	Forward	ALPHATEST	absent
+pass	Forward	MAT_COLORMASK_ROUGHNESS_METALNESS	multi_compile_local
+pass	Forward	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	multi_compile_local
+pass	Forward	MAT_DEFAULT	multi_compile_local
+pass	Forward	MAT_DEFAULT_ALPHABLEND	multi_compile_local
+pass	Forward	MAT_DEFAULT_ALPHATEST	multi_compile_local
+pass	Forward	MAT_EMISSION	multi_compile_local
+pass	Forward	MAT_FOLIAGE_ALPHATEST	multi_compile_local
+pass	Forward	MAT_FOLIAGE_SIMPLE_ALPHATEST	multi_compile_local
+pass	Forward	MAT_INTERIOR	multi_compile_local
+pass	Forward	MAT_LAYERS4	multi_compile_local
+pass	Forward	MAT_ROAD_SIGN_EMISSION	multi_compile_local
+pass	Forward	MAT_ROUGHNESS	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_ALPHABLEND	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_ALPHATEST	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_METALNESS_NORMAL	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_NORMAL	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_NORMAL_ALPHABLEND	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_NORMAL_ALPHATEST	multi_compile_local
+pass	Forward	MAT_ROUGHNESS_NORMAL_EMISSION	multi_compile_local
+pass	Forward	MAT_WINDOW	multi_compile_local
+pass	ForwardGhost	ALPHATEST	absent
+pass	ForwardGhost	MAT_COLORMASK_ROUGHNESS_METALNESS	multi_compile_local
+pass	ForwardGhost	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	multi_compile_local
+pass	ForwardGhost	MAT_DEFAULT	multi_compile_local
+pass	ForwardGhost	MAT_DEFAULT_ALPHABLEND	multi_compile_local
+pass	ForwardGhost	MAT_DEFAULT_ALPHATEST	multi_compile_local
+pass	ForwardGhost	MAT_EMISSION	multi_compile_local
+pass	ForwardGhost	MAT_FOLIAGE_ALPHATEST	absent
+pass	ForwardGhost	MAT_FOLIAGE_SIMPLE_ALPHATEST	absent
+pass	ForwardGhost	MAT_INTERIOR	multi_compile_local
+pass	ForwardGhost	MAT_LAYERS4	multi_compile_local
+pass	ForwardGhost	MAT_ROAD_SIGN_EMISSION	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_ALPHABLEND	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_ALPHATEST	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_METALNESS_NORMAL	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_NORMAL	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_NORMAL_ALPHABLEND	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_NORMAL_ALPHATEST	multi_compile_local
+pass	ForwardGhost	MAT_ROUGHNESS_NORMAL_EMISSION	multi_compile_local
+pass	ForwardGhost	MAT_WINDOW	multi_compile_local
+pass	ShadowCaster	ALPHATEST	multi_compile_local
+pass	ShadowCaster	MAT_COLORMASK_ROUGHNESS_METALNESS	absent
+pass	ShadowCaster	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	absent
+pass	ShadowCaster	MAT_DEFAULT	multi_compile_local
+pass	ShadowCaster	MAT_DEFAULT_ALPHABLEND	absent
+pass	ShadowCaster	MAT_DEFAULT_ALPHATEST	absent
+pass	ShadowCaster	MAT_EMISSION	multi_compile_local
+pass	ShadowCaster	MAT_FOLIAGE_ALPHATEST	absent
+pass	ShadowCaster	MAT_FOLIAGE_SIMPLE_ALPHATEST	absent
+pass	ShadowCaster	MAT_INTERIOR	absent
+pass	ShadowCaster	MAT_LAYERS4	absent
+pass	ShadowCaster	MAT_ROAD_SIGN_EMISSION	multi_compile_local
+pass	ShadowCaster	MAT_ROUGHNESS	absent
+pass	ShadowCaster	MAT_ROUGHNESS_ALPHABLEND	absent
+pass	ShadowCaster	MAT_ROUGHNESS_ALPHATEST	absent
+pass	ShadowCaster	MAT_ROUGHNESS_METALNESS_NORMAL	absent
+pass	ShadowCaster	MAT_ROUGHNESS_METALNESS_NORMAL_ALPHABLEND	absent
+pass	ShadowCaster	MAT_ROUGHNESS_NORMAL	absent
+pass	ShadowCaster	MAT_ROUGHNESS_NORMAL_ALPHABLEND	absent
+pass	ShadowCaster	MAT_ROUGHNESS_NORMAL_ALPHATEST	absent
+pass	ShadowCaster	MAT_ROUGHNESS_NORMAL_EMISSION	absent
+pass	ShadowCaster	MAT_WINDOW	absent
+passconfig	DepthOnly	ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=CAR_GLOBAL_AO_INTENSITY,ClearcoatReflectionEnvFunc,ClearcoatReflectionFunc,ContactShadow,Diffusion,DiffusionEnv,DiffusionEnvFunc,DiffusionFunc,DirectionalShadow,FRAGMENT_NEED_DITHER,FragmentOutput,GetFragmentOutput,GhostMerge,Merge,PunctualShadow,ReflectionEnvFunc,ReflectionFunc,SHADERPASS_DEPTH_ONLY	streams=INPUT_NEED_TEXCOORD0	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl	func=BaseMaterialFunc	decode=994ec483c0f8	program=7951bcd3c8c4
+passconfig	ShadowCaster	ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=CAR_GLOBAL_AO_INTENSITY,ClearcoatReflectionEnvFunc,ClearcoatReflectionFunc,ContactShadow,Diffusion,DiffusionEnv,DiffusionEnvFunc,DiffusionFunc,DirectionalShadow,FRAGMENT_DISABLE_SCREEN_DITHER,GhostMerge,Merge,PunctualShadow,ReflectionEnvFunc,ReflectionFunc,SHADERPASS_DEPTH_ONLY,SHADERPASS_SHADOWCASTER	streams=INPUT_NEED_TEXCOORD0	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl	func=BaseMaterialFunc	decode=994ec483c0f8	program=db7117ac0b5b
+setup	hash=b342e9ce390b

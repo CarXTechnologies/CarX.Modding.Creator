@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
@@ -26,18 +27,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public async Task<object> UnpackingAsync<TResource>(string catalog)
 		{
-			byte[] bytes = Array.Empty<byte>();
+			byte[] bytes = await LoadBytesAsync(catalog, CancellationToken.None);
 
-			for (int i = 0; i < m_loadFormat.Length; i++)
-			{
-				bytes = await m_fileProvider.LoadAsync(catalog, m_loadFormat[i]);
-				if (bytes is { Length: >= 1 })
-				{
-					break;
-				}
-			}
-
-			if (bytes == null || bytes == Array.Empty<byte>())
+			if (bytes == null)
 			{
 				return null;
 			}
@@ -76,5 +68,25 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public abstract byte[] Pack(string catalog, T resource);
 
 		public abstract string GetPath(string catalog, T resource);
+
+		/// <summary>
+		/// Байты ресурса в первом найденном формате из списка загрузки или null, если ресурса нет ни в одном.
+		/// Отмена проверяется между форматами: <see cref="IModFileProvider.LoadAsync"/> токен не принимает.
+		/// </summary>
+		protected async Task<byte[]> LoadBytesAsync(string catalog, CancellationToken cancellationToken)
+		{
+			for (int i = 0; i < m_loadFormat.Length; i++)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				byte[] bytes = await m_fileProvider.LoadAsync(catalog, m_loadFormat[i]);
+
+				if (bytes is { Length: >= 1 })
+				{
+					return bytes;
+				}
+			}
+
+			return null;
+		}
 	}
 }
