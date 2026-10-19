@@ -102,11 +102,6 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				{
 					throw new InvalidDataException("Invalid binary mod resource entry.");
 				}
-
-				if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxDeflateCompressionRatio)
-				{
-					throw new InvalidDataException("Binary resource exceeds the compression ratio limit: " + name);
-				}
 			}
 
 			if (stream.Position != stream.Length)
@@ -193,6 +188,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		private byte[] ReadEntry(Entry entry, string name)
 		{
+			// Степень сжатия проверяем при чтении самого ресурса, а не при открытии архива: подозрительный ресурс отказывает
+			// только себе, а мета, иконки и остальные ресурсы мода читаются
+			if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxDeflateCompressionRatio)
+			{
+				throw new InvalidDataException("Binary resource exceeds the compression ratio limit: " + name);
+			}
+
 			var stored = new byte[entry.stored];
 
 			// Дескриптор живёт, пока есть читатели: параллельная загрузка карты читает через один дескриптор,
