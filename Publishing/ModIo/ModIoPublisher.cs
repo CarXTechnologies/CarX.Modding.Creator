@@ -188,6 +188,11 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetLogo(request.PreviewPath)
 				.SetVisible(request.Visibility == ModVisibility.Public);
 
+			if (!string.IsNullOrWhiteSpace(request.Description))
+			{
+				builder = builder.SetDescription(Truncate(request.Description, Limits.MaxDescriptionLength));
+			}
+
 			builder = ApplyTags(builder, request.Tags);
 
 			// Attaching the payload here rather than in a follow up upload also sidesteps a plugin defect: it cannot

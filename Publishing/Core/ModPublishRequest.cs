@@ -32,6 +32,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 
 		public string Summary { get; }
 
+		/// <summary>Long description of the new entry; empty when the vendor page should start without one.</summary>
+		public string Description { get; }
+
 		/// <summary>Absolute path of the logo/preview image, empty when the vendor does not need one up front.</summary>
 		public string PreviewPath { get; }
 
@@ -56,10 +59,12 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			string version,
 			string changelog,
 			ModVisibility visibility,
-			string[] tags)
+			string[] tags,
+			string description = null)
 		{
 			Title = title ?? string.Empty;
 			Summary = summary ?? string.Empty;
+			Description = description ?? string.Empty;
 			PreviewPath = previewPath ?? string.Empty;
 			ContentDirectory = contentDirectory ?? string.Empty;
 			Version = version ?? string.Empty;
