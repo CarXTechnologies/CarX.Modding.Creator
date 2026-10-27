@@ -552,7 +552,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					spawnPointProperties.name = o.name;
 					markerValue = spawnPointProperties;
 				}
-				var markerDataJson = JsonUtility.ToJson(markerValue);
+				// All-zero road values were never set by an author (they come from data saved before the values loaded),
+				// and friction 0 would turn the surface into ice: export none, so the game uses its own surface template.
+				if (markerValue is Plugins.CarX.Modding.Creator.Runtime.PhysicMaterialProperties road && road.Equals(default(Plugins.CarX.Modding.Creator.Runtime.PhysicMaterialProperties)))
+				{
+					markerValue = null;
+				}
+				var markerDataJson = markerValue != null ? JsonUtility.ToJson(markerValue) : string.Empty;
 				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam, markerDataJson));
 			});
 
