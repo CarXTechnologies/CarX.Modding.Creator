@@ -2,7 +2,8 @@
     "name": "CarX.Modding.Creator.Publishing.Steam",
     "rootNamespace": "Plugins.CarX.Modding.Creator.Publishing.Steam",
     "references": [
-        "CarX.Modding.Creator"
+        "CarX.Modding.Creator",
+        "CarX.Modding.Creator.Publishing"
     ],
     "includePlatforms": [
         "Editor"

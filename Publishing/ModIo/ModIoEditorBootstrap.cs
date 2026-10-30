@@ -20,24 +20,24 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 	/// </remarks>
 	internal static class ModIoEditorBootstrap
 	{
-		private static bool m_servicesBound;
-		private static ModioEmailAuthService m_authService;
+		private static bool s_servicesBound;
+		private static ModioEmailAuthService s_authService;
 
 		/// <summary>
 		/// Credentials the running client was actually initialized with. The api base url is baked in at init, so
 		/// editing the config asset afterwards has no effect until the client is brought back up - which used to
 		/// mean the fix "did not work" until the next domain reload.
 		/// </summary>
-		private static string m_activeFingerprint;
+		private static string s_activeFingerprint;
 
 		/// <summary>Endpoint the cached session belongs to, so a move to another one can drop it.</summary>
-		private static string m_activeServerUrl;
+		private static string s_activeServerUrl;
 
 		/// <summary>The initialization currently running, shared by every caller that arrives while it is in flight.</summary>
-		private static Task<ModOperationResult> m_initialization;
+		private static Task<ModOperationResult> s_initialization;
 
 		/// <summary>The email auth service the SDK was told to use. Null until <see cref="Bind"/> has run.</summary>
-		internal static ModioEmailAuthService AuthService => m_authService;
+		internal static ModioEmailAuthService AuthService => s_authService;
 
 		/// <summary>
 		/// Binds the SDK services and returns the settings the client should be initialized with.
@@ -61,7 +61,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 
 			ModioServices.BindInstance(settings, ModioServicePriority.DeveloperOverride);
 
-			if (m_servicesBound)
+			if (s_servicesBound)
 			{
 				return settings;
 			}
@@ -74,11 +74,11 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 
 			// One long lived auth service; the prompt that drives it is swapped per sign in attempt instead, because
 			// the prompt belongs to whichever window started the flow.
-			m_authService = new ModioEmailAuthService();
+			s_authService = new ModioEmailAuthService();
 			ModioServices.Bind<IModioAuthService>()
-				.FromInstance(m_authService, ModioServicePriority.DeveloperOverride);
+				.FromInstance(s_authService, ModioServicePriority.DeveloperOverride);
 
-			m_servicesBound = true;
+			s_servicesBound = true;
 			return settings;
 		}
 
@@ -95,13 +95,13 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		/// </remarks>
 		internal static Task<ModOperationResult> InitializeAsync(ModIoConfig config)
 		{
-			if (m_initialization is { IsCompleted: false })
+			if (s_initialization is { IsCompleted: false })
 			{
-				return m_initialization;
+				return s_initialization;
 			}
 
-			m_initialization = InitializeCoreAsync(config);
-			return m_initialization;
+			s_initialization = InitializeCoreAsync(config);
+			return s_initialization;
 		}
 
 		private static async Task<ModOperationResult> InitializeCoreAsync(ModIoConfig config)
@@ -110,7 +110,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 
 			if (ModioClient.IsInitialized)
 			{
-				if (fingerprint == m_activeFingerprint)
+				if (fingerprint == s_activeFingerprint)
 				{
 					// Nothing changed - and nothing is touched, because rebinding here is exactly what the SDK
 					// warns about. This path runs before every action, so it has to stay side effect free.
@@ -121,19 +121,19 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				await ModioClient.Shutdown();
 			}
 
-			var movedEndpoint = m_activeServerUrl != null && m_activeServerUrl != config.ServerUrl;
+			var movedEndpoint = s_activeServerUrl != null && s_activeServerUrl != config.ServerUrl;
 
 			var settings = Bind(config);
 			var error = await ModioClient.Init(settings);
 
 			if (error)
 			{
-				m_activeFingerprint = null;
+				s_activeFingerprint = null;
 				return ModOperationResult.Fail($"mod.io failed to initialize: {error.GetMessage()}");
 			}
 
-			m_activeFingerprint = fingerprint;
-			m_activeServerUrl = config.ServerUrl;
+			s_activeFingerprint = fingerprint;
+			s_activeServerUrl = config.ServerUrl;
 
 			if (movedEndpoint)
 			{

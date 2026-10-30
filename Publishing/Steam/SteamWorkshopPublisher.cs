@@ -154,8 +154,12 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 
 		public async Task<ModOperationResult<ModItemKey>> CreateItemAsync(
 			ModCreateRequest request,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new SteamUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult<ModItemKey>.Fail("Steam is not initialized.");
@@ -183,9 +187,11 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 				editor = editor.WithTitle(request.Title);
 			}
 
-			if (!string.IsNullOrWhiteSpace(request.Summary))
+			// Steam has a single description field: the full description when there is one, as on update, else the summary.
+			string description = !string.IsNullOrWhiteSpace(request.Description) ? request.Description : request.Summary;
+			if (!string.IsNullOrWhiteSpace(description))
 			{
-				editor = editor.WithDescription(request.Summary);
+				editor = editor.WithDescription(description);
 			}
 
 			if (File.Exists(request.PreviewPath))
@@ -202,12 +208,14 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 
 			editor = ApplyVisibility(editor, request.Visibility);
 
-			var result = await editor.SubmitAsync();
+			PublishResult result = await editor.SubmitAsync(reporter);
 
 			if (!result.Success)
 			{
 				return ModOperationResult<ModItemKey>.Fail($"Steam refused to create the item: {result.Result}.");
 			}
+
+			reporter.ReportSucceeded();
 
 			var key = new ModItemKey(VendorId, result.FileId.Value.ToString());
 
@@ -220,9 +228,12 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 
 		public async Task<ModOperationResult> UploadItemAsync(
 			ModUploadRequest request,
-			IProgress<float> progress,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new SteamUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult.Fail("Steam is not initialized.");
@@ -280,12 +291,14 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 				editor = editor.WithChangeLog(request.Changelog);
 			}
 
-			var result = await editor.SubmitAsync(progress);
+			PublishResult result = await editor.SubmitAsync(reporter);
 
 			if (!result.Success)
 			{
 				return ModOperationResult.Fail($"Steam refused the upload of item {result.FileId}: {result.Result}.");
 			}
+
+			reporter.ReportSucceeded();
 
 			return result.NeedsWorkshopAgreement
 				? ModOperationResult.Ok(

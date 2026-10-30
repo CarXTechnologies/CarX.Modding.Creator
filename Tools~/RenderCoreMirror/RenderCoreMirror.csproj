@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- CLI зеркала rendercore. Ядро — те же исходники, что Unity компилирует в CarX.Modding.Creator.RenderCoreMirror (без UnityEngine). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>RenderCoreMirror</AssemblyName>
+    <RootNamespace>Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Editor/RenderCoreMirror/**/*.cs" />
+    <Compile Include="*.cs" />
+  </ItemGroup>
+</Project>
