@@ -554,11 +554,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 				// All-zero road values were never set by an author (they come from data saved before the values loaded),
 				// and friction 0 would turn the surface into ice: export none, so the game uses its own surface template.
-				if (markerValue is Plugins.CarX.Modding.Creator.Runtime.PhysicMaterialProperties road && road.Equals(default(Plugins.CarX.Modding.Creator.Runtime.PhysicMaterialProperties)))
+				if (markerValue is PhysicMaterialProperties road && road.Equals(default(PhysicMaterialProperties)))
 				{
 					markerValue = null;
 				}
-				var markerDataJson = markerValue != null ? JsonUtility.ToJson(markerValue) : string.Empty;
+				string markerDataJson = markerValue != null ? JsonUtility.ToJson(markerValue) : string.Empty;
 				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam, markerDataJson));
 			});
 

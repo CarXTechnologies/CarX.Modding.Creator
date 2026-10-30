@@ -187,9 +187,11 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 				editor = editor.WithTitle(request.Title);
 			}
 
-			if (!string.IsNullOrWhiteSpace(request.Summary))
+			// Steam has a single description field: the full description when there is one, as on update, else the summary.
+			string description = !string.IsNullOrWhiteSpace(request.Description) ? request.Description : request.Summary;
+			if (!string.IsNullOrWhiteSpace(description))
 			{
-				editor = editor.WithDescription(request.Summary);
+				editor = editor.WithDescription(description);
 			}
 
 			if (File.Exists(request.PreviewPath))
