@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Версия 2 формата .cxmesh: каждый меш — отдельный блок (deflate при выигрыше, CRC32 исходных байт),
-	/// постоянные атрибуты вершин хранятся одним значением, индексы — 16 или 32 бита.
+	/// .cxmesh format version 2: each mesh is a separate block (deflate when it helps, CRC32 of the raw bytes),
+	/// constant vertex attributes are stored as a single value, indices are 16 or 32 bit.
 	/// </summary>
 	internal static class BinaryModModelCodecV2
 	{
@@ -126,7 +126,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				throw new InvalidDataException("Invalid binary mesh block header.");
 			}
 
-			// До выделения памяти под распакованный блок: сумма по модели и степень сжатия ограничены бюджетом.
+			// Before allocating the decompressed block: the per-model total and the compression ratio are bounded by the budget.
 			budget.TakeBlock(rawLength, storedLength, compressed: compression == 1);
 			byte[] stored = reader.ReadBytes(storedLength);
 			byte[] raw = compression == 0 ? stored : Inflate(stored, rawLength);
@@ -264,7 +264,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				throw new InvalidDataException("Binary mesh requires 32-bit indices.");
 			}
 
-			// Постоянные атрибуты разворачиваются в массивы на все вершины, поэтому вершины считаются по всей модели.
+			// Constant attributes are expanded to arrays over all vertices, so vertices are counted for the whole model.
 			budget.TakeVertices(count);
 			mesh.vertices = new Vector3[count];
 
@@ -328,7 +328,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			};
 		}
 
-		// Побитовое сравнение намеренное: Vector == в Unity сравнивает с эпсилоном, и запись стала бы с потерями.
+		// Bitwise comparison on purpose: Unity Vector == compares with an epsilon, which would make the encoding lossy.
 		private static void WriteAttribute<T>(BinaryWriter writer, T[] values, int count, Action<BinaryWriter, T> write, Func<T, T, bool> same)
 		{
 			if (values == null || values.Length != count)

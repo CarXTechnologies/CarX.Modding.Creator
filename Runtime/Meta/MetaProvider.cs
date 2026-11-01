@@ -32,8 +32,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public override string GetPath(string catalog, IModResources resource) => resource.Id;
 
 		/// <summary>
-		/// Документ, собранный более новым SDK (незнакомая версия формата), отклоняется с понятной ошибкой,
-		/// а не падает дальше по стеку на несовпадении данных.
+		/// A document built by a newer SDK (unknown format version) is rejected with a clear error
+		/// instead of failing further down the stack on mismatched data.
 		/// </summary>
 		private static IModResources EnsureSupportedVersion(T resource)
 		{

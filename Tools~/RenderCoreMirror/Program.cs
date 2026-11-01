@@ -7,8 +7,8 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
-	/// CLI зеркала rendercore (README.md рядом). Команды ядра — extract и check. Команды генератора (generate, update, legacy-diff)
-	/// регистрирует GenerationCommands; общие шаги (источник, чтение снимка, печать находок, коды выхода) — internal-методы ниже.
+	/// rendercore mirror CLI (see README.md next to it). Core commands are extract and check. Generator commands (generate, update, legacy-diff)
+	/// are registered by GenerationCommands; shared steps (source, snapshot reading, finding output, exit codes) are the internal methods below.
 	/// </summary>
 	internal static class Program
 	{
@@ -55,7 +55,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			}
 		}
 
-		/// <summary>Источник rendercore из --rendercore или --git/--ref/--override.</summary>
+		/// <summary>rendercore source from --rendercore or --git/--ref/--override.</summary>
 		internal static IRenderCoreSourceProvider CreateSource(RenderCoreMirrorArguments arguments)
 		{
 			string directory = arguments.Get("rendercore");
@@ -88,7 +88,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			return new GitRenderCoreSourceProvider(repository, arguments.Require("ref"), overrides);
 		}
 
-		/// <summary>Путь снимка из --lock или --sdk (&lt;sdk&gt;/Editor/RenderCoreMirror/RenderCoreLock.txt).</summary>
+		/// <summary>Snapshot path from --lock or --sdk (&lt;sdk&gt;/Editor/RenderCoreMirror/RenderCoreLock.txt).</summary>
 		internal static string ResolveLockPath(RenderCoreMirrorArguments arguments)
 		{
 			string lockPath = arguments.Get("lock");
@@ -118,13 +118,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			return RenderCoreLockText.Read(RenderCoreText.Decode(File.ReadAllBytes(path)), path);
 		}
 
-		/// <summary>Текст файла или пустая строка, если файла нет.</summary>
+		/// <summary>File text, or an empty string if the file is missing.</summary>
 		internal static string ReadTextOrEmpty(string path)
 		{
 			return File.Exists(path) ? RenderCoreText.Decode(File.ReadAllBytes(path)) : "";
 		}
 
-		/// <summary>UTF-8 без BOM, LF; файл не трогается, если текст тот же. Возвращает true, если записан.</summary>
+		/// <summary>UTF-8 without BOM, LF; the file is left untouched if the text is the same. Returns true if written.</summary>
 		internal static bool WriteText(string path, string text)
 		{
 			string normalized = RenderCoreText.Normalize(text);
@@ -140,7 +140,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			return true;
 		}
 
-		/// <summary>Печатает находки по уровням и возвращает код выхода: 0 — чисто или только Info, 2 Stale, 3 Breaking, 4 Error.</summary>
+		/// <summary>Prints findings by level and returns the exit code: 0 — clean or Info only, 2 Stale, 3 Breaking, 4 Error.</summary>
 		internal static int ReportFindings(IReadOnlyList<RenderCoreFinding> findings)
 		{
 			foreach (RenderCoreFinding finding in findings.OrderByDescending(finding => finding.tier))
@@ -187,8 +187,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		}
 
 		/// <summary>
-		/// Как меню Check и проверка сборки: отличия rendercore от снимка (варианты вне аннотаций — Info), ворота генератора на живом снимке,
-		/// а с --sdk — ещё и актуальность закоммиченной таблицы. Извлечение — с областью снимка: меряются только изменения rendercore.
+		/// Like the Check menu and the build check: rendercore differences from the snapshot (variants outside annotations are Info), generator gates
+		/// on the live snapshot, and with --sdk also the committed table freshness. Extraction uses the snapshot scope so only rendercore changes count.
 		/// </summary>
 		private static int Check(RenderCoreMirrorArguments arguments)
 		{
@@ -214,7 +214,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			Console.Error.WriteLine("Exit codes: 0 — clean or Info only, 1 — invalid arguments, 2 — Stale, 3 — Breaking, 4 — Error.");
 		}
 
-		/// <summary>Коммит рабочей копии для provenance (с "-dirty" при правках в папке) или null вне git.</summary>
+		/// <summary>Working copy commit for provenance (with "-dirty" if the folder has changes) or null outside git.</summary>
 		private static string DescribeWorkingCopy(string directory)
 		{
 			if (!GitProcess.TryRun(directory, new[] { "rev-parse", "HEAD" }, out byte[] head, out _))

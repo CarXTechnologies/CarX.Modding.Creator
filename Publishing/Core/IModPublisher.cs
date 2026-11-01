@@ -63,26 +63,22 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 			CancellationToken cancellationToken);
 
 		/// <summary>
-		/// Регистрирует новую запись вместе с собранным содержимым и возвращает выданный ей ключ.
-		/// Реализация не должна создавать запись, если содержимое нельзя опубликовать: недоделанная запись хуже
-		/// никакой, потому что вызывающий потом не отличит одну от другой.
+		/// Registers a new item together with the built content and returns its key.
+		/// Must not create the item if the content cannot be published: a half-made item is worse than none,
+		/// because the caller cannot tell them apart afterwards.
 		/// </summary>
-		/// <param name="progress">
-		/// Получатель хода операции, может быть null. Содержимое загружается вместе с записью, поэтому прогресс тот же,
-		/// что у <see cref="UploadItemAsync"/>.
-		/// </param>
+		/// <param name="progress">May be null. The content is uploaded with the item, so progress is the same as in <see cref="UploadItemAsync"/>.</param>
 		public Task<ModOperationResult<ModItemKey>> CreateItemAsync(
 			ModCreateRequest request,
 			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken);
 
-		/// <summary>Загружает собранную карту в существующую запись.</summary>
+		/// <summary>Uploads the built map into an existing item.</summary>
 		/// <param name="progress">
-		/// Получатель хода операции, может быть null. Сообщается этап и общая доля всей операции, которая не убывает;
-		/// доля 1 - только после успешного ответа площадки. Отчёты приходят на потоке, где идёт операция (в редакторе -
-		/// главный поток), уже прореженными: при смене этапа, иначе при смене целого процента или целого мебибайта
-		/// этапа и не чаще десяти раз в секунду; начало, конец подготовки и успех приходят без ожидания интервала, см.
-		/// <see cref="ModUploadProgressThrottle"/>.
+		/// May be null. Reports the stage and the non-decreasing fraction of the whole operation; 1 only after the platform
+		/// confirms success. Reports arrive on the operation thread (main thread in the editor), already throttled: on stage
+		/// change, otherwise on a whole percent or whole mebibyte change of the stage and at most ten times per second; start,
+		/// end of preparation and success are not delayed, see <see cref="ModUploadProgressThrottle"/>.
 		/// </param>
 		public Task<ModOperationResult> UploadItemAsync(
 			ModUploadRequest request,

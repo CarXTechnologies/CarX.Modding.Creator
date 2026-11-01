@@ -2,13 +2,13 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Запись materialVariantData из MaterialEditorSettings.asset.</summary>
+	/// <summary>materialVariantData entry from MaterialEditorSettings.asset.</summary>
 	public sealed class RenderCoreSettingsEntry
 	{
-		/// <summary>Поле name: метка, keyword берётся из enum.</summary>
+		/// <summary>Name field: a label; the keyword comes from the enum.</summary>
 		public readonly string name;
 
-		/// <summary>Поле variant (id члена enum).</summary>
+		/// <summary>Variant field (enum member id).</summary>
 		public readonly int id;
 
 		public readonly int line;
@@ -17,7 +17,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public readonly int queueOffset;
 		public readonly int renderType;
 
-		/// <summary>Строка как в asset; разбивает её RenderCoreExtractor.SplitKeywords.</summary>
+		/// <summary>String as in the asset; RenderCoreExtractor.SplitKeywords splits it.</summary>
 		public readonly string additionalKeywords;
 
 		public RenderCoreSettingsEntry(string name, int id, int line, IReadOnlyList<RenderCoreLockProperty> properties, int queueValue, int queueOffset,

@@ -12,21 +12,20 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Файлы зеркала rendercore в проекте Unity: снимок — рядом с asmdef сборки ядра, таблица — по GUID её .meta (SDK может лежать в Assets
-	/// или в Packages), пакет rendercore — через Package Manager (в MapUploader его нет). Где проверка обязана работать, решает
-	/// IsLoaderLoaded: загрузчик CarX.Modding есть только в игре.
+	/// rendercore mirror files in the Unity project: the snapshot lies next to the core assembly asmdef, the table is found by its .meta GUID
+	/// (the SDK may be in Assets or Packages), the rendercore package via Package Manager (absent in MapUploader). IsLoaderLoaded decides
+	/// where the check must work: the CarX.Modding loader exists only in the game.
 	/// </summary>
 	public static class RenderCoreMirrorUnityPaths
 	{
-		/// <summary>Сборка загрузчика модов: есть в игре (и там нужен rendercore), нет в MapUploader.</summary>
+		/// <summary>Mod loader assembly: present in the game (where rendercore is required), absent in MapUploader.</summary>
 		public const string LoaderAssemblyName = "CarX.Modding";
 
 		private const int GitTimeoutMilliseconds = 10000;
 
-		/// <summary>Полный путь RenderCoreLock.txt.</summary>
 		public static string LockPath => Path.Combine(GetAssemblyDirectory(RenderCoreMirrorPaths.MirrorAssemblyName), RenderCoreLockText.FileName);
 
-		/// <summary>Путь ModRenderCoreVariantTable.g.cs от корня проекта (для AssetDatabase.ImportAsset).</summary>
+		/// <summary>ModRenderCoreVariantTable.g.cs path from the project root (for AssetDatabase.ImportAsset).</summary>
 		public static string GeneratedTableAssetPath
 		{
 			get
@@ -42,16 +41,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Полный путь ModRenderCoreVariantTable.g.cs.</summary>
 		public static string GeneratedTablePath => Path.GetFullPath(FileUtil.GetPhysicalPath(GeneratedTableAssetPath));
 
-		/// <summary>Папка asmdef сборки (полный путь); нет asmdef — FileNotFoundException.</summary>
+		/// <summary>Full path of the assembly asmdef folder; FileNotFoundException if there is no asmdef.</summary>
 		public static string GetAssemblyDirectory(string assemblyName)
 		{
 			return Path.GetDirectoryName(Path.GetFullPath(FileUtil.GetPhysicalPath(GetAssemblyDefinitionAssetPath(assemblyName))));
 		}
 
-		/// <summary>Путь asmdef сборки от корня проекта ("Assets/…" или "Packages/…").</summary>
+		/// <summary>Assembly asmdef path from the project root ("Assets/…" or "Packages/…").</summary>
 		public static string GetAssemblyDefinitionAssetPath(string assemblyName)
 		{
 			string asmdef = CompilationPipeline.GetAssemblyDefinitionFilePathFromAssemblyName(assemblyName);
@@ -64,28 +62,29 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return asmdef.Replace('\\', '/');
 		}
 
-		/// <summary>Пакет com.carxtech.rendercore проекта или null (MapUploader).</summary>
+		/// <summary>The project's com.carxtech.rendercore package or null (MapUploader).</summary>
 		public static PackageInfo FindRenderCorePackage()
 		{
 			return PackageInfo.FindForPackageName(RenderCoreMirrorPaths.RenderCorePackageName);
 		}
 
 		/// <summary>
-		/// Загружена ли сборка загрузчика CarX.Modding, т.е. это игра. Без пакета rendercore проверка зеркала в игре не выключается: build guard
-		/// и Validation-тест считают это ошибкой, а в MapUploader (ни rendercore, ни загрузчика) пропускают.
+		/// Whether the CarX.Modding loader assembly is loaded, i.e. this is the game. Without the rendercore package the mirror check is not
+		/// silently disabled in the game: the build guard and the Validation test treat it as an error, and skip it in MapUploader (neither
+		/// rendercore nor the loader).
 		/// </summary>
 		public static bool IsLoaderLoaded()
 		{
 			return AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name == LoaderAssemblyName);
 		}
 
-		/// <summary>Пакет как источник снимка; коммит (для provenance) — из git рабочей копии пакета, если она есть.</summary>
+		/// <summary>The package as the snapshot source; the commit (for provenance) comes from the package's git working copy, if any.</summary>
 		public static IRenderCoreSourceProvider CreateRenderCoreSource(PackageInfo package)
 		{
 			return new DirectoryRenderCoreSourceProvider(package.resolvedPath, DescribeCommit(package.resolvedPath));
 		}
 
-		/// <summary>HEAD рабочей копии (с "-dirty" при правках в папке) или null: вне git, git не установлен, ошибка.</summary>
+		/// <summary>Working copy HEAD (with "-dirty" if the folder has changes) or null: outside git, git not installed, error.</summary>
 		private static string DescribeCommit(string directory)
 		{
 			string head = RunGit(directory, "rev-parse HEAD");
@@ -100,8 +99,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// stdout git или null. Чтение асинхронное, а ожидание ограничено GitTimeoutMilliseconds: зависший git (хук fsmonitor, дочерний процесс,
-		/// унаследовавший stdout) снимается, и главный поток Unity (проверка сборки, меню, Validation) не висит.
+		/// git stdout or null. Reading is asynchronous and waiting is limited by GitTimeoutMilliseconds: a hung git (fsmonitor hook, a child
+		/// process that inherited stdout) is killed so the Unity main thread (build check, menu, Validation) does not hang.
 		/// </summary>
 		private static string RunGit(string directory, string arguments)
 		{
@@ -130,7 +129,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 						return null;
 					}
 
-					// stdout мог унаследовать дочерний процесс git: конец потока ждём тоже не дольше таймаута.
+					// A git child process may have inherited stdout: wait for the end of the stream no longer than the timeout either.
 					if (!output.Wait(GitTimeoutMilliseconds) || process.ExitCode != 0)
 					{
 						return null;
@@ -141,7 +140,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (Win32Exception)
 			{
-				// git не установлен: provenance останется "unknown", на сравнение это не влияет.
+				// git is not installed: provenance stays "unknown", comparison is not affected.
 				return null;
 			}
 			catch (InvalidOperationException)
@@ -150,7 +149,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (AggregateException)
 			{
-				// Чтение stdout упало (поток закрыт при снятии процесса): provenance — "unknown".
+				// Reading stdout failed (stream closed when the process was killed): provenance is "unknown".
 				return null;
 			}
 		}
@@ -163,11 +162,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (InvalidOperationException)
 			{
-				// Уже завершился.
+				// Already exited.
 			}
 			catch (Win32Exception)
 			{
-				// Снять не удалось: остаётся системе, проверка продолжается без provenance.
+				// Could not kill it: left to the OS, the check continues without provenance.
 			}
 		}
 	}

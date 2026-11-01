@@ -5,18 +5,18 @@ using System.Globalization;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Маленький препроцессор HLSL для зеркала: #define/#undef, #if/#ifdef/#ifndef/#elif/#else/#endif с defined(), !, &amp;&amp;, ||, скобками,
-	/// сравнениями и целыми литералами. Макросы в коде не раскрываются. Неизвестное выражение в активной ветке — RCM002; мёртвые ветки
-	/// не вычисляются. Состояние define'ов живёт между вызовами Process, поэтому include'ы обрабатываются в том же порядке, что и в шейдере.
+	/// Small HLSL preprocessor for the mirror: #define/#undef, #if/#ifdef/#ifndef/#elif/#else/#endif with defined(), !, &amp;&amp;, ||, parentheses,
+	/// comparisons and integer literals. Macros in code are not expanded. An unknown expression in an active branch is RCM002; dead branches
+	/// are not evaluated. Define state lives across Process calls, so includes are processed in the same order as in the shader.
 	///
-	/// Логика трёхзначная. Имена, которые решаются не вариантом, а во время выполнения или платформой (SetUndecidable: keyword'ы прохода
-	/// вроде SHADING_*, APPLY_SSAO, DOTS_INSTANCING_ON и макросы SHADER_API_*, UNITY_* …), — «неизвестно»: условие на них не отбрасывает ни
-	/// одну ветку. Строки всех таких веток и сами директивы цепочки попадают в output, поэтому правка, видимая только на части платформ или
-	/// пресетов качества, меняет отпечаток. #define/#undef в такой ветке делает имя тоже неизвестным (MaybeDefined).
+	/// The logic is three-valued. Names decided at runtime or by the platform rather than by the variant (SetUndecidable: pass keywords
+	/// like SHADING_*, APPLY_SSAO, DOTS_INSTANCING_ON and SHADER_API_*, UNITY_* … macros) are "unknown": a condition on them drops no
+	/// branch. Lines of all such branches and the chain directives themselves go to output, so an edit visible only on some platforms or
+	/// quality presets changes the hash. #define/#undef in such a branch makes the name unknown too (MaybeDefined).
 	/// </summary>
 	public sealed class HlslConditionEvaluator
 	{
-		/// <summary>Макросы компилятора и платформы: значение зависит от сборки, а не от варианта.</summary>
+		/// <summary>Compiler and platform macros: the value depends on the build, not on the variant.</summary>
 		public static IReadOnlyList<string> PlatformPrefixes { get; } = new[] { "SHADER_API_", "SHADER_TARGET", "SHADER_STAGE_", "UNITY_" };
 
 		private const int MaxMacroDepth = 16;
@@ -28,18 +28,18 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		private bool m_platformUndecidable;
 		private HlslActivity m_ambient = HlslActivity.Active;
 
-		/// <summary>Точно активные define'ы: имя → значение (для функциональных макросов — "(args) тело").</summary>
+		/// <summary>Definitely active defines: name → value (for function-like macros "(args) body").</summary>
 		public IReadOnlyDictionary<string, string> Defines => m_defines;
 
-		/// <summary>Имена, определённые или снятые кодом в ветке с неизвестным условием: может быть так, а может иначе.</summary>
+		/// <summary>Names defined or undefined by code in a branch with an unknown condition: may go either way.</summary>
 		public IReadOnlyCollection<string> MaybeDefined => m_maybeDefined;
 
-		/// <summary>Текущий #include стоит в ветке с неизвестным условием (читать в обработчике include).</summary>
+		/// <summary>The current #include is in a branch with an unknown condition (read in the include handler).</summary>
 		public bool IncludeIsConditional { get; private set; }
 
 		/// <summary>
-		/// Какие имена неизвестны: runtimeKeywords — keyword'ы прохода, которые решает не вариант; platform — макросы с префиксами
-		/// PlatformPrefixes. Имя, явно заданное #define/#undef в точно активной ветке, становится известным.
+		/// Which names are unknown: runtimeKeywords — pass keywords not decided by the variant; platform — macros with the
+		/// PlatformPrefixes prefixes. A name explicitly set by #define/#undef in a definitely active branch becomes known.
 		/// </summary>
 		public void SetUndecidable(IEnumerable<string> runtimeKeywords, bool platform)
 		{
@@ -66,7 +66,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return m_defines.ContainsKey(name);
 		}
 
-		/// <summary>Определено ли имя, сказать нельзя: keyword времени выполнения, платформа или define в неизвестной ветке.</summary>
+		/// <summary>Whether the name is defined cannot be told: runtime keyword, platform, or define in an unknown branch.</summary>
 		public bool IsUndecidable(string name)
 		{
 			if (m_maybeDefined.Contains(name))
@@ -83,9 +83,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Проходит файл: ветки условий, #define/#undef. Для активного #include вызывает include(путь из кавычек, строка) — обработчик сам решает,
-		/// заходить ли внутрь (тем же экземпляром; ветка include'а наследует неизвестность). Активные строки и директивы, кроме условий решённых
-		/// цепочек, добавляются в output (комментарии убраны, пробелы схлопнуты, пустые пропущены); output может быть null.
+		/// Walks a file: condition branches, #define/#undef. For an active #include calls include(quoted path, line); the handler decides whether
+		/// to go inside (with the same instance; the include branch inherits unknownness). Active lines and directives, except the conditions of
+		/// decided chains, are added to output (comments removed, whitespace collapsed, empty lines skipped); output may be null.
 		/// </summary>
 		public void Process(string text, string path, Action<string, int> include, List<string> output)
 		{
@@ -116,8 +116,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				{
 					active = branches.Count == 0 ? ambient : branches[branches.Count - 1].active;
 
-					// Директивы решённых цепочек не пишутся: правка в мёртвой ветке отпечаток не меняет. У неизвестных — пишутся, чтобы
-					// "#if A x #else y #endif" отличалось от "x y".
+					// Directives of decided chains are not written: an edit in a dead branch does not change the hash. For unknown ones they are,
+					// so that "#if A x #else y #endif" differs from "x y".
 					if (undecidableChain)
 					{
 						output?.Add("#" + RenderCoreText.CollapseWhitespace(body));
@@ -155,7 +155,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Значение выражения #if при текущих define'ах (не 0 — истина); неизвестное — 0 (неопределённость видит только Process).</summary>
+		/// <summary>Value of an #if expression with the current defines (non-zero is true); unknown is 0 (only Process sees the uncertainty).</summary>
 		public long Evaluate(string expression, string path, int line)
 		{
 			var parser = new ExpressionParser(this, expression, path, line, depth: 0);
@@ -302,7 +302,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				return;
 			}
 
-			// У функционального макроса '(' стоит сразу за именем: список параметров остаётся в значении.
+			// A function-like macro has '(' right after the name: the parameter list stays in the value.
 			Define(name, argument.Substring(name.Length).Trim());
 		}
 
@@ -386,7 +386,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			public readonly HlslActivity taken;
 			public readonly bool seenElse;
 
-			/// <summary>В цепочке было условие с неизвестным значением: её директивы пишутся в output.</summary>
+			/// <summary>The chain had a condition with an unknown value: its directives are written to output.</summary>
 			public readonly bool undecidable;
 
 			public readonly int line;
@@ -402,7 +402,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Значение выражения #if: число или «неизвестно» (зависит от keyword'а времени выполнения или платформы).</summary>
+		/// <summary>A number or "unknown" (depends on a runtime keyword or platform).</summary>
 		private readonly struct HlslValue
 		{
 			public static HlslValue Unknown { get; } = new HlslValue(number: 0, known: false);
@@ -431,7 +431,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			public bool IsKnownFalse => known && number == 0;
 		}
 
-		/// <summary>Рекурсивный спуск: || → &amp;&amp; → ==/!= → &lt; &gt; &lt;= &gt;= → ! → (выражение) | defined | число | имя.</summary>
+		/// <summary>Recursive descent: || → &amp;&amp; → ==/!= → &lt; &gt; &lt;= &gt;= → ! → (expression) | defined | number | name.</summary>
 		private sealed class ExpressionParser
 		{
 			private readonly HlslConditionEvaluator m_owner;
@@ -468,7 +468,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				return value;
 			}
 
-			// Kleene: истина с любой стороны решает ||, ложь с любой стороны решает &&, даже если другая сторона неизвестна.
+			// Kleene: true on either side decides ||, false on either side decides &&, even if the other side is unknown.
 			private HlslValue ParseOr()
 			{
 				HlslValue value = ParseAnd();
@@ -650,7 +650,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				return ResolveIdentifier(identifier);
 			}
 
-			// Неопределённое имя — 0, как в C. Определённое — значение как выражение (с ограничением глубины); пустое значение — ошибка.
+			// An undefined name is 0, as in C. A defined one is its value as an expression (depth-limited); an empty value is an error.
 			private HlslValue ResolveIdentifier(string identifier)
 			{
 				if (m_owner.IsUndecidable(identifier))

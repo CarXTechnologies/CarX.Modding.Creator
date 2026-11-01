@@ -1,10 +1,10 @@
-// Фикстура RenderCoreMirrorScenarioTests: синтетический метод. Экстрактору нужны только имя SetupMaterialVariant, тело в скобках,
-// комментарии и строки со скобками внутри; операторы придуманы.
+// RenderCoreMirrorScenarioTests fixture: a synthetic method. The extractor needs only the SetupMaterialVariant name, the braced body,
+// comments and strings with braces inside; the statements are made up.
 public static class EditorUtils
 {
 	public static void SetupMaterialVariant(FixtureTarget target, FixtureEntry entry)
 	{
-		target.Prepare("{ fixture }"); // скобки в строке тело не закрывают
+		target.Prepare("{ fixture }"); // braces in a string do not close the body
 
 		foreach (string token in entry.Tokens)
 		{

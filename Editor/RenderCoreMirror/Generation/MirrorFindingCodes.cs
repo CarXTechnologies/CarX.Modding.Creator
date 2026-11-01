@@ -1,114 +1,114 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Коды ворот генератора (RCM010–RCM099): снимок против аннотаций. Находки — RenderCoreFinding. Любая Breaking или Error блокирует
-	/// генерацию: таблица не пишется (fail closed). Info — только сообщение. Коды сравнения снимков — RenderCoreFindingCodes (RCM1xx).
+	/// Generator gate codes (RCM010–RCM099): snapshot vs annotations. Any Breaking or Error finding blocks generation and the table
+	/// is not written (fail closed); Info is a message only. Snapshot comparison codes are in RenderCoreFindingCodes (RCM1xx).
 	/// </summary>
 	public static class MirrorFindingCodes
 	{
-		/// <summary>Предлагаемого варианта нет среди кандидатов снимка (переименован или удалён). Breaking.</summary>
+		/// <summary>An offered variant is not among the snapshot candidates (renamed or removed). Breaking.</summary>
 		public const string OfferedMissing = "RCM010";
 
-		/// <summary>Область аннотаций не совпадает с областью снимка: снимок извлекали для другой области. Stale.</summary>
+		/// <summary>Annotation scope differs from the snapshot scope: the snapshot was extracted for another scope. Stale.</summary>
 		public const string Scope = "RCM011";
 
-		/// <summary>Два аннотированных варианта (строки таблицы, доступные и недоступные) с одним id. Error.</summary>
+		/// <summary>Two annotated variants (table rows, available or not) share an id. Error.</summary>
 		public const string DuplicateId = "RCM012";
 
-		/// <summary>В asset несколько записей с id варианта, взята первая. Info.</summary>
+		/// <summary>The asset has several entries with the variant id; the first one is used. Info.</summary>
 		public const string DuplicateEntries = "RCM013";
 
-		/// <summary>Метка записи asset не совпадает с именем enum (keyword всегда берётся из enum). Breaking.</summary>
+		/// <summary>The asset entry label differs from the enum name (the keyword always comes from the enum). Breaking.</summary>
 		public const string LabelMismatch = "RCM014";
 
-		/// <summary>Вариант аннотирован дважды. Breaking.</summary>
+		/// <summary>A variant is annotated twice. Breaking.</summary>
 		public const string DuplicateAnnotation = "RCM015";
 
-		/// <summary>Ревизия меньше 1. Breaking.</summary>
+		/// <summary>Revision is less than 1. Breaking.</summary>
 		public const string Revision = "RCM016";
 
-		/// <summary>Keyword варианта или ALPHATEST объявлен не multi_compile* там, где нужен, или shader_feature* в каком-то проходе. Breaking.</summary>
+		/// <summary>The variant keyword or ALPHATEST is not declared multi_compile* where required, or is shader_feature* in some pass. Breaking.</summary>
 		public const string PassKind = "RCM020";
 
-		/// <summary>ALPHATEST в additionalKeywords и RenderType AlphaTest расходятся (или RenderType неизвестен). Breaking.</summary>
+		/// <summary>ALPHATEST in additionalKeywords disagrees with RenderType AlphaTest (or RenderType is unknown). Breaking.</summary>
 		public const string AlphaTest = "RCM021";
 
 		/// <summary>
-		/// Члены enum RenderType в rendercore (имена и числа) не равны MirrorRenderType/ModRenderCoreRenderType: rendercore пишет тег RenderType
-		/// именем члена, клиент — именем своего enum. Breaking.
+		/// RenderType enum members in rendercore (names and values) differ from MirrorRenderType/ModRenderCoreRenderType: rendercore writes the
+		/// RenderType tag by member name, the client by its own enum name. Breaking.
 		/// </summary>
 		public const string RenderTypeNames = "RCM022";
 
-		/// <summary>Свойство, которое не покрывает ни правило слотов, ни переопределение. Breaking.</summary>
+		/// <summary>A property covered by neither a slot rule nor an override. Breaking.</summary>
 		public const string UnknownSlot = "RCM031";
 
-		/// <summary>Тип свойства (asset или Properties шейдера) не тот, что ждёт слот, или свойства нет в Properties. Breaking.</summary>
+		/// <summary>The property type (asset or shader Properties) is not what the slot expects, or the property is missing from Properties. Breaking.</summary>
 		public const string SlotType = "RCM032";
 
-		/// <summary>Переопределение слота без причины, для отсутствующего свойства или невыразимое в таблице. Breaking.</summary>
+		/// <summary>A slot override without a reason, for a missing property, or not expressible in the table. Breaking.</summary>
 		public const string Override = "RCM033";
 
-		/// <summary>Ключ раскладки (Defs, MATERIALFEATURE_*/PACKED_MESH*, проходы альфа-теста) не совпадает с аннотацией. Breaking.</summary>
+		/// <summary>The layout key (Defs, MATERIALFEATURE_*/PACKED_MESH*, alpha-test passes) differs from the annotation. Breaking.</summary>
 		public const string LayoutKey = "RCM040";
 
-		/// <summary>Отпечаток декодирования (библиотеки Definitions и активные строки Func) не совпадает с проверенным. Breaking.</summary>
+		/// <summary>The decode fingerprint (Definitions libraries and active Func lines) differs from the reviewed one. Breaking.</summary>
 		public const string DecodeHash = "RCM041";
 
-		/// <summary>Неизвестный MATERIALFEATURE_* или файл Defs у предлагаемого варианта: правила не знают, что он делает. Breaking.</summary>
+		/// <summary>An unknown MATERIALFEATURE_* or Defs file in an offered variant: the rules do not know what it does. Breaking.</summary>
 		public const string UnknownFeature = "RCM042";
 
-		/// <summary>Каналы аннотации противоречат выведенным из define'ов. Breaking.</summary>
+		/// <summary>Annotated channels contradict the ones derived from defines. Breaking.</summary>
 		public const string Channels = "RCM043";
 
-		/// <summary>Каналы аннотированы без packed map или packed map без каналов (или не четыре канала). Breaking.</summary>
+		/// <summary>Channels annotated without a packed map, a packed map without channels, or not exactly four channels. Breaking.</summary>
 		public const string ChannelsShape = "RCM044";
 
 		/// <summary>
-		/// Конфигурация прохода выреза (DepthOnly/ShadowCaster) варианта альфа-теста не совпадает с проверенной (MirrorPassReview), её нет в
-		/// снимке или нет проверки. Breaking. Неиспользуемая проверка — Info.
+		/// The cutout pass config (DepthOnly/ShadowCaster) of an alpha-test variant differs from the reviewed one (MirrorPassReview), is missing
+		/// from the snapshot, or has no review. Breaking. An unused review is Info.
 		/// </summary>
 		public const string PassConfig = "RCM045";
 
-		/// <summary>[Gamma] текстуры в шейдере расходится с замороженным правилом префикса u_sTexture. Breaking.</summary>
+		/// <summary>A texture's [Gamma] in the shader disagrees with the frozen u_sTexture prefix rule. Breaking.</summary>
 		public const string Gamma = "RCM050";
 
-		/// <summary>Запекаемое содержимое изменилось при той же ревизии: поднять ревизию и дописать контракт. Breaking.</summary>
+		/// <summary>Baked content changed at the same revision: bump the revision and add a contract. Breaking.</summary>
 		public const string ContractChanged = "RCM052";
 
-		/// <summary>Свойство, перечисленное в контракте текущей ревизии, пропало: нужна новая ревизия. Breaking.</summary>
+		/// <summary>A property listed in the current revision's contract is gone: a new revision is required. Breaking.</summary>
 		public const string ContractPropertyRemoved = "RCM053";
 
-		/// <summary>Нет контракта для (вариант, ревизия) аннотации. Breaking.</summary>
+		/// <summary>No contract for the annotation's (variant, revision). Breaking.</summary>
 		public const string ContractMissing = "RCM054";
 
-		/// <summary>Два контракта для одной пары (вариант, ревизия). Breaking.</summary>
+		/// <summary>Two contracts for the same (variant, revision). Breaking.</summary>
 		public const string ContractDuplicate = "RCM055";
 
-		/// <summary>Варианту нужны потоки, которых нет у мешей модов, а причины недоступности в аннотации нет. Breaking.</summary>
+		/// <summary>The variant needs streams mod meshes do not have, and the annotation gives no unavailable reason. Breaking.</summary>
 		public const string Streams = "RCM060";
 
-		/// <summary>Использование цвета вершин, выведенное из define'ов, не совпадает с аннотацией. Breaking.</summary>
+		/// <summary>Vertex color usage derived from defines differs from the annotation. Breaking.</summary>
 		public const string VertexColors = "RCM061";
 
-		/// <summary>Неизвестный INPUT_NEED_*: неясно, какой поток он требует. Breaking.</summary>
+		/// <summary>Unknown INPUT_NEED_*: it is unclear which stream it requires. Breaking.</summary>
 		public const string UnknownStream = "RCM062";
 
-		/// <summary>Тело EditorUtils.SetupMaterialVariant не совпадает с проверенным (сверить клиент и обновить отпечаток). Breaking.</summary>
+		/// <summary>The EditorUtils.SetupMaterialVariant body differs from the reviewed one (check the client and update the fingerprint). Breaking.</summary>
 		public const string Setup = "RCM070";
 
 		/// <summary>
-		/// Подсказка Export from material ссылается на неаннотированный или недоступный вариант либо на вариант другого RenderType — Breaking;
-		/// ключ подсказки (RenderType, нормаль, эмиссия, растительность) повторяется — Error.
+		/// An Export from material suggestion points to an unannotated or unavailable variant or to a variant of another RenderType — Breaking;
+		/// a repeated suggestion key (RenderType, normal, emission, foliage) — Error.
 		/// </summary>
 		public const string Suggestion = "RCM080";
 
-		/// <summary>Кандидат снимка без аннотации: в таблицу не попадает. Info.</summary>
+		/// <summary>A snapshot candidate without an annotation: not included in the table. Info.</summary>
 		public const string NotAnnotated = "RCM090";
 
-		/// <summary>Закоммиченная таблица не равна generate(снимок, аннотации). Stale.</summary>
+		/// <summary>The committed table differs from generate(snapshot, annotations). Stale.</summary>
 		public const string TableOutdated = "RCM091";
 
-		/// <summary>Закоммиченный снимок не проходит ворота генератора: таблицу из него не построить. Breaking.</summary>
+		/// <summary>The committed snapshot fails the generator gates: no table can be built from it. Breaking.</summary>
 		public const string TableBlocked = "RCM092";
 	}
 }

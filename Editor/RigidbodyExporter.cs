@@ -25,7 +25,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			foreach (var path in paths)
 			{
-				// Read/Write включается временно: исходное значение вернёт ExportImporterSettings.RestoreAll в конце экспорта.
+				// Read/Write is enabled temporarily: ExportImporterSettings.RestoreAll restores the original value at the end of export.
 				if (ExportImporterSettings.MakeModelReadable(path))
 				{
 					Debug.Log($"Map build: temporarily enabled mesh Read/Write for '{path}'.");

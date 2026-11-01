@@ -17,12 +17,12 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public bool mergeCompatibleMeshes = true;
 		[Min(1)] public float sectorSize = DefaultSectorSize;
 		[Min(128)] public int maxTriangles = 8192;
-		// Коллайдеры режутся крупнее рендер-мешей: число тел и файлов меньше, BVH mesh-коллайдера держит большие куски.
+		// Colliders are split coarser than render meshes: fewer bodies and files, and a mesh collider BVH handles large chunks.
 		[Min(1)] public float colliderSectorSize = DefaultColliderSectorSize;
 		[Min(128)] public int colliderMaxTriangles = DefaultColliderMaxTriangles;
-		// Кусок материала меньше порога переносится в соседний сектор того же типа, а не становится отдельным сабмешем/мешем. 0 — выключено.
+		// A material piece below the threshold is moved to a neighbor sector of the same type instead of becoming a separate submesh/mesh. 0 disables it.
 		[Min(0)] public int minSectorTriangles = DefaultMinSectorTriangles;
-		// По умолчанию выключено: упрощённая сетка коллайдера расходится с видимой геометрией (кочки, щели на стыках дороги).
+		// Off by default: a simplified collider mesh diverges from the visible geometry (bumps, gaps at road seams).
 		public bool simplifyColliders = false;
 		[Range(0.1f, 1)] public float colliderTriangleRatio = 0.5f;
 		[Min(0)] public float colliderErrorMeters = 0.01f;

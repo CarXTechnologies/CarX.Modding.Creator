@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Входной файл снимка: роль и путь от корня пакета. Пути — только справка (Info), файлы ищутся по имени.</summary>
+	/// <summary>Snapshot input file: role and path from the package root. Paths are reference only (Info); files are found by name.</summary>
 	public sealed class RenderCoreLockFile
 	{
 		public const string EnumRole = "enum";
@@ -11,10 +11,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public const string FunctionsRole = "functions";
 		public const string PackageRole = "package";
 
-		/// <summary>Префикс роли файла Definitions/*: "defs:BaseMaterialDefs".</summary>
+		/// <summary>Role prefix of a Definitions/* file: "defs:BaseMaterialDefs".</summary>
 		public const string DefsRolePrefix = "defs:";
 
-		/// <summary>Префикс роли файла Functions/*: "func:BaseMaterialFunc".</summary>
+		/// <summary>Role prefix of a Functions/* file: "func:BaseMaterialFunc".</summary>
 		public const string FuncRolePrefix = "func:";
 
 		public readonly string role;

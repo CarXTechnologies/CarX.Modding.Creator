@@ -1,9 +1,9 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Код директивы <c>ds</c> в .mtl мода. Нет директивы или 0 — односторонний материал; 1 — Mirror; 2 — None; 3 — Flip.
-	/// Коды 1 и 2 совпадают с прежним форматом (1 — вершины обратной стороны с развёрнутой нормалью, 2 — без разворота),
-	/// поэтому опубликованные моды выглядят как раньше. Старый клиент читает 3 как двусторонний без разворота (None).
+	/// Code of the <c>ds</c> directive in a mod .mtl. No directive or 0: single-sided; 1: Mirror; 2: None; 3: Flip.
+	/// Codes 1 and 2 match the previous format (1: back face vertices with flipped normal, 2: no flip), so published mods
+	/// look the same. An old client reads 3 as double-sided without flip (None).
 	/// </summary>
 	public static class MtlDoubleSidedCode
 	{
@@ -16,7 +16,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return code > 0.5f;
 		}
 
-		/// <summary>Режим нормали двустороннего материала; коды вне диапазона — ближайший известный.</summary>
+		/// <summary>Out-of-range codes map to the closest known mode.</summary>
 		public static ModDoubleSidedNormalMode ToNormalMode(float code)
 		{
 			if (code > 2.5f)

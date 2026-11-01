@@ -6,7 +6,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		Map,
 		Sequence,
 
-		/// <summary>Якорь, тег, блочный скаляр или непустая flow-коллекция: ошибка RCM002 при первом обращении (неизвестные ключи не мешают).</summary>
+		/// <summary>Anchor, tag, block scalar or non-empty flow collection: RCM002 on first access (unknown keys do not interfere).</summary>
 		Unsupported
 	}
 }

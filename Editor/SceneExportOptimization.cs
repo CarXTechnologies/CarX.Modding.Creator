@@ -14,17 +14,17 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Сборка статики сцены в секторы перед экспортом. Рендер: один меш на ячейку (и совместимые настройки рендерера)
-	/// с сабмешем на материал; меши секторов собираются в группы с общей библиотекой материалов (один файл геометрии и
-	/// один .mtl на группу). Коллайдеры: свой, более крупный сектор. Мелкие куски переносятся в соседний сектор.
+	/// Builds scene statics into sectors before export. Render: one mesh per cell (and compatible renderer settings) with a submesh per
+	/// material; sector meshes are grouped with a shared material library (one geometry file and one .mtl per group). Colliders use their
+	/// own, larger sector. Small pieces move to a neighbouring sector.
 	/// </summary>
 	public sealed class SceneExportOptimization : IDisposable
 	{
-		// Task.Delay(1) на Windows стоит ~15 мс: уступаем редактору раз в интервал, а не на каждый объект.
+		// Task.Delay(1) costs ~15 ms on Windows: yield to the editor once per interval, not per object.
 		private const long YieldIntervalMilliseconds = 50;
-		// Базовых треугольников секторов на группу материалов: текстовый OBJ группы с LOD остаётся в лимите размера файла рантайма.
+		// Base sector triangles per material group: the group's text OBJ with LODs stays within the runtime file size limit.
 		private const int GroupTriangleBudget = 1000000;
-		// Блок ячеек при упорядочивании секторов по группам: соседние секторы попадают в одну группу и делят материалы.
+		// Cell block when ordering sectors into groups: neighbouring sectors land in one group and share materials.
 		private const int GroupBlockShift = 2;
 
 		private sealed class Chunk
@@ -126,8 +126,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return false;
 			}
 
-			// Road и Material не мешают склейке: поверхность входит в ключ сектора, переопределённый материал — отдельный сабмеш
-			// (вариант с цветом вершин слоёв — ещё и отдельный ключ, см. AddMesh).
+			// Road and Material do not prevent merging: the surface is part of the sector key, an overridden material is a separate submesh
+			// (a variant with layer vertex colors is also a separate key, see AddMesh).
 			for (Transform t = transform; t != null; t = t.parent)
 			{
 				if (t.CompareTag("Garbage") || t.GetComponents<Component>().Any(c => c is IMarkerDataSource marker && marker.MarkerHead != "Road" &&
@@ -313,13 +313,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			Material[] materials = physics ? null : RenderCoreMaterialOverrides.Resolve(transform.gameObject, renderer.sharedMaterials);
-			// Материал — не часть ключа рендер-сектора: материалы ячейки становятся сабмешами одного меша.
+			// Material is not part of the render sector key: the cell's materials become submeshes of one mesh.
 			string compatibility = physics
 				? $"C:{transform.gameObject.layer}:{(collider.sharedMaterial != null ? collider.sharedMaterial.GetInstanceID() : 0)}:{collider.cookingOptions}"
 				: $"R:{transform.gameObject.layer}:{renderer.shadowCastingMode}:{renderer.receiveShadows}:{renderer.renderingLayerMask}:{renderer.motionVectorGenerationMode}:{renderer.lightProbeUsage}:{renderer.reflectionProbeUsage}";
 
-			// Кроме цвета вершин слоёв: клиент не перекрашивает в белый меш с LayerBlend, и в общем меше цвет вершин окрасил бы эмиссию
-			// соседних объектов. Объекты с LayerBlend склеиваются только между собой; ключ остальных прежний.
+			// Except layer vertex colors: the client does not repaint a LayerBlend mesh white, so in a shared mesh vertex color would tint the
+			// emission of neighbouring objects. LayerBlend objects merge only with each other; the key of the others is unchanged.
 			if (!physics && materials.Any(material => RenderCoreMaterialOverrides.GetVertexColorUsage(material) == ModRenderCoreVertexColors.LayerBlend))
 			{
 				compatibility += ":vertexColors:" + ModRenderCoreVertexColors.LayerBlend;
@@ -352,7 +352,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					bucket.Add(material, materialId, a, b, c, maxTriangles);
 				}
 
-				// Делегат один на сабмеш, а не на треугольник.
+				// One delegate per submesh, not per triangle.
 				Action<Vector3Int, SectorMeshGeometry.Vertex, SectorMeshGeometry.Vertex, SectorMeshGeometry.Vertex> emit = Emit;
 				int[] indices = mesh.GetTriangles(sub);
 				InputTriangles += indices.Length / 3;
@@ -366,10 +366,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Кусок материала меньше порога (обрезок объекта на границе ячейки) переносится в соседний сектор той же группы
-		/// совместимости, где этого материала не меньше порога: лишний сабмеш (draw call) не появляется. Если такого соседа нет,
-		/// а весь сектор меньше порога — переносится в самый крупный соседний сектор, чтобы не плодить меш с LOD.
-		/// Перенос идёт только в «устойчивые» по порогу секторы, поэтому цепочек переносов по материалу нет.
+		/// A material piece below the threshold (an object trimmed at the cell border) moves to a neighbouring sector of the same compatibility
+		/// group that has at least the threshold of this material, so no extra submesh (draw call) appears. Without such a neighbour, if the
+		/// whole sector is below the threshold, it moves to the largest neighbouring sector to avoid a separate mesh with LODs.
+		/// Pieces move only into sectors that are stable by the threshold, so there are no transfer chains per material.
 		/// </summary>
 		private void MergeSmallPieces(BuildOptimizationSettings s)
 		{
@@ -457,8 +457,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Куски сектора раскладываются по мешам (first-fit по убыванию до лимита треугольников): материал целиком —
-		/// один сабмеш, поэтому число draw calls не растёт, а мешей — не больше, чем при меше на материал.
+		/// Sector pieces are packed into meshes (first-fit decreasing up to the triangle limit): a whole material is one submesh, so draw calls
+		/// do not grow and there are no more meshes than with a mesh per material.
 		/// </summary>
 		private static List<List<Chunk>> Pack(List<Chunk> chunks, int maxTriangles)
 		{
@@ -576,9 +576,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Секторы (со всеми LOD) раскладываются по группам материалов: соседние блоки ячеек подряд, до бюджета треугольников.
-		/// Библиотека группы — все материалы её секторов; рантайм создаёт материал на пару (группа, материал),
-		/// поэтому групп мало, а не по одной на каждое сочетание материалов ячейки.
+		/// Sectors (with all LODs) are assigned to material groups: neighbouring cell blocks in a row, up to the triangle budget.
+		/// A group's library is all materials of its sectors; the runtime creates a material per (group, material) pair, so there are few
+		/// groups rather than one per cell material combination.
 		/// </summary>
 		private void AssignMaterialGroups()
 		{

@@ -9,13 +9,13 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Бинарный документ с DTO мода. Создаются только типы известной вызывающему коду схемы:
-	/// имена CLR-типов и нативные раскладки из карты не загружаются.
-	/// Версия 1 — только чтение уже опубликованных модов: все поля документа должны быть известны схеме,
-	/// поля, добавленные в DTO позже, допускаются; удалять и переименовывать поля нельзя.
-	/// Версия 2 — таблица строк и длина у каждого поля: незнакомые поля пропускаются, поэтому добавление поля в DTO
-	/// не ломает старые .cxmod. Отсутствующее в документе поле класса получает значение инициализатора — для этого
-	/// у каждого класса схемы нужен конструктор без параметров (можно приватный); поле структуры всегда получает default.
+	/// Binary document with mod DTOs. Only types of the schema known to the caller are created:
+	/// CLR type names and native layouts are never loaded from the map.
+	/// Version 1 is read-only for already published mods: all document fields must be known to the schema;
+	/// fields added to DTOs later are allowed, removing or renaming fields is not.
+	/// Version 2 has a string table and a length per field: unknown fields are skipped, so adding a DTO field
+	/// does not break old .cxmod files. A class field missing from the document gets its initializer value, so every
+	/// schema class needs a parameterless constructor (may be private); a struct field always gets default.
 	/// </summary>
 	public static class BinaryModData
 	{
@@ -35,7 +35,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return bytes != null && bytes.Length >= 4 && BitConverter.ToUInt32(bytes, 0) == Magic;
 		}
 
-		/// <summary>Версия формата документа или -1, если это не бинарный документ.</summary>
+		/// <summary>Document format version, or -1 if this is not a binary document.</summary>
 		public static int GetVersion(byte[] bytes)
 		{
 			if (!IsBinary(bytes) || bytes.Length < 8)
@@ -103,7 +103,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			ConstructorInfo constructor = GetSchema(type).constructor;
 
-			// Через конструктор, чтобы у отсутствующих в документе полей сработали инициализаторы.
+			// Through the constructor so that fields missing from the document get their initializers.
 			return constructor != null ? constructor.Invoke(null) : FormatterServices.GetUninitializedObject(type);
 		}
 

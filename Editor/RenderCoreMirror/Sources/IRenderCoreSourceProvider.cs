@@ -3,21 +3,20 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Источник файлов пакета com.carxtech.rendercore: папка (меню в игре, тесты) или git-коммит (CLI, без checkout рабочей копии Dr3PC2).
-	/// Пути — от корня пакета через '/'.
+	/// Source of com.carxtech.rendercore package files: a folder (game menu, tests) or a git commit (CLI, without checking out the Dr3PC2 working copy).
+	/// Paths are relative to the package root, separated by '/'.
 	/// </summary>
 	public interface IRenderCoreSourceProvider
 	{
-		/// <summary>Откуда читаем: для сообщений.</summary>
+		/// <summary>Where we read from, for messages.</summary>
 		string Description { get; }
 
-		/// <summary>Коммит rendercore или null, если неизвестен (идёт только в provenance снимка).</summary>
+		/// <summary>rendercore commit or null if unknown (used only in the snapshot provenance).</summary>
 		string Commit { get; }
 
-		/// <summary>Все файлы пакета.</summary>
 		IReadOnlyList<string> ListFiles();
 
-		/// <summary>Текст файла: UTF-8 без BOM, переводы строк — LF (RenderCoreText.Decode). Ошибка чтения — RenderCoreMirrorException RCM001.</summary>
+		/// <summary>UTF-8 without BOM, LF line breaks (RenderCoreText.Decode). A read error is RenderCoreMirrorException RCM001.</summary>
 		string ReadText(string path);
 	}
 }

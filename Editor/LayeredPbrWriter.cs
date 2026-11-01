@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Экспорт материала HDRP Layered Lit в документ <see cref="ModPbrMaterial"/> (.pbr.json) с текстурами слоёв.</summary>
+	/// <summary>Exports an HDRP Layered Lit material to a <see cref="ModPbrMaterial"/> document (.pbr.json) with layer textures.</summary>
 	internal static class LayeredPbrWriter
 	{
 		private static readonly string[] s_unsupportedOptions = { "_UseHeightBasedBlend", "_UseDensityMode", "_UseMainLayerInfluence", "_UVBlendMask" };
 
-		/// <summary>Имя записанного .pbr.json или null, если материал не Layered Lit.</summary>
+		/// <summary>Name of the written .pbr.json, or null if the material is not Layered Lit.</summary>
 		public static string Write(Material material, string directory)
 		{
 			if (!material.HasProperty("_LayerCount"))
@@ -42,7 +42,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				surface = surface
 			};
 
-			// Альфа слоёв нужна только прозрачному материалу и альфа-тесту: у непрозрачного без cutoff HDRP её не использует.
+			// Layer alpha is needed only for transparent and alpha-test materials: HDRP does not use it for opaque without a cutoff.
 			bool usesAlpha = surface != ModPbrSurfaceType.Opaque || cutoff > 0;
 
 			for (int i = 0; i < count; i++)
@@ -56,9 +56,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Слой документа. Alpha Remapping слоя запекается по формуле HDRP 17 (LitDataIndividualLayer):
-		/// альфа слоя = lerp(_AlphaRemapMin, _AlphaRemapMax, _BaseColorMap.a * _BaseColor.a) — в альфу копии diffuse
-		/// (тогда color.a = 1), а без карты — сразу в color.a. Альфа материала, как в HDRP, — сумма альф слоёв по весам.
+		/// Layer Alpha Remapping is baked per the HDRP 17 formula (LitDataIndividualLayer): layer alpha =
+		/// lerp(_AlphaRemapMin, _AlphaRemapMax, _BaseColorMap.a * _BaseColor.a) goes into the alpha of a diffuse copy (then color.a = 1),
+		/// or straight into color.a without a map. Material alpha, as in HDRP, is the weighted sum of layer alphas.
 		/// </summary>
 		private static ModPbrLayer CreateLayer(Material material, int index, string directory, bool usesAlpha)
 		{
@@ -102,7 +102,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			};
 		}
 
-		/// <summary>HDRP _SurfaceType: 0 — Opaque, 1 — Transparent. Blending Mode Additive/Premultiply клиент не поддерживает — смешивается как Alpha.</summary>
+		/// <summary>HDRP _SurfaceType: 0 Opaque, 1 Transparent. The client does not support Additive/Premultiply blending, it blends as Alpha.</summary>
 		private static ModPbrSurfaceType GetSurfaceType(Material material)
 		{
 			if (GetFloat(material, "_SurfaceType", fallback: 0) < 0.5f)
@@ -122,8 +122,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Alpha Remapping слоя HDRP Layered Lit (_AlphaRemapMin{i}/_AlphaRemapMax{i}). false — ремапа нет, он тождественный (0..1) или
-		/// материал не Transparent (<see cref="MtlTextureMapWriter.AppliesAlphaRemap"/>).
+		/// HDRP Layered Lit layer Alpha Remapping (_AlphaRemapMin{i}/_AlphaRemapMax{i}). false: no remap, identity (0..1), or the material
+		/// is not Transparent (<see cref="MtlTextureMapWriter.AppliesAlphaRemap"/>).
 		/// </summary>
 		private static bool TryGetAlphaRemap(Material material, int index, out Vector2 alphaRemap)
 		{
@@ -196,8 +196,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Копия diffuse с альфой lerp(min, max, a * <paramref name="colorAlpha"/>); RGB без изменений. Суффикс ремапа в имени —
-		/// чтобы не схлопнуть с копией той же карты без ремапа или с другим ремапом. null — у слоя нет карты.
+		/// Diffuse copy with alpha lerp(min, max, a * <paramref name="colorAlpha"/>); RGB unchanged. The remap suffix in the name keeps it from
+		/// colliding with a copy of the same map without a remap or with another remap. null if the layer has no map.
 		/// </summary>
 		private static string WriteAlphaRemappedTexture(Material material, string key, Vector2 alphaRemap, float colorAlpha, string directory)
 		{

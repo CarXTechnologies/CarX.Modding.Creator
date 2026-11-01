@@ -14,9 +14,9 @@ using Debug = UnityEngine.Debug;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Экспорт мешей сцены в группы по набору материалов: .obj или бинарная модель плюс .mtl с текстурами.
-	/// Имена файлов и объектов строятся из стабильных id (<see cref="MeshExportUtility"/>), поэтому повторный экспорт
-	/// той же сцены даёт те же имена. Существующие файлы перезаписываются, а не пропускаются и не дописываются.
+	/// Exports scene meshes in groups by material set: .obj or a binary model plus .mtl with textures. File and object names come from
+	/// stable ids (<see cref="MeshExportUtility"/>), so re-exporting the same scene gives the same names. Existing files are overwritten,
+	/// not skipped or appended.
 	/// </summary>
 	public class UnityGoObjExporter
 	{
@@ -30,9 +30,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		public bool Binary { get; set; }
 
 		/// <summary>
-		/// Сбрасывает состояние экспорта: очереди, кэши id и текстур, GPU-ресурсы Blit,
-		/// прокси-материалы маркера Material и возвращает настройки импорта исходных ассетов.
-		/// Вызывается в конце сборки мода (MapUploader — в finally сборки, в том числе после ошибки или отмены).
+		/// Resets export state: queues, id and texture caches, Blit GPU resources, Material marker proxy materials, and restores the import
+		/// settings of source assets. Called at the end of a mod build (MapUploader calls it in the build's finally, including after an error
+		/// or cancellation).
 		/// </summary>
 		public static void ClearCache()
 		{
@@ -41,8 +41,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Читаемая несжатая версия текстуры (ассет с временно изменённым импортёром или временная копия).
-		/// Импортёр возвращается в <see cref="ClearCache"/>.
+		/// Readable uncompressed texture (the asset with a temporarily changed importer, or a temporary copy). The importer is restored in
+		/// <see cref="ClearCache"/>.
 		/// </summary>
 		public static Texture2D EnsureTextureIsReadableAndUncompressed(Texture2D texture)
 		{
@@ -84,7 +84,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					cancellationToken.ThrowIfCancellationRequested();
 					progress?.Invoke((float)i / groups.Count);
 
-					// Task.Delay(1) на Windows стоит ~15 мс: уступаем редактору по бюджету времени, а не на каждую группу.
+					// Task.Delay(1) costs ~15 ms on Windows: yield to the editor by time budget, not per group.
 					if (cooperative && yieldTimer.ElapsedMilliseconds >= YieldIntervalMilliseconds)
 					{
 						await Task.Delay(1, cancellationToken);
@@ -105,8 +105,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			finally
 			{
-				// Прокси-материалы маркера Material здесь не сбрасываются: RenderCoreMaterialOverrides.Enabled задаёт
-				// сборка мода целиком, и он живёт до ClearCache в её конце.
+				// Material marker proxies are not reset here: RenderCoreMaterialOverrides.Enabled is set by the whole mod build and lives until
+				// ClearCache at its end.
 				ClearExportState();
 			}
 		}
@@ -145,9 +145,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Коллайдеры каталога пишутся общими файлами, а не файлом на коллайдер: рантайм находит коллайдер по имени объекта
-		/// (collider_&lt;id&gt;) среди всех загруженных групп. Файл ограничен по треугольникам, чтобы текстовый OBJ
-		/// оставался в лимите размера файла и группы грузились параллельно.
+		/// Catalog colliders are written to shared files, not a file per collider: the runtime finds a collider by object name
+		/// (collider_&lt;id&gt;) among all loaded groups. A file is limited by triangles so the text OBJ stays within the file size limit
+		/// and groups load in parallel.
 		/// </summary>
 		private static string NextColliderGroup(Dictionary<string, (int index, long triangles)> colliderGroups, string directory, Mesh mesh)
 		{
@@ -179,7 +179,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			string modelPath = Path.Combine(group.directory, group.name + (Binary ? BinaryModModelCodec.Extension : ".obj"));
 			Directory.CreateDirectory(group.directory);
 
-			// Файл перезаписывается всегда: при повторном экспорте в тот же каталог изменённая геометрия не должна теряться.
+			// Always overwrite: when re-exporting into the same catalog, changed geometry must not be lost.
 			if (Binary)
 			{
 				BinaryModModel model = BinaryModelCollector.Collect(group.name, group.meshes);

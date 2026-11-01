@@ -5,11 +5,11 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// generate(снимок, аннотации): строит данные ModRenderCoreVariantTable.g.cs и проверяет ворота. Rendercore владеет id, очередью, RenderType,
-	/// keyword'ами и списком свойств с текстами; аннотации — тем, что запекается в опубликованные моды. Всё, что меняет запечённое без
-	/// решения человека (раскладка, декодирование, вырез в DepthOnly/ShadowCaster, [Gamma], цвет вершин, потоки, имена RenderType, setup,
-	/// контракт без новой ревизии), — Breaking, и таблица не строится (fail closed). Механические изменения (id, очередь, keyword'ы,
-	/// добавленные свойства) просто попадают в таблицу.
+	/// generate(snapshot, annotations): builds ModRenderCoreVariantTable.g.cs data and checks the gates. Rendercore owns the id, queue,
+	/// RenderType, keywords and the property list with texts; annotations own what is baked into published mods. Anything that changes
+	/// baked data without a human decision (layout, decoding, DepthOnly/ShadowCaster cutout, [Gamma], vertex colors, streams, RenderType
+	/// names, setup, contract without a new revision) is Breaking and the table is not built (fail closed). Mechanical changes (id, queue,
+	/// keywords, added properties) just go into the table.
 	/// </summary>
 	public static class MirrorGenerator
 	{
@@ -251,7 +251,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					Add(findings, MirrorFindingCodes.Override, RenderCoreFindingTier.Breaking, subject, reason);
 				}
 
-				// Помощники таблицы: текстуры без подписей компонент, у Value слой всегда 0, каналы — только у packed map (Surface).
+				// Table helpers: textures have no component labels, Value layer is always 0, channels exist only for the packed map (Surface).
 				IReadOnlyList<string> vectorLabels = type != MirrorPropertyType.Texture && property.vectorLabels.Count > 0 ? property.vectorLabels.ToList() : null;
 				IReadOnlyList<MirrorChannel> channels = role == MirrorSource.Surface ? annotation.channels : null;
 				properties.Add(new MirrorProperty(property.name, property.label, property.tooltip, type, role, layer, defaultValue, vectorLabels, channels));
@@ -368,7 +368,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Какие объявления нужны: keyword варианта и additionalKeywords — в Forward, ALPHATEST — в DepthOnly и ShadowCaster.</summary>
+		/// <summary>Required declarations: variant keyword and additionalKeywords in Forward, ALPHATEST in DepthOnly and ShadowCaster.</summary>
 		private static void CollectPassRequirements(RenderCoreLockVariant source, SortedDictionary<string, List<string>> passUsers)
 		{
 			AddPassUser(passUsers, RenderCoreLock.ForwardPass, source.name, source.name);
@@ -405,7 +405,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				}
 			}
 
-			// shader_feature* вырезается, если ни один материал сборки его не включает, — нельзя ни в одном проходе.
+			// shader_feature* is stripped when no material in the build enables it, so it is not allowed in any pass.
 			foreach (string pass in RenderCoreLock.TrackedPasses)
 			{
 				foreach (string keyword in keywords)
@@ -422,8 +422,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Вырез вариантов альфа-теста делают DepthOnly и ShadowCaster (Forward рисует с ZTest Equal): то, что они компилируют для keyword'ов
-		/// варианта, должно совпадать с проверенным (MirrorPassReview). Одна находка на конфигурацию, со списком вариантов.
+		/// Alpha-test variants are cut by DepthOnly and ShadowCaster (Forward draws with ZTest Equal): what they compile for the variant
+		/// keywords must match the reviewed config (MirrorPassReview). One finding per config, listing the variants.
 		/// </summary>
 		private static void CheckPassConfigs(RenderCoreLock lockData, MirrorAnnotationSet annotations, List<RenderCoreLockVariant> alphaTestSources,
 			List<RenderCoreFinding> findings)
@@ -479,8 +479,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// SetupMaterialVariant пишет тег RenderType именем члена rendercore RenderType, клиент — именем ModRenderCoreRenderType (= MirrorRenderType):
-		/// имена и числа должны совпадать полностью.
+		/// SetupMaterialVariant writes the RenderType tag by the rendercore RenderType member name, the client by the ModRenderCoreRenderType
+		/// (= MirrorRenderType) name: names and values must match exactly.
 		/// </summary>
 		private static void CheckRenderTypes(RenderCoreLock lockData, List<RenderCoreFinding> findings)
 		{
@@ -506,8 +506,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Каждая подсказка (и растительности) ведёт на доступный вариант таблицы с тем же RenderType; ключ (RenderType, нормаль, эмиссия,
-		/// растительность) не повторяется — иначе ModRenderCoreVariants.Suggest молча берёт первую.
+		/// Every suggestion (foliage included) points to an available table variant with the same RenderType; the key (RenderType, normal,
+		/// emission, foliage) is unique, otherwise ModRenderCoreVariants.Suggest silently takes the first one.
 		/// </summary>
 		private static void CheckSuggestions(MirrorAnnotationSet annotations, List<MirrorVariant> variants, List<RenderCoreFinding> findings)
 		{

@@ -25,7 +25,7 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 
 		static ModPublisherSession()
 		{
-			// Дефайны вендоров синхронизируются только там, где реально работают с публикацией, а не на каждой загрузке домена.
+			// Vendor defines are synced only where publishing actually happens, not on every domain load.
 			ModPublishingDefines.ScheduleSync();
 		}
 

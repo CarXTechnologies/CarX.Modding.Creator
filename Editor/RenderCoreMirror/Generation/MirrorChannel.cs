@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Копия Runtime ModRenderCoreChannel для ядра без UnityEngine: имена и числа совпадают (проверяет тест таблицы).</summary>
+	/// <summary>Copy of Runtime ModRenderCoreChannel for the core without UnityEngine: names and values match (checked by the table test).</summary>
 	public enum MirrorChannel
 	{
 		Zero = 0,

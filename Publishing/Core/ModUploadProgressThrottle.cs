@@ -3,21 +3,18 @@ using System.Diagnostics;
 
 namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 {
-	/// <summary>
-	/// Прослойка между SDK площадки и получателем прогресса: не даёт общей доле убывать и прореживает отчёты.
-	/// </summary>
+	/// <summary>Sits between the platform SDK and the progress receiver: keeps the overall fraction from decreasing and throttles reports.</summary>
 	/// <remarks>
-	/// SDK площадок сообщают о загрузке как придётся: плагин mod.io - каждый кадр, Facepunch - шестьдесят раз в секунду
-	/// и не по возрастанию. Дальше всегда уходит отчёт со сменой этапа и первый отчёт с долей 1, остальные - только
-	/// при смене целого процента общей доли или целого мебибайта этапа и не чаще раза в
-	/// <see cref="MinReportIntervalMs"/> мс. Отчёт, отброшенный из-за интервала, не откладывается: если за ним ничего не
-	/// придёт, получатель его не увидит. Поэтому отчёты, которые обязаны дойти (начало операции, конец подготовки,
-	/// успех), передаются через <see cref="Report(ModUploadProgress, bool)"/> как границы - они интервал не ждут.
-	/// Не потокобезопасен: рассчитан на вызовы из одного потока, как это делают обе площадки в редакторе.
+	/// Platform SDKs report erratically: the mod.io plugin every frame, Facepunch sixty times per second and not monotonically.
+	/// A stage change and the first report with fraction 1 always pass; others only on a whole percent change of the overall
+	/// fraction or a whole mebibyte of the stage, and at most once per <see cref="MinReportIntervalMs"/> ms. A report dropped
+	/// by the interval is not deferred: if nothing follows, the receiver never sees it. So reports that must arrive (operation
+	/// start, end of preparation, success) go through <see cref="Report(ModUploadProgress, bool)"/> as boundaries, which skip the interval.
+	/// Not thread-safe: expects calls from one thread, as both platforms do in the editor.
 	/// </remarks>
 	public sealed class ModUploadProgressThrottle : IProgress<ModUploadProgress>
 	{
-		/// <summary>Не чаще десяти отчётов в секунду, если этап не сменился и отчёт не граница.</summary>
+		/// <summary>At most ten reports per second unless the stage changed or the report is a boundary.</summary>
 		private const long MinReportIntervalMs = 100;
 
 		private const long BytesPerMebibyte = 1024L * 1024L;
@@ -31,23 +28,23 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 		private int m_lastPercent;
 		private long m_lastMebibyte;
 
-		/// <param name="target">Получатель отчётов; при null отчёты отбрасываются.</param>
+		/// <param name="target">Report receiver; reports are dropped when null.</param>
 		public ModUploadProgressThrottle(IProgress<ModUploadProgress> target)
 		{
 			m_target = target;
 		}
 
-		/// <summary>Промежуточный отчёт площадки: проходит не чаще раза в <see cref="MinReportIntervalMs"/> мс.</summary>
+		/// <summary>Intermediate platform report: passes at most once per <see cref="MinReportIntervalMs"/> ms.</summary>
 		public void Report(ModUploadProgress value)
 		{
 			Report(value, isBoundary: false);
 		}
 
-		/// <summary>Передаёт отчёт получателю, если он меняет этап, целый процент или целый мебибайт этапа.</summary>
-		/// <param name="value">Отчёт; доля меньше уже переданной заменяется переданной.</param>
+		/// <summary>Passes the report on if it changes the stage, a whole percent or a whole mebibyte of the stage.</summary>
+		/// <param name="value">A fraction below the already reported one is replaced by it.</param>
 		/// <param name="isBoundary">
-		/// Граница операции или этапа: проходит без ожидания интервала, потому что следующего отчёта, который бы её
-		/// заменил, может и не быть. Доля и у границы не убывает, а повтор уже переданного значения отбрасывается.
+		/// Operation or stage boundary: passes without waiting for the interval, because there may be no later report to
+		/// replace it. The fraction still never decreases, and a repeat of the already reported value is dropped.
 		/// </param>
 		public void Report(ModUploadProgress value, bool isBoundary)
 		{
@@ -56,7 +53,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 				return;
 			}
 
-			// Этап, сообщивший меньше уже показанного, не отматывает полосу назад.
+			// A stage reporting less than already shown does not move the bar back.
 			float fraction = m_hasReported && value.Fraction < m_lastFraction ? m_lastFraction : value.Fraction;
 			int percent = (int)(fraction * 100f);
 			long mebibyte = value.DoneBytes / BytesPerMebibyte;

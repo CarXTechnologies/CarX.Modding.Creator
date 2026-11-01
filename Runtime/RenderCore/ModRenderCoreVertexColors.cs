@@ -1,15 +1,15 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Как вариант rendercore использует цвет вершин (по MATERIALFEATURE_* и файлу Defs варианта). Значения дописываются только в конец.</summary>
+	/// <summary>How a rendercore variant uses vertex colors (by MATERIALFEATURE_* and the variant Defs file). Values are only appended.</summary>
 	public enum ModRenderCoreVertexColors
 	{
-		/// <summary>Цвет вершин не используется.</summary>
+		/// <summary>Vertex colors are not used.</summary>
 		None = 0,
 
-		/// <summary>Эмиссия: rgb — множитель яркости, a — фаза мерцания (MATERIALFEATURE_EMISSION).</summary>
+		/// <summary>Emission: rgb is the brightness multiplier, a is the flicker phase (MATERIALFEATURE_EMISSION).</summary>
 		EmissionMultiplier = 1,
 
-		/// <summary>Веса смешивания слоёв MAT_LAYERS4: rgb — маска слоёв, a — оттенок альбедо.</summary>
+		/// <summary>MAT_LAYERS4 layer blend weights: rgb is the layer mask, a is the albedo tint.</summary>
 		LayerBlend = 2
 	}
 }

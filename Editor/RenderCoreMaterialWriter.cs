@@ -5,19 +5,18 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Запись переопределения маркера Material в документ <see cref="ModRenderCoreMaterial"/> (.rc.json) с текстурами рядом.</summary>
+	/// <summary>Writes a Material marker override to a <see cref="ModRenderCoreMaterial"/> document (.rc.json) with textures next to it.</summary>
 	internal static class RenderCoreMaterialWriter
 	{
 		private const int NormalPass = 3;
 
 		/// <summary>
-		/// Пишет документ переопределения; <paramref name="fileName"/> — его имя, <paramref name="revision"/> — записанная в него ревизия
-		/// варианта. Свойства без значения или без текстуры в документ не попадают.
-		/// Ревизия — та, для которой значения запечены (<see cref="RenderCoreMaterialOverride.BakedRevision"/>), а не текущая ревизия таблицы:
-		/// после повышения ревизии текстуры маркера остаются в прежней раскладке, и клиент должен взять запасной материал, пока автор
-		/// не повторит Export from material. Об устаревших значениях экспорт предупреждает.
-		/// Неизвестный или недоступный в модах вариант документа не получает (о нём предупреждает <see cref="RenderCoreMaterialOverrides.Resolve"/>,
-		/// и прокси для него не создаётся): материал экспортируется только запасным, сборка не прерывается.
+		/// <paramref name="revision"/> is the variant revision written to the document. Properties without a value or texture are skipped.
+		/// The revision is the one the values were baked for (<see cref="RenderCoreMaterialOverride.BakedRevision"/>), not the current table
+		/// revision: after a revision bump the marker textures keep the old layout, and the client must use the fallback material until the
+		/// author repeats Export from material. Export warns about outdated values.
+		/// An unknown or mod-unavailable variant gets no document (<see cref="RenderCoreMaterialOverrides.Resolve"/> warns about it and no proxy
+		/// is created): the material is exported as fallback only and the build is not interrupted.
 		/// </summary>
 		public static bool TryWrite(Material proxy, RenderCoreMaterialOverride materialOverride, string directory, out ModRenderCoreVariant variant,
 			out int revision, out string fileName)
@@ -67,14 +66,14 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				properties.Add(new ModRenderCoreProperty { name = property.name, type = property.type, value = value.vector, texture = texture });
 			}
 
-			// Имя — каноническое имя варианта, ревизия — контракт, для которого запечены значения: клиент с другой ревизией возьмёт запасной материал.
+			// The revision is the contract the values were baked for: a client with a different revision uses the fallback material.
 			var document = new ModRenderCoreMaterial { variant = variant.name, variantRevision = revision, properties = properties.ToArray() };
 			fileName = MeshExportUtility.GetStableObjectId(proxy) + ModRenderCoreMaterial.Extension;
 			File.WriteAllText(Path.Combine(directory, fileName), JsonUtility.ToJson(document));
 			return true;
 		}
 
-		/// <summary>PNG текстуры как есть; карта нормалей распаковывается в RGB тем же проходом, что и map_Bump.</summary>
+		/// <summary>Texture PNG as is; a normal map is unpacked to RGB by the same pass as map_Bump.</summary>
 		private static string WriteTexture(Texture2D source, bool isNormalMap, string directory)
 		{
 			string name = MeshExportUtility.GetStableObjectId(source) + (isNormalMap ? "_rc_normal.png" : "_rc.png");

@@ -2,21 +2,21 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Итог generate(снимок, аннотации): находки ворот и, если ни одна не Breaking/Error, данные таблицы.</summary>
+	/// <summary>Result of generate(snapshot, annotations): gate findings and, if none is Breaking/Error, the table data.</summary>
 	public sealed class MirrorGenerationResult
 	{
-		/// <summary>По уровню (худшие первыми), коду и предмету.</summary>
+		/// <summary>By level (worst first), code and subject.</summary>
 		public readonly IReadOnlyList<RenderCoreFinding> findings;
 
-		/// <summary>Варианты в порядке аннотаций или null, если генерация заблокирована.</summary>
+		/// <summary>Variants in annotation order, or null if generation is blocked.</summary>
 		public readonly IReadOnlyList<MirrorVariant> variants;
 
 		public readonly IReadOnlyList<MirrorSuggestion> suggestions;
 
-		/// <summary>Кандидаты снимка без аннотации (ordinal): строка «Не предлагаются» в заголовке таблицы.</summary>
+		/// <summary>Snapshot candidates without an annotation (ordinal): the "Not suggested" line in the table header.</summary>
 		public readonly IReadOnlyList<string> notAnnotated;
 
-		/// <summary>LockContentHash снимка, из которого построено.</summary>
+		/// <summary>LockContentHash of the source snapshot.</summary>
 		public readonly string lockContentHash;
 
 		public MirrorGenerationResult(IReadOnlyList<RenderCoreFinding> findings, IReadOnlyList<MirrorVariant> variants, IReadOnlyList<MirrorSuggestion> suggestions,
@@ -29,7 +29,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			this.lockContentHash = lockContentHash;
 		}
 
-		/// <summary>Таблицу можно писать: нет находок Breaking и Error.</summary>
+		/// <summary>The table can be written: no Breaking or Error findings.</summary>
 		public bool Succeeded => variants != null;
 
 		public RenderCoreFindingTier WorstTier => RenderCoreFinding.GetWorstTier(findings);

@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Член enum RenderCore.Editor.MaterialVariant: имя — keyword шейдера, id — значение свойства materialVariant.</summary>
+	/// <summary>RenderCore.Editor.MaterialVariant enum member: name is the shader keyword, id is the materialVariant property value.</summary>
 	public sealed class RenderCoreLockEnumEntry
 	{
 		public readonly string name;

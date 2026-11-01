@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Tests
 {
-	/// <summary>Таблица вариантов rendercore для маркера Material и документ .rc.json.</summary>
+	/// <summary>rendercore variant table for the Material marker and the .rc.json document.</summary>
 	public class ModRenderCoreVariantsTests
 	{
 		[Test]
@@ -17,7 +17,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			Assert.IsNotEmpty(variants);
 			Assert.AreEqual(variants.Count, variants.Select(variant => variant.name).Distinct().Count());
-			// Ворота RCM012 запрещают общий id у любых строк таблицы (доступных и недоступных): materialVariant материала однозначен.
+			// Gate RCM012 forbids a shared id between any table rows (available or not): the material materialVariant is unambiguous.
 			Assert.AreEqual(variants.Count, variants.Select(variant => variant.id).Distinct().Count());
 			Assert.IsTrue(variants.All(variant => variant.name.StartsWith("MAT_")));
 			Assert.IsFalse(variants.Any(variant => variant.name.StartsWith("MAT_CAR_") || variant.name.StartsWith("MAT_PARTICLE")));
@@ -44,7 +44,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		[Test]
 		public void LookupAndColorSpaceFollowRenderCoreNames()
 		{
-			// Очередь, id и keyword'ы принадлежат rendercore и лечатся перегенерацией: их сверяет RenderCoreMirrorTableTests со снимком, не литерал.
+			// Queue, id and keywords belong to rendercore and are fixed by regeneration: RenderCoreMirrorTableTests checks them against the snapshot, not a literal.
 			Assert.IsTrue(ModRenderCoreVariants.TryGet("MAT_FOLIAGE_ALPHATEST", out ModRenderCoreVariant foliage));
 			Assert.AreEqual("MAT_FOLIAGE_ALPHATEST", foliage.name);
 			Assert.IsFalse(ModRenderCoreVariants.TryGet("MAT_CAR_PAINT", out _));
@@ -57,13 +57,13 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		[Test]
 		public void SuggestPicksFoliageVariantsForFoliage()
 		{
-			// Двусторонний материал с вырезом: освещение растительности; с нормалью — полный вариант, без неё — простой.
+			// Double-sided cutout material: foliage lighting; with a normal the full variant, without it the simple one.
 			Assert.AreEqual("MAT_FOLIAGE_ALPHATEST",
 				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true));
 			Assert.AreEqual("MAT_FOLIAGE_SIMPLE_ALPHATEST",
 				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true));
 
-			// Не растительность — прежний вариант альфа-теста, и с нормалью, и без неё.
+			// Not foliage: the previous alpha test variant, with or without a normal.
 			Assert.AreEqual("MAT_ROUGHNESS_NORMAL_ALPHATEST",
 				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: false));
 			Assert.AreEqual("MAT_ROUGHNESS_NORMAL_ALPHATEST",
@@ -86,7 +86,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 						Assert.AreEqual(plain, ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission, isFoliage: false), subject);
 						Assert.IsFalse(plain != null && plain.StartsWith("MAT_FOLIAGE_"), subject);
 
-						// Без своей подсказки растительность получает ту же, что и не растительность; своя — всегда доступный вариант того же RenderType.
+						// Without its own suggestion foliage gets the same as non-foliage; its own is always an available variant of the same RenderType.
 						if (foliage != plain)
 						{
 							Assert.IsNotNull(foliage, subject);

@@ -3,7 +3,7 @@ using Plugins.CarX.Modding.Creator.Runtime;
 
 namespace Plugins.CarX.Modding.Creator.Tests
 {
-	/// <summary>Какие версии формата в мета-документах принимает клиент.</summary>
+	/// <summary>Which format versions in meta documents the client accepts.</summary>
 	public class ModdingVersionTests
 	{
 		[Test]

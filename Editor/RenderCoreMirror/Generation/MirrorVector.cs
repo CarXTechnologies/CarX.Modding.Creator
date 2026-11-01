@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Значение по умолчанию свойства (x, y, z, w) без UnityEngine; в таблицу пишется как new Vector4(...).</summary>
+	/// <summary>Property default value (x, y, z, w) without UnityEngine; written to the table as new Vector4(...).</summary>
 	public readonly struct MirrorVector : IEquatable<MirrorVector>
 	{
 		public static MirrorVector One { get; } = new MirrorVector(1, 1, 1, 1);
@@ -22,8 +22,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Литерал из Properties шейдера: "(1,1,1,1)" (меньше четырёх компонент — остальные 0) или число "1" (в x, как у Float в
-		/// ModRenderCoreVariantProperty). Пробелы допускаются.
+		/// A shader Properties literal: "(1,1,1,1)" (missing components are 0) or a number "1" (into x, like Float in
+		/// ModRenderCoreVariantProperty). Spaces are allowed.
 		/// </summary>
 		public static bool TryParse(string literal, out MirrorVector value)
 		{
@@ -68,7 +68,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return true;
 		}
 
-		/// <summary>Компонента литералом C#: целое без суффикса ("1"), иначе кратчайшее "R" с суффиксом f ("0.5f").</summary>
+		/// <summary>Component as a C# literal: an integer without suffix ("1"), otherwise the shortest "R" form with an f suffix ("0.5f").</summary>
 		public static string FormatComponent(float value)
 		{
 			if (float.IsNaN(value) || float.IsInfinity(value))
@@ -105,7 +105,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>"(1, 0.5, 0, 1)": для дампов и сообщений.</summary>
+		/// <summary>"(1, 0.5, 0, 1)": for dumps and messages.</summary>
 		public override string ToString()
 		{
 			return "(" + Format(x) + ", " + Format(y) + ", " + Format(z) + ", " + Format(w) + ")";

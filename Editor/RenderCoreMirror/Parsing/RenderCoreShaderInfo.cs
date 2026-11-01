@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Разобранный Standard.shader: блок Properties и проходы.</summary>
+	/// <summary>Parsed Standard.shader: Properties block and passes.</summary>
 	public sealed class RenderCoreShaderInfo
 	{
 		public readonly IReadOnlyList<RenderCoreLockShaderProperty> properties;

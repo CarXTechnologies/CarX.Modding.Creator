@@ -9,9 +9,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Чтение документа <see cref="BinaryModData"/> версии 1 (уже опубликованные моды).
-	/// Строки определяются по месту, у полей нет длины: все поля документа должны быть известны текущей схеме DTO.
-	/// Поля, добавленные в DTO после публикации мода, в документе отсутствуют и получают значения по умолчанию.
+	/// Reads version 1 <see cref="BinaryModData"/> documents (already published mods). Strings are inlined and fields have
+	/// no length, so all document fields must be known to the current DTO schema; fields added later get default values.
 	/// </summary>
 	internal sealed class BinaryModDataLegacyReader
 	{
@@ -219,8 +218,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private object ReadObject(Type type, int depth)
 		{
 			FieldInfo[] fields = BinaryModData.GetFields(type);
-			// Добавленные позже поля DTO в документе версии 1 отсутствуют и остаются со значениями по умолчанию.
-			// Незнакомое поле пропустить нельзя (у значения нет длины), поэтому удалять и переименовывать поля DTO нельзя.
+			// Fields added to DTOs later are absent from version 1 documents and keep their default values.
+			// An unknown field cannot be skipped (values have no length), so DTO fields must not be removed or renamed.
 			int fieldCount = ReadCount(fields.Length);
 			object result = BinaryModData.CreateInstance(type);
 			var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -241,7 +240,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 					for (int j = 0; j < 4; j++)
 					{
-						// +Infinity — признак незанятого LOD-слота у рендера.
+						// +Infinity marks an unused LOD slot for the renderer.
 						float distance = m_reader.ReadSingle();
 
 						if (float.IsNaN(distance) || distance < 0)

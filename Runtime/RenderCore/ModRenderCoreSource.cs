@@ -1,27 +1,27 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Откуда кнопка Export from material берёт значение свойства варианта rendercore в материале HDRP Lit / Layered Lit.</summary>
+	/// <summary>Where Export from material takes a rendercore variant property value from in an HDRP Lit / Layered Lit material.</summary>
 	public enum ModRenderCoreSource
 	{
-		/// <summary>Аналога в HDRP нет: значение по умолчанию варианта, автор задаёт его сам.</summary>
+		/// <summary>No HDRP counterpart: the variant default, set by the author.</summary>
 		None = 0,
 
-		/// <summary>Base Map, умноженная на Base Color.</summary>
+		/// <summary>Base Map multiplied by Base Color.</summary>
 		Diffuse = 1,
 
-		/// <summary>Emissive Map, окрашенная Emissive Color.</summary>
+		/// <summary>Emissive Map tinted by Emissive Color.</summary>
 		Emission = 2,
 
-		/// <summary>Normal Map с учётом Normal Scale.</summary>
+		/// <summary>Normal Map with Normal Scale applied.</summary>
 		Normal = 3,
 
-		/// <summary>Packed map: каналы собираются из Mask Map, альфы Base Map и Normal Map по раскладке свойства.</summary>
+		/// <summary>Packed map: channels are assembled from Mask Map, Base Map alpha and Normal Map by the property layout.</summary>
 		Surface = 4,
 
-		// 5 — бывший AlphaCutoff: порог альфа-теста задаёт сам шейдер rendercore (фиксированный, с дизерингом), в u_vThirdColor он не передаётся;
-		// порог HDRP Export from material запекает в канал отсечения packed map (RenderCoreAlphaClip.ToRenderCore).
+		// 5 was AlphaCutoff: the rendercore shader sets the alpha-test threshold itself (fixed, dithered), it is not passed in u_vThirdColor;
+		// Export from material bakes the HDRP threshold into the packed map cutout channel (RenderCoreAlphaClip.ToRenderCore).
 
-		/// <summary>Параметры эмиссии: постоянная яркость по интенсивности Emissive Color.</summary>
+		/// <summary>Emission parameters: constant brightness from the Emissive Color intensity.</summary>
 		EmissionParameters = 6
 	}
 }

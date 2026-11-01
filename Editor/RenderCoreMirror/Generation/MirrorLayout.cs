@@ -2,30 +2,29 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Что правила раскладки выводят из снимка для одного кандидата (MirrorLayoutRules.Derive).</summary>
+	/// <summary>What the layout rules derive from the snapshot for one candidate (MirrorLayoutRules.Derive).</summary>
 	public sealed class MirrorLayout
 	{
-		/// <summary>Семейство Defs: имя файла без "MaterialDefs" ("Base", "Layered", "Interior"); несколько — через '+'.</summary>
+		/// <summary>Defs family: file name without "MaterialDefs" ("Base", "Layered", "Interior"); several are joined with '+'.</summary>
 		public readonly string family;
 
-		/// <summary>Человекочитаемый ключ раскладки, который сверяется с аннотацией.</summary>
+		/// <summary>Human-readable layout key checked against the annotation.</summary>
 		public readonly string key;
 
-		/// <summary>Каналы packed map по define'ам (Base, Layered) или null, если семейство размечается только аннотацией (Interior) или неизвестно.</summary>
+		/// <summary>Packed map channels from defines (Base, Layered), or null if the family is described by annotation only (Interior) or unknown.</summary>
 		public readonly IReadOnlyList<MirrorChannel> channels;
 
 		public readonly MirrorVertexColors vertexColors;
 
-		/// <summary>Position плюс потоки из INPUT_NEED_*.</summary>
+		/// <summary>Position plus streams from INPUT_NEED_*.</summary>
 		public readonly MirrorVertexStreams streams;
 
-		/// <summary>MATERIALFEATURE_*, о которых правила ничего не знают.</summary>
+		/// <summary>MATERIALFEATURE_* the rules know nothing about.</summary>
 		public readonly IReadOnlyList<string> unknownFeatures;
 
-		/// <summary>INPUT_NEED_*, которые не переводятся в поток.</summary>
+		/// <summary>INPUT_NEED_* that do not map to a stream.</summary>
 		public readonly IReadOnlyList<string> unknownStreams;
 
-		/// <summary>Семейство Defs известно правилам (Base, Layered, Interior).</summary>
 		public readonly bool knownFamily;
 
 		public MirrorLayout(string family, string key, IReadOnlyList<MirrorChannel> channels, MirrorVertexColors vertexColors, MirrorVertexStreams streams,

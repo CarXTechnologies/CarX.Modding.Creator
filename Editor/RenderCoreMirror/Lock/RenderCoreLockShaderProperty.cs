@@ -1,20 +1,19 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Свойство из блока Properties шейдера Standard: только для имён, которые перечисляет хоть один кандидат.</summary>
+	/// <summary>Property from the Standard shader Properties block: only for names listed by at least one candidate.</summary>
 	public sealed class RenderCoreLockShaderProperty
 	{
-		/// <summary>Тип для имени, которое кандидат перечисляет, а шейдер не объявляет.</summary>
+		/// <summary>Type for a name a candidate lists but the shader does not declare.</summary>
 		public const string AbsentType = "absent";
 
 		public readonly string name;
 
-		/// <summary>Color, Vector, Float, Range, Int, 2D, 3D, Cube, … как в шейдере (Range без границ) или AbsentType.</summary>
+		/// <summary>Color, Vector, Float, Range, Int, 2D, 3D, Cube, … as in the shader (Range without bounds) or AbsentType.</summary>
 		public readonly string type;
 
-		/// <summary>Литерал по умолчанию без пробелов: "(1,1,1,1)", "0.5", имя текстуры "white"/"bump" (без кавычек и {}).</summary>
+		/// <summary>Default literal without spaces: "(1,1,1,1)", "0.5", texture name "white"/"bump" (without quotes and {}).</summary>
 		public readonly string defaultValue;
 
-		/// <summary>Есть атрибут [Gamma].</summary>
 		public readonly bool gamma;
 
 		public RenderCoreLockShaderProperty(string name, string type, string defaultValue, bool gamma)

@@ -3,20 +3,19 @@ using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
 namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 {
-	/// <summary>Переводит прогресс Facepunch <c>Editor.SubmitAsync</c> в общий прогресс операции.</summary>
+	/// <summary>Maps the Facepunch <c>Editor.SubmitAsync</c> progress to the overall operation progress.</summary>
 	/// <remarks>
-	/// Facepunch сообщает долю по состоянию обновления в Steam: 0.1 - подготовка конфигурации, ровно 0.2 - подготовка
-	/// содержимого (Steam упаковывает папку сборки), 0.2 + 0.7 * доля отправленного - передача содержимого, 0.8 -
-	/// передача превью, 1 - фиксация. Отсюда этапы: меньше 0.2 - подготовка, ровно 0.2 - упаковка (и начало передачи,
-	/// пока не ушёл первый байт), до 0.9 - передача, дальше - обработка.
-	/// Ряд не монотонный (превью идёт после содержимого, но с меньшей долей), поэтому берётся максимум увиденного, и
-	/// этап определяется по нему же - иначе этап откатывался бы с обработки обратно на передачу. Байты Facepunch
-	/// наружу не отдаёт. Единицу Facepunch сообщает ещё до ответа Steam, а фиксация может закончиться отказом, поэтому
-	/// до <see cref="ReportSucceeded"/> доля не поднимается выше <see cref="MaxFractionBeforeResult"/>.
+	/// Facepunch reports a fraction from the Steam update status: 0.1 preparing config, exactly 0.2 preparing content (Steam
+	/// packs the build folder), 0.2 + 0.7 * sent fraction uploading content, 0.8 uploading preview, 1 committing. Hence the
+	/// stages: below 0.2 preparation, exactly 0.2 packing (and the start of upload until the first byte), up to 0.9 upload,
+	/// then processing. The series is not monotonic (the preview comes after the content but with a lower fraction), so the
+	/// maximum seen is used, and the stage is derived from it too, otherwise it would fall back from processing to upload.
+	/// Facepunch does not expose bytes. Facepunch reports 1 before the Steam response, and the commit may still fail, so
+	/// until <see cref="ReportSucceeded"/> the fraction stays at most <see cref="MaxFractionBeforeResult"/>.
 	/// </remarks>
 	internal sealed class SteamUploadProgressReporter : IProgress<float>
 	{
-		/// <summary>Доля Facepunch на подготовке содержимого; передача начинается с неё же.</summary>
+		/// <summary>Facepunch fraction while preparing content; upload starts from it too.</summary>
 		private const float PackingFraction = 0.2f;
 
 		private const float ProcessingStart = 0.9f;
@@ -26,13 +25,13 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 
 		private float m_maxFraction;
 
-		/// <param name="target">Получатель общего прогресса; при null отчёты отбрасываются.</param>
+		/// <param name="target">Overall progress receiver; reports are dropped when null.</param>
 		public SteamUploadProgressReporter(IProgress<ModUploadProgress> target)
 		{
 			m_throttle = new ModUploadProgressThrottle(target);
 		}
 
-		/// <summary>Операция началась: запрос ещё проверяется, в Steam ничего не отправлено.</summary>
+		/// <summary>The operation started: the request is still being validated, nothing has been sent to Steam.</summary>
 		public void ReportStarted()
 		{
 			m_throttle.Report(
@@ -40,7 +39,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.Steam
 				isBoundary: true);
 		}
 
-		/// <summary>Steam принял изменения.</summary>
+		/// <summary>Steam accepted the changes.</summary>
 		public void ReportSucceeded()
 		{
 			m_throttle.Report(

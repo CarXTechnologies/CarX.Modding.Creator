@@ -19,14 +19,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			set => EditorPrefs.SetInt(TextureEncodingPrefsKey, (int)value);
 		}
 
-		// Staging-каталоги остаются редактируемыми; опубликованная карта — один контейнер.
+		// Staging catalogs stay editable; the published map is a single container.
 		public static void Pack(string destination, params string[] catalogs)
 		{
 			Pack(destination, TextureEncoding, onProgress: null, catalogs);
 		}
 
-		/// <summary>Упаковывает карту с кодировкой текстур из настроек, сообщая ход упаковки.</summary>
-		/// <param name="onProgress">См. <see cref="Pack(string, BinaryTextureEncoding, Action{string, float}, string[])"/>.</param>
+		/// <param name="onProgress">See <see cref="Pack(string, BinaryTextureEncoding, Action{string, float}, string[])"/>.</param>
 		public static void Pack(string destination, Action<string, float> onProgress, params string[] catalogs)
 		{
 			Pack(destination, TextureEncoding, onProgress, catalogs);
@@ -37,11 +36,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			Pack(destination, textureEncoding, onProgress: null, catalogs);
 		}
 
-		/// <summary>Упаковывает staging-каталоги в один бинарный контейнер карты.</summary>
+		/// <summary>Packs staging catalogs into a single binary map container.</summary>
 		/// <param name="onProgress">
-		/// Ход упаковки, может быть null: описание шага на английском и общая доля 0..1, которая не убывает. Вызывается
-		/// синхронно на вызывающем потоке во время упаковки - на каждом документе, перед каждой перекодируемой текстурой
-		/// (они занимают почти всё время) и на основных этапах; доля 1 - после записи контейнера.
+		/// Packing progress, may be null: step description in English and an overall non-decreasing fraction 0..1. Called synchronously on the
+		/// calling thread during packing: for each document, before each re-encoded texture (they take almost all the time) and at the main
+		/// stages; fraction 1 after the container is written.
 		/// </param>
 		public static void Pack(string destination, BinaryTextureEncoding textureEncoding, Action<string, float> onProgress, params string[] catalogs)
 		{
@@ -67,8 +66,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			progress.ReportPacked();
 		}
 
-		// Пакуются все файлы staging-каталогов: вызывающий код очищает их перед пересборкой (MapUploader — ClearDirectory
-		// перед Rebuild Map и Meta), иначе в архив попадут файлы групп прошлых сборок, на которые ничто не ссылается.
+		// All staging catalog files are packed: the caller clears them before a rebuild (MapUploader: ClearDirectory before Rebuild Map and
+		// Meta), otherwise unreferenced group files from previous builds would get into the archive.
 		private static SortedDictionary<string, string> CollectFiles(string[] catalogs)
 		{
 			var files = new SortedDictionary<string, string>(StringComparer.Ordinal);
@@ -96,7 +95,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return files;
 		}
 
-		// Ленивый: работа и отчёты о ходе идут по мере того, как BinaryModArchive.Write читает ресурсы.
+		// Lazy: work and progress reports happen as BinaryModArchive.Write reads the resources.
 		private static IEnumerable<KeyValuePair<string, byte[]>> ConvertResources(SortedDictionary<string, string> files, BinaryTextureEncoding textureEncoding, BinaryMapPackProgress progress)
 		{
 			var textures = new BinaryTexturePreparation(files, textureEncoding, progress);
@@ -147,7 +146,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 				else if (!IsImage(name))
 				{
-					// Изображения пишутся в конце, когда известны все ссылки материалов и превью.
+					// Images are written at the end, when all material and preview references are known.
 					throw new InvalidDataException("Unsupported binary map staging resource: " + name);
 				}
 			}
@@ -184,7 +183,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					materials = mesh.subMeshes.Select(subMesh => subMesh.material).ToArray()
 				};
 
-				// Геометрия без имени и материалов: одинаковые меши разных групп хранятся одним ресурсом.
+				// Geometry without a name and materials: identical meshes of different groups are stored as one resource.
 				mesh.name = string.Empty;
 				mesh.castShadows = false;
 

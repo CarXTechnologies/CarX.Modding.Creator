@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Копия кода записи BinaryModData версии 1 (CarX.Modding.Creator@d8f3233) — так собраны уже опубликованные .cxmod.
-	/// Не менять: тест совместимости проверяет, что текущий читатель понимает именно эти байты.
+	/// Copy of the BinaryModData version 1 writer (CarX.Modding.Creator@d8f3233) that built already published .cxmod files.
+	/// Do not change: the compatibility test checks that the current reader understands exactly these bytes.
 	/// </summary>
 	internal sealed class LegacyBinaryModDataWriter
 	{

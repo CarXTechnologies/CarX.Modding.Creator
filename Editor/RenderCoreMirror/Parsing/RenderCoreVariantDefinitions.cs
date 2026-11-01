@@ -3,44 +3,44 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Результат вычисления HLSL варианта для одного прохода: define'ы, потоки, include'ы библиотек и строки отпечатка декодирования.
-	/// Имена, которые определены только в ветке с неизвестным условием (платформа, keyword времени выполнения), идут с суффиксом
-	/// MaterialDefinitionsParser.MaybeSuffix ("?").
+	/// Result of evaluating the variant HLSL for one pass: defines, streams, library includes and decode hash lines.
+	/// Names defined only in a branch with an unknown condition (platform, runtime keyword) carry the
+	/// MaterialDefinitionsParser.MaybeSuffix ("?") suffix.
 	/// </summary>
 	public sealed class RenderCoreVariantDefinitions
 	{
 		public readonly string variant;
 
-		/// <summary>Include'ы StandardMaterialDefinitions.hlsl первого уровня (обычно один Definitions/&lt;X&gt;MaterialDefs.hlsl).</summary>
+		/// <summary>Top-level includes of StandardMaterialDefinitions.hlsl (usually one Definitions/&lt;X&gt;MaterialDefs.hlsl).</summary>
 		public readonly IReadOnlyList<string> defsPaths;
 
-		/// <summary>Все пройденные файлы Definitions, включая вложенные.</summary>
+		/// <summary>All visited Definitions files, including nested ones.</summary>
 		public readonly IReadOnlyList<string> definitionFiles;
 
 		/// <summary>MATERIALFEATURE_*, PACKED_MESH*; ordinal.</summary>
 		public readonly IReadOnlyList<string> features;
 
-		/// <summary>Прочие define'ы; ordinal.</summary>
+		/// <summary>Other defines; ordinal.</summary>
 		public readonly IReadOnlyList<string> otherDefines;
 
 		/// <summary>INPUT_NEED_*; ordinal.</summary>
 		public readonly IReadOnlyList<string> streams;
 
 		/// <summary>
-		/// Include'ы библиотек (вне папки Standard), встреченные в активных ветках Definitions/Defs: внутрь зеркало не заходит, поэтому
-		/// новая или убранная библиотека — изменение, которое должен посмотреть человек. Ordinal, без повторов.
+		/// Library includes (outside the Standard folder) met in active Definitions/Defs branches: the mirror does not go inside, so
+		/// an added or removed library is a change a human must review. Ordinal, no duplicates.
 		/// </summary>
 		public readonly IReadOnlyList<string> libraries;
 
-		/// <summary>Include'ы StandardMaterialFunctions.hlsl первого уровня (обычно один Functions/&lt;X&gt;MaterialFunc.hlsl).</summary>
+		/// <summary>Top-level includes of StandardMaterialFunctions.hlsl (usually one Functions/&lt;X&gt;MaterialFunc.hlsl).</summary>
 		public readonly IReadOnlyList<string> funcPaths;
 
-		/// <summary>Все пройденные файлы Functions, включая вложенные.</summary>
+		/// <summary>All visited Functions files, including nested ones.</summary>
 		public readonly IReadOnlyList<string> functionFiles;
 
 		/// <summary>
-		/// Строки отпечатка декодирования: include'ы библиотек Definitions, затем активные строки Func (без комментариев, пробелы схлопнуты,
-		/// пустые выброшены; ветки с неизвестным условием — целиком, с директивами).
+		/// Decode hash lines: Definitions library includes, then active Func lines (no comments, whitespace collapsed,
+		/// empty lines dropped; branches with an unknown condition in full, with directives).
 		/// </summary>
 		public readonly IReadOnlyList<string> decodeLines;
 

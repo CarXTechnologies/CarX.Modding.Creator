@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Запись документа <see cref="BinaryModData"/> версии 2: таблица строк впереди, затем тело,
-	/// где у каждого поля объекта записана длина значения (читатель может пропустить незнакомое поле).
+	/// Writes version 2 <see cref="BinaryModData"/> documents: string table first, then the body,
+	/// where each object field stores its value length (so a reader can skip an unknown field).
 	/// </summary>
 	internal sealed class BinaryModDataWriter
 	{
@@ -266,7 +266,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			{
 				WriteText(field.Name);
 
-				// Длина значения поля дописывается после записи, чтобы читатель мог пропустить незнакомое поле.
+				// The value length is patched in after writing so a reader can skip an unknown field.
 				Stream stream = m_writer.BaseStream;
 				long lengthPosition = stream.Position;
 				m_writer.Write(0);
@@ -296,7 +296,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 				for (int i = 0; i < 4; i++)
 				{
-					// +Infinity — признак незанятого LOD-слота у рендера, поэтому здесь допускается.
+					// +Infinity marks an unused LOD slot for the renderer, so it is allowed here.
 					if (float.IsNaN(distances[i]) || distances[i] < 0)
 					{
 						throw new InvalidDataException("Invalid LOD distance.");

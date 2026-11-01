@@ -11,13 +11,13 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Проверка зеркала rendercore перед сборкой игры: живой пакет против закоммиченного снимка, ворота генератора и актуальность таблицы
-	/// (RenderCoreMirrorPipeline.Check). Ничего не пишет — git status после сборки чистый. Без пакета rendercore и без загрузчика CarX.Modding
-	/// (MapUploader) сразу выходит; загрузчик есть, а пакета нет — Error: в игре проверка сама не выключается.
-	/// Сборку не роняет: Stale/Breaking/Error и любое исключение проверки — ошибка в логе, Info — молча. Guard выполняется в сборке игры на всех
-	/// платформах, включая те, где моды не загружаются, и обновление rendercore не должно блокировать релиз до подъёма сабмодуля SDK.
-	/// Блокирующая проверка — тест RenderCoreMirrorUpToDateTests (категория Validation, шаг валидации BuildFlow).
-	/// Отключить проверку: CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1.
+	/// rendercore mirror check before a game build: live package against the committed snapshot, generator gates and table freshness
+	/// (RenderCoreMirrorPipeline.Check). Writes nothing, so git status stays clean after the build. Exits immediately without the rendercore
+	/// package and the CarX.Modding loader (MapUploader); loader present but package missing is an Error, so the check never disables itself in the game.
+	/// Does not fail the build: Stale/Breaking/Error and any check exception are logged as errors, Info is silent. The guard runs in game builds
+	/// on all platforms, including ones that do not load mods, and a rendercore update must not block a release until the SDK submodule is bumped.
+	/// The blocking check is the RenderCoreMirrorUpToDateTests test (Validation category, BuildFlow validation step).
+	/// Disable the check: CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK=1.
 	/// </summary>
 	internal sealed class RenderCoreMirrorBuildGuard : IPreprocessBuildWithReport
 	{
@@ -54,7 +54,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				string.Join("\n", findings.Where(finding => finding.tier > RenderCoreFindingTier.Info)));
 		}
 
-		/// <summary>Находки проверки или null, если проверять нечего (MapUploader: ни rendercore, ни загрузчика).</summary>
+		/// <summary>Check findings, or null if there is nothing to check (MapUploader: neither rendercore nor the loader).</summary>
 		private static List<RenderCoreFinding> Check()
 		{
 			try
@@ -84,12 +84,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 			catch (IOException exception)
 			{
-				// Нет asmdef ядра или таблицы по GUID: SDK собран не целиком.
+				// No core asmdef or no table by GUID: the SDK is incomplete.
 				return Error(RenderCoreMirrorPaths.MirrorAssemblyName, exception.Message);
 			}
 			catch (Exception exception)
 			{
-				// Нечитаемая папка пакета, сбой парсера и т.п.: сообщаем в лог, а не пропускаем проверку молча.
+				// Unreadable package folder, parser failure, etc.: report it in the log instead of silently skipping the check.
 				return Error(RenderCoreMirrorPaths.MirrorAssemblyName, "mirror check failed with an exception: " + exception);
 			}
 		}

@@ -296,7 +296,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			if (meshFilter != null && meshRenderer != null && !(Optimization?.SuppressRenderer(o) ?? false))
 			{
 				singleLODInfo.mesh = meshFilter.sharedMesh;
-				// Маркер Material объекта, а у LOD — маркер на объекте LODGroup.
+				// The object's Material marker; for LODs, the marker on the LODGroup object.
 				singleLODInfo.materials = RenderCoreMaterialOverrides.Resolve(o, meshRenderer.sharedMaterials, relativeTo);
 				singleLODInfo.castShadows = meshRenderer.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off;
 			}
@@ -392,7 +392,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (lodInfo.materials != null && lodInfo.materials.Length > 0)
 			{
-				// Сектор оптимизации ссылается на общую библиотеку материалов своей группы, а не на набор своих сабмешей.
+				// An optimization sector references its group's shared material library, not its own submesh set.
 				string materialGroupId = MeshExportUtility.GetMaterialGroupId(lodInfo.mesh, lodInfo.materials);
 
 				if (materialGroupId != null)

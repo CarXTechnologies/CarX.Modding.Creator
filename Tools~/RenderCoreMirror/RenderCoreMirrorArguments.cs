@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
-	/// <summary>Опции команды: "--имя значение" (имя может повторяться) и флаги "--имя" без значения.</summary>
+	/// <summary>Command options: "--name value" (a name may repeat) and "--name" flags without a value.</summary>
 	internal sealed class RenderCoreMirrorArguments
 	{
 		private readonly Dictionary<string, List<string>> m_values = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -47,7 +47,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			return m_flags.Contains(name) || m_values.ContainsKey(name);
 		}
 
-		/// <summary>Последнее значение опции или null.</summary>
+		/// <summary>Last value of the option or null.</summary>
 		public string Get(string name)
 		{
 			return m_values.TryGetValue(name, out List<string> values) ? values[values.Count - 1] : null;

@@ -6,9 +6,9 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Плоский дамп таблицы «ключ → значение» для поштучного сравнения двух таблиц (legacy-diff CLI: старая ручная таблица из dll против
-	/// сгенерированной). Ключи: "variants", "MAT_X.id", "MAT_X.u_sTexture.source", …; значения — имена enum'ов, числа InvariantCulture "R".
-	/// Цвет вершин дублируется в "emission" (старая таблица знала только флаг).
+	/// Flat "key → value" table dump for item-by-item comparison of two tables (legacy-diff CLI: the old hand-written table from the dll vs
+	/// the generated one). Keys: "variants", "MAT_X.id", "MAT_X.u_sTexture.source", …; values are enum names and InvariantCulture "R" numbers.
+	/// Vertex colors are duplicated into "emission" (the old table only had the flag).
 	/// </summary>
 	public static class MirrorTableDump
 	{
@@ -53,7 +53,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return dump;
 		}
 
-		/// <summary>Строки отличий: "~ ключ: было → стало", "- ключ: было" (только в старой), "+ ключ: стало" (только в новой).</summary>
+		/// <summary>Difference lines: "~ key: before → after", "- key: before" (old only), "+ key: after" (new only).</summary>
 		public static List<string> Compare(IReadOnlyDictionary<string, string> before, IReadOnlyDictionary<string, string> after)
 		{
 			var lines = new List<string>();

@@ -1,23 +1,23 @@
 namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 {
-	/// <summary>Этап загрузки мода на площадку, см. <see cref="ModUploadProgress"/>.</summary>
+	/// <summary>Mod upload stage, see <see cref="ModUploadProgress"/>.</summary>
 	/// <remarks>
-	/// Этапы идут строго по порядку. Площадка, которая не различает какой-то из них, его пропускает: mod.io без
-	/// CARX PATCH 2 в плагине (дефайн CARX_MODDING_MODIO_UPLOAD_PROGRESS не задан) переходит от подготовки сразу к
-	/// передаче и не сообщает ни упаковку, ни байты. Steam сообщает упаковку одним значением, без хода внутри неё.
+	/// Stages go strictly in order. A platform that cannot tell a stage apart skips it: mod.io without CARX PATCH 2 in the
+	/// plugin (CARX_MODDING_MODIO_UPLOAD_PROGRESS not defined) goes from preparation straight to uploading and reports neither
+	/// packing nor bytes. Steam reports packing as a single value, without progress inside it.
 	/// </remarks>
 	public enum ModUploadStage
 	{
-		/// <summary>Проверка запроса, чтение записи с площадки и отправка метаданных до передачи содержимого.</summary>
+		/// <summary>Request validation, reading the item from the platform and sending metadata before the content.</summary>
 		Preparing,
 
-		/// <summary>Упаковка папки сборки в архив перед отправкой.</summary>
+		/// <summary>Packing the build folder into an archive before sending.</summary>
 		Packing,
 
-		/// <summary>Передача содержимого на площадку.</summary>
+		/// <summary>Sending the content to the platform.</summary>
 		Uploading,
 
-		/// <summary>Содержимое отправлено, площадка принимает его и фиксирует изменения.</summary>
+		/// <summary>Content sent; the platform accepts it and commits the changes.</summary>
 		Processing,
 	}
 }

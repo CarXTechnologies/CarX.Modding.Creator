@@ -4,21 +4,21 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Проход шейдера: имя (Name "…"), объявления keyword'ов (#pragma, включая HLSLINCLUDE шейдера и SubShader), группы keyword'ов по
-	/// директивам (одна #pragma — одна группа: материал включает из неё не больше одного) и программы HLSL прохода.
+	/// Shader pass: name (Name "…"), keyword declarations (#pragma, including shader and SubShader HLSLINCLUDE), keyword groups by
+	/// directive (one #pragma is one group: a material enables at most one keyword from it) and the pass HLSL programs.
 	/// </summary>
 	public sealed class RenderCoreShaderPass
 	{
 		public readonly string name;
 		public readonly int line;
 
-		/// <summary>keyword → вид объявления (см. RenderCoreLockPassKeyword.kind).</summary>
+		/// <summary>keyword → declaration kind (see RenderCoreLockPassKeyword.kind).</summary>
 		public readonly IReadOnlyDictionary<string, string> keywordKinds;
 
-		/// <summary>keyword'ы каждой директивы #pragma multi_compile*/shader_feature*/dynamic_branch* без "_" и "__".</summary>
+		/// <summary>Keywords of each #pragma multi_compile*/shader_feature*/dynamic_branch* directive without "_" and "__".</summary>
 		public readonly IReadOnlyList<IReadOnlyList<string>> keywordGroups;
 
-		/// <summary>HLSLINCLUDE шейдера и SubShader, затем HLSLPROGRAM прохода — в порядке, в котором их видит компилятор.</summary>
+		/// <summary>Shader and SubShader HLSLINCLUDE, then the pass HLSLPROGRAM, in the order the compiler sees them.</summary>
 		public readonly IReadOnlyList<RenderCoreShaderProgram> programs;
 
 		public RenderCoreShaderPass(string name, int line, IReadOnlyDictionary<string, string> keywordKinds, IReadOnlyList<IReadOnlyList<string>> keywordGroups,
@@ -42,8 +42,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// keyword'ы прохода, которые решает не вариант, а время выполнения (пресет качества, SSAO, DOTS и т.п.): все объявленные, кроме
-		/// selectors (имена вариантов и ALPHATEST), их соседей по группе (в группе включён ровно один) и enabled (включены материалом).
+		/// Pass keywords decided at runtime rather than by the variant (quality preset, SSAO, DOTS etc.): all declared ones except
+		/// selectors (variant names and ALPHATEST), their group neighbours (exactly one per group is on) and enabled (enabled by the material).
 		/// </summary>
 		public HashSet<string> GetRuntimeKeywords(ICollection<string> selectors, ICollection<string> enabled)
 		{

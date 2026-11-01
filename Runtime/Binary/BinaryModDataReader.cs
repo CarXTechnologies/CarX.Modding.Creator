@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Чтение документа <see cref="BinaryModData"/> версии 2. Незнакомое поле пропускается по записанной длине,
-	/// отсутствующее в документе поле сохраняет значение по умолчанию из конструктора DTO.
+	/// Reads version 2 <see cref="BinaryModData"/> documents. Unknown fields are skipped by their stored length;
+	/// fields missing from the document keep the default value from the DTO constructor.
 	/// </summary>
 	internal sealed class BinaryModDataReader
 	{
@@ -253,7 +253,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 				if (field == null)
 				{
-					// Поле из более новой версии DTO: этот клиент о нём не знает и пропускает значение целиком.
+					// A field from a newer DTO version: this client does not know it and skips the whole value.
 					stream.Position += length;
 					continue;
 				}
@@ -278,7 +278,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 				for (int j = 0; j < 4; j++)
 				{
-					// +Infinity — признак незанятого LOD-слота у рендера.
+					// +Infinity marks an unused LOD slot for the renderer.
 					float distance = m_reader.ReadSingle();
 
 					if (float.IsNaN(distance) || distance < 0)

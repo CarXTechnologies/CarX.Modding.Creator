@@ -3,43 +3,43 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Перенос порога Alpha Clipping HDRP в альфа-тест rendercore. Rendercore отсекает только в DepthOnly prepass и с дизерингом:
-	/// texel остаётся, если B − dither · <see cref="BandWidth"/> − <see cref="BandStart"/> &gt; 0 (B — вход отсечения в packed map,
-	/// dither ∈ [0, 1) — экранный шум IGN), то есть покрытие равно saturate((B − 0.15) / 0.45) (<see cref="Coverage"/>). HDRP режет жёстко:
-	/// lerp(_AlphaRemapMin, _AlphaRemapMax, a) · _BaseColor.a против _AlphaCutoff. Сырая альфа HDRP в B теряет порог: при Alpha Remapping
-	/// min 0.296 и пороге 0.6 прозрачные в HDRP texel'и получают B ≈ 0.3 и примерно треть из них остаётся — серые штрихованные квады.
-	/// Поэтому в B пишется <see cref="ToRenderCore"/>: порог HDRP — середина полосы (покрытие 50%), порог ± min(<see cref="Window"/>, порог,
-	/// 1 − порог) — её края (0 и 100%); у порога почти 0 или 1 — жёсткий шаг, как в HDRP. Ту же формулу повторяет проход альфа-теста
-	/// Runtime/Materials/ConvertingEx.hlsl для map_d запасного MTL-материала.
+	/// Maps the HDRP Alpha Clipping cutoff to the rendercore alpha test. Rendercore clips only in the DepthOnly prepass and with dithering:
+	/// a texel survives if B − dither · <see cref="BandWidth"/> − <see cref="BandStart"/> &gt; 0 (B is the clip input in the packed map,
+	/// dither ∈ [0, 1) is IGN screen noise), i.e. coverage is saturate((B − 0.15) / 0.45) (<see cref="Coverage"/>). HDRP clips hard:
+	/// lerp(_AlphaRemapMin, _AlphaRemapMax, a) · _BaseColor.a against _AlphaCutoff. Raw HDRP alpha in B loses the cutoff: with Alpha Remapping
+	/// min 0.296 and cutoff 0.6, texels transparent in HDRP get B ≈ 0.3 and about a third of them survive as grey hatched quads.
+	/// So B gets <see cref="ToRenderCore"/>: the HDRP cutoff is the band middle (50% coverage), cutoff ± min(<see cref="Window"/>, cutoff,
+	/// 1 − cutoff) are its edges (0 and 100%); a cutoff near 0 or 1 gives a hard step, as in HDRP. The alpha-test pass of
+	/// Runtime/Materials/ConvertingEx.hlsl repeats the same formula for map_d of the fallback MTL material.
 	/// </summary>
 	public static class RenderCoreAlphaClip
 	{
-		/// <summary>Начало полосы дизеринга rendercore: B не выше него отсекается всегда.</summary>
+		/// <summary>B at or below this is always clipped.</summary>
 		public const float BandStart = 0.15f;
 
-		/// <summary>Ширина полосы дизеринга rendercore: B не ниже BandStart + BandWidth не отсекается никогда.</summary>
+		/// <summary>B at or above BandStart + BandWidth is never clipped.</summary>
 		public const float BandWidth = 0.45f;
 
-		/// <summary>Полуширина окна альфы HDRP вокруг порога, которое попадает в полосу дизеринга.</summary>
+		/// <summary>Half-width of the HDRP alpha window around the cutoff that maps into the dithering band.</summary>
 		public const float Window = 0.05f;
 
-		/// <summary>Порог HDRP по умолчанию и для материала без свойства порога.</summary>
+		/// <summary>Also used for materials without a cutoff property.</summary>
 		public const float DefaultCutoff = 0.5f;
 
-		/// <summary>B для альфы HDRP, равной порогу: середина полосы, покрытие 50%.</summary>
+		/// <summary>B for HDRP alpha equal to the cutoff: band middle, 50% coverage.</summary>
 		private const float Center = BandStart + BandWidth / 2;
 
-		/// <summary>Окно уже полшага байта — жёсткий шаг: порог почти 0 или 1.</summary>
+		/// <summary>A window narrower than half a byte step means a hard step: cutoff near 0 or 1.</summary>
 		private const float MinWindow = 0.5f / 255;
 
-		/// <summary>Свойства порога: HDRP Lit / Layered Lit, затем имена ShaderGraph и URP / встроенного конвейера.</summary>
+		/// <summary>HDRP Lit / Layered Lit first, then ShaderGraph and URP / built-in pipeline names.</summary>
 		private static readonly string[] s_cutoffProperties = { "_AlphaCutoff", "_AlphaClipThreshold", "_Cutoff" };
 
-		/// <summary>Вход отсечения rendercore (B) для альфы HDRP <paramref name="hdrpAlpha"/> и порога <paramref name="cutoff"/>.</summary>
+		/// <summary>Rendercore clip input (B) for HDRP alpha <paramref name="hdrpAlpha"/> and cutoff <paramref name="cutoff"/>.</summary>
 		public static float ToRenderCore(float hdrpAlpha, float cutoff)
 		{
-			// У краёв окно сужается: при пороге 0.01 пустые texel'и (альфа 0) иначе попали бы в полосу и остались штриховкой, а при 0.99 —
-			// непрозрачные texel'и потеряли бы часть покрытия.
+			// The window narrows at the edges: with cutoff 0.01 empty texels (alpha 0) would otherwise fall into the band and remain as hatching,
+			// and with 0.99 opaque texels would lose part of their coverage.
 			float window = Mathf.Min(cutoff, 1 - cutoff);
 
 			if (window <= MinWindow)
@@ -50,15 +50,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return Mathf.Clamp01(Center + (hdrpAlpha - cutoff) * (BandWidth / (2 * Mathf.Min(window, Window))));
 		}
 
-		/// <summary>Доля texel'ей с входом отсечения <paramref name="renderCoreAlpha"/>, которые альфа-тест rendercore оставляет.</summary>
+		/// <summary>Share of texels with clip input <paramref name="renderCoreAlpha"/> that the rendercore alpha test keeps.</summary>
 		public static float Coverage(float renderCoreAlpha)
 		{
 			return Mathf.Clamp01((renderCoreAlpha - BandStart) / BandWidth);
 		}
 
 		/// <summary>
-		/// Порог Alpha Clipping материала: _AlphaCutoff (HDRP Lit / Layered Lit), у ShaderGraph и прочих шейдеров — _AlphaClipThreshold или
-		/// _Cutoff, без них — <see cref="DefaultCutoff"/>.
+		/// _AlphaCutoff (HDRP Lit / Layered Lit), _AlphaClipThreshold or _Cutoff for ShaderGraph and other shaders, otherwise
+		/// <see cref="DefaultCutoff"/>.
 		/// </summary>
 		public static float GetCutoff(Material material)
 		{

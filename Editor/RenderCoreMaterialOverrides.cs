@@ -10,9 +10,9 @@ using Object = UnityEngine.Object;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Переопределение материалов маркером Material на время экспорта Binary. Материал рендерера с переопределением подменяется
-	/// копией (прокси) со своим стабильным id: исходный материал без маркера и с другим переопределением экспортируются отдельно.
-	/// Прокси пишет в .mtl обычный запасной материал и ссылку cx_rc на документ <see cref="ModRenderCoreMaterial"/>.
+	/// Material marker overrides during Binary export. A renderer material with an override is replaced by a copy (proxy) with its own
+	/// stable id, so the source material without a marker and with a different override are exported separately.
+	/// The proxy writes a regular fallback material to .mtl plus a cx_rc reference to the <see cref="ModRenderCoreMaterial"/> document.
 	/// </summary>
 	public static class RenderCoreMaterialOverrides
 	{
@@ -23,13 +23,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static readonly HashSet<RenderCoreMaterialOverride> s_warned = new();
 		private static bool s_enabled;
 
-		/// <summary>Включается сборкой Binary до сбора сцены; Wavefront маркер Material игнорирует.</summary>
+		/// <summary>Enabled by the Binary build before scene collection; Wavefront ignores the Material marker.</summary>
 		public static bool Enabled
 		{
 			get => s_enabled;
 			set
 			{
-				// Каждая сборка заново предупреждает о неприменимых и устаревших переопределениях.
+				// Every build warns again about unusable and outdated overrides.
 				if (value && !s_enabled)
 				{
 					s_warned.Clear();
@@ -40,10 +40,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Материалы рендерера с учётом маркера Material на объекте <paramref name="gameObject"/>, а если там маркера нет —
-		/// на объекте LODGroup <paramref name="lodRoot"/>. Без переопределений возвращается исходный массив.
-		/// Переопределение с неизвестным или недоступным в модах вариантом не применяется: материал экспортируется как без маркера,
-		/// а в консоль один раз за сборку выводится предупреждение (сборка без валидатора MapUploader иначе потеряла бы его молча).
+		/// Renderer materials with the Material marker on <paramref name="gameObject"/> applied, or, without one there, the marker on the
+		/// LODGroup object <paramref name="lodRoot"/>. Without overrides the source array is returned.
+		/// An override with an unknown or mod-unavailable variant is not applied: the material is exported as if unmarked and a warning is
+		/// logged once per build (a build without the MapUploader validator would otherwise lose it silently).
 		/// </summary>
 		public static Material[] Resolve(GameObject gameObject, Material[] materials, Transform lodRoot = null)
 		{
@@ -92,12 +92,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Как материал использует цвет вершин в игре. Прокси экспорта — по своему варианту rendercore. Любой другой материал —
-		/// <see cref="ModRenderCoreVertexColors.EmissionMultiplier"/>, если экспорт запишет ему эмиссию (Ke в .mtl, см.
-		/// <see cref="MtlMaterialWriter.WritesEmission"/>), иначе <see cref="ModRenderCoreVertexColors.None"/>. Для исходного материала
-		/// с маркером Material (не прокси) вариант переопределения берёт вызывающий код.
-		/// Клиент перекрашивает меш с эмиссией в белый, но оставляет цвета меша, где есть LayerBlend: в таком меше цвет вершин окрашивает
-		/// эмиссию, поэтому LayerBlend и эмиссию нельзя держать в одном меше.
+		/// How the material uses vertex color in game. Export proxy: by its rendercore variant. Any other material:
+		/// <see cref="ModRenderCoreVertexColors.EmissionMultiplier"/> if export writes emission for it (Ke in .mtl, see
+		/// <see cref="MtlMaterialWriter.WritesEmission"/>), otherwise <see cref="ModRenderCoreVertexColors.None"/>. For a source material
+		/// with a Material marker (not a proxy) the caller takes the override variant.
+		/// The client repaints an emissive mesh white but keeps mesh colors where LayerBlend is used: there vertex color tints the emission,
+		/// so LayerBlend and emission cannot share a mesh.
 		/// </summary>
 		public static ModRenderCoreVertexColors GetVertexColorUsage(Material material)
 		{
@@ -113,13 +113,12 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					: ModRenderCoreVertexColors.None;
 			}
 
-			// Клиент считает материал эмиссионным (и белит меш) только для непрозрачного MTL: прозрачность и альфа-тест в нём главнее эмиссии.
+			// The client treats a material as emissive (and whitens the mesh) only for opaque MTL: transparency and alpha test win over emission.
 			return MtlMaterialWriter.DetectBlendMode(material) == MaterialBlendMode.Opaque && MtlMaterialWriter.WritesEmission(material)
 				? ModRenderCoreVertexColors.EmissionMultiplier
 				: ModRenderCoreVertexColors.None;
 		}
 
-		/// <summary>Почему вариант нельзя применить: недоступен в модах (с причиной) или неизвестен зеркалу.</summary>
 		internal static string DescribeUnusable(string variantName)
 		{
 			if (ModRenderCoreVariants.TryFind(variantName, out ModRenderCoreVariant variant))
@@ -130,7 +129,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return $"unknown render core variant '{variantName}'";
 		}
 
-		/// <summary>Предупреждение о переопределении — один раз за сборку, сколько бы рендереров и групп его ни использовали.</summary>
+		/// <summary>Once per build, however many renderers and groups use the override.</summary>
 		internal static void WarnOnce(RenderCoreMaterialOverride materialOverride, string message, Object context)
 		{
 			if (s_warned.Add(materialOverride))
@@ -139,7 +138,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Настройки маркера Material на объекте или null.</summary>
 		public static RenderCoreMaterialMarkerSettings FindSettings(GameObject gameObject)
 		{
 			foreach (IMarkerDataSource marker in gameObject.GetComponents<IMarkerDataSource>())
@@ -153,7 +151,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return null;
 		}
 
-		/// <summary>Переопределение, которое представляет прокси-материал экспорта.</summary>
 		public static bool TryGet(Material material, out RenderCoreMaterialOverride materialOverride)
 		{
 			if (material != null && s_entries.TryGetValue(material, out ProxyEntry entry))
@@ -166,7 +163,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return false;
 		}
 
-		/// <summary>Прокси прозрачного варианта: оптимизация сцены, как и для прозрачных материалов HDRP, такие объекты не склеивает.</summary>
+		/// <summary>Scene optimization does not merge such objects, same as for transparent HDRP materials.</summary>
 		public static bool IsTransparent(Material material)
 		{
 			return TryGet(material, out RenderCoreMaterialOverride materialOverride)
@@ -174,7 +171,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				&& variant.renderType == ModRenderCoreRenderType.Transparent;
 		}
 
-		/// <summary>Стабильный id прокси-материала: id исходного материала и хэш переопределения.</summary>
+		/// <summary>Source material id plus the override hash.</summary>
 		public static bool TryGetStableId(Object obj, out string id)
 		{
 			if (obj is Material material && s_entries.TryGetValue(material, out ProxyEntry entry))
@@ -187,7 +184,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return false;
 		}
 
-		/// <summary>Уничтожает прокси и выключает переопределения. Вызывается в конце сборки.</summary>
+		/// <summary>Called at the end of the build.</summary>
 		public static void Clear()
 		{
 			foreach (Material proxy in s_entries.Keys)
@@ -217,11 +214,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Хэш варианта и значений свойств: одинаковые переопределения на разных объектах дают один материал. Свойства — по имени,
-		/// а не в порядке rendercore: перестановка свойств в MaterialEditorSettings не меняет id прокси и имена файлов.
-		/// Ревизия запекания входит в хэш, начиная с 2: переопределения с разными ревизиями пишут разные документы, а id
-		/// переопределений ревизии 1 (и маркеров без записанной ревизии) прежние.
-		/// Вызывается только для доступного варианта (см. <see cref="Resolve"/>).
+		/// Hash of the variant and property values: identical overrides on different objects give one material. Properties are hashed by
+		/// name, not in rendercore order, so reordering MaterialEditorSettings does not change proxy ids and file names.
+		/// The bake revision is part of the hash starting from 2: overrides with different revisions write different documents, while ids
+		/// of revision 1 overrides (and markers without a stored revision) stay the same.
+		/// Called only for an available variant (see <see cref="Resolve"/>).
 		/// </summary>
 		private static string GetOverrideHash(RenderCoreMaterialOverride materialOverride)
 		{

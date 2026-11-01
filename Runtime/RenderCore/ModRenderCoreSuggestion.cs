@@ -1,13 +1,13 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Вариант, который Export from material предлагает по настройкам материала HDRP.</summary>
+	/// <summary>Variant offered by Export from material for the HDRP material settings.</summary>
 	public sealed class ModRenderCoreSuggestion
 	{
 		public readonly ModRenderCoreRenderType renderType;
 		public readonly bool hasNormal;
 		public readonly bool hasEmission;
 
-		/// <summary>Растительность: двусторонний материал HDRP с вырезом по альфе.</summary>
+		/// <summary>Foliage: a double-sided HDRP material with alpha cutout.</summary>
 		public readonly bool isFoliage;
 
 		public readonly string variant;

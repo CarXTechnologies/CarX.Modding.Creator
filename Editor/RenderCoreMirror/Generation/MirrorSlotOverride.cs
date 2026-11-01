@@ -1,8 +1,8 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Ручное решение для свойства варианта, которое правила слотов (MirrorSlotRules) не покрывают или покрывают неверно: откуда Export from
-	/// material берёт значение, слой и значение по умолчанию. Причина обязательна — она объясняет ревьюеру, почему правило не подошло.
+	/// Manual decision for a variant property the slot rules (MirrorSlotRules) do not cover or cover wrongly: where Export from material
+	/// takes the value, layer and default value. A reason is required to explain to the reviewer why the rule did not fit.
 	/// </summary>
 	public sealed class MirrorSlotOverride
 	{
@@ -10,7 +10,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public readonly MirrorSource source;
 		public readonly int layer;
 
-		/// <summary>Для Color/Vector/Float; у текстур не используется (в таблице всегда (1, 1, 1, 1)).</summary>
+		/// <summary>For Color/Vector/Float; unused for textures (always (1, 1, 1, 1) in the table).</summary>
 		public readonly MirrorVector defaultValue;
 
 		public readonly string reason;

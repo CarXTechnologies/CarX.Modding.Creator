@@ -5,17 +5,17 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Standard.shader: блок Properties (имя, тип, литерал по умолчанию, [Gamma]) и по проходам — объявления keyword'ов из #pragma
-	/// multi_compile*/shader_feature*/dynamic_branch* (с группами по директивам) и тексты программ. Блоки HLSLINCLUDE шейдера и SubShader
-	/// добавляются к каждому проходу. #pragma внутри #if помечается ConditionalPrefix; директива читается как в препроцессоре ("#if(", "#if!",
-	/// "# if" — тоже #if), лишний #endif или незакрытый #if — RCM002. HLSL-код программ здесь не разбирается (его вычисляет
-	/// MaterialDefinitionsParser).
+	/// Standard.shader: the Properties block (name, type, default literal, [Gamma]) and per pass the keyword declarations from #pragma
+	/// multi_compile*/shader_feature*/dynamic_branch* (grouped by directive) and program texts. Shader and SubShader HLSLINCLUDE blocks
+	/// are added to each pass. A #pragma inside #if is marked with ConditionalPrefix; directives are read as by the preprocessor ("#if(", "#if!",
+	/// "# if" are also #if); an extra #endif or unclosed #if is RCM002. Program HLSL code is not parsed here (MaterialDefinitionsParser
+	/// evaluates it).
 	/// </summary>
 	public static class StandardShaderParser
 	{
 		public const string FileName = "Standard.shader";
 
-		// Встроенные директивы без списка keyword'ов.
+		// Built-in directives without a keyword list.
 		private static readonly HashSet<string> s_builtinPragmas = new HashSet<string>(StringComparer.Ordinal)
 		{
 			"multi_compile_instancing", "multi_compile_fog", "multi_compile_fwdbase", "multi_compile_fwdbasealpha", "multi_compile_fwdadd",
@@ -31,7 +31,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new RenderCoreShaderInfo(parser.properties, parser.passes);
 		}
 
-		/// <summary>Объявление keyword'а: директива, строка, стоит ли внутри #if.</summary>
+		/// <summary>Keyword declaration: directive, line, whether it is inside #if.</summary>
 		private readonly struct Pragma
 		{
 			public readonly string keyword;
@@ -187,7 +187,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					m_expectPassName = false;
 				}
 
-				// Shader "Имя" { — имя шейдера не сбрасывает ожидание блока Shader.
+				// Shader "Name" { — the shader name does not reset waiting for the Shader block.
 				if (m_lastIdentifier != "Shader")
 				{
 					m_pendingKind = FrameKind.Other;
@@ -227,7 +227,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				var groups = new List<IReadOnlyList<string>>();
 				var programs = new List<RenderCoreShaderProgram>();
 
-				// Сначала HLSLINCLUDE шейдера и SubShader, потом сам проход.
+				// Shader and SubShader HLSLINCLUDE first, then the pass itself.
 				foreach (Frame scope in m_frames)
 				{
 					if (scope.kind == FrameKind.Shader || scope.kind == FrameKind.SubShader)
@@ -315,7 +315,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 						continue;
 					}
 
-					// Как в препроцессоре: имя директивы — идентификатор сразу после '#' и пробелов ("#if(X)", "#if!X", "# ifdef X").
+					// As in the preprocessor: the directive name is the identifier right after '#' and spaces ("#if(X)", "#if!X", "# ifdef X").
 					string body = trimmed.Substring(1).TrimStart();
 					string directive = ReadIdentifier(body);
 					int lineNumber = firstLine + line.number - 1;
@@ -355,7 +355,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					{
 						string keyword = words[index];
 
-						// "_" и "__" — вариант без keyword'а.
+						// "_" and "__" mean the variant without a keyword.
 						if (keyword.Trim('_').Length > 0)
 						{
 							owner.pragmas.Add(new Pragma(keyword, kind, lineNumber));
@@ -501,7 +501,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				string type = rest.Substring(0, typeEnd);
 				rest = rest.Substring(typeEnd).TrimStart();
 
-				// Range(0, 1): границы в снимок не идут.
+				// Range(0, 1): bounds are not part of the snapshot.
 				if (rest.StartsWith("(", StringComparison.Ordinal))
 				{
 					int argumentsEnd = rest.IndexOf(')');
@@ -558,7 +558,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				return null;
 			}
 
-			// HLSLINCLUDE относится к ближайшему SubShader или к шейдеру.
+			// HLSLINCLUDE belongs to the nearest SubShader or to the shader.
 			private Frame CurrentScope()
 			{
 				for (int index = m_frames.Count - 1; index >= 0; index--)

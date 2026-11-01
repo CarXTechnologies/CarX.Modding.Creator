@@ -3,13 +3,13 @@ using NUnit.Framework;
 using Plugins.CarX.Modding.Creator.Tests;
 using UnityEngine;
 
-// Фикстура в пространстве имён формата: BinaryModData читает только его типы, а вложенные DTO BeforeRevision должны в нём лежать.
+// The fixture lives in the format namespace: BinaryModData reads only its types, and the nested BeforeRevision DTOs must be there.
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Необязательные поля ревизии варианта rendercore: ModRenderCoreMaterial.variantRevision, BinaryMaterial.renderCoreRevision
-	/// и ревизия запекания записи маркера RenderCoreMaterialOverride.revision. Данные до их появления читаются с 0 (это ревизия 1),
-	/// документ с ними старый клиент читает без ошибки.
+	/// Optional rendercore variant revision fields: ModRenderCoreMaterial.variantRevision, BinaryMaterial.renderCoreRevision
+	/// and the marker record bake revision RenderCoreMaterialOverride.revision. Data written before them reads as 0 (revision 1),
+	/// and an old client reads a document with them without errors.
 	/// </summary>
 	public class ModRenderCoreDocumentTests
 	{
@@ -101,7 +101,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		[Test]
 		public void MarkerEntryWithoutRevisionCountsAsRevisionOne()
 		{
-			// Запись маркера, сохранённая до появления поля ревизии, читается с 0: экспорт пишет её как ревизию 1.
+			// A marker record saved before the revision field reads as 0: export writes it as revision 1.
 			RenderCoreMaterialOverride legacy = JsonUtility.FromJson<RenderCoreMaterialOverride>("{\"variant\":\"" + Variant + "\"}");
 			RenderCoreMaterialOverride baked = JsonUtility.FromJson<RenderCoreMaterialOverride>(
 				JsonUtility.ToJson(new RenderCoreMaterialOverride { variant = Variant, revision = 2 }));
@@ -143,7 +143,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				Assert.AreEqual(expected.properties[i].name, actual.properties[i].name);
 				Assert.AreEqual(expected.properties[i].type, actual.properties[i].type);
 				Assert.AreEqual(expected.properties[i].value, actual.properties[i].value);
-				// JsonUtility пишет null-строку как пустую: для клиента это одно и то же (текстуры нет).
+				// JsonUtility writes a null string as empty: for the client it is the same (no texture).
 				Assert.AreEqual(expected.properties[i].texture ?? string.Empty, actual.properties[i].texture ?? string.Empty);
 			}
 		}
@@ -156,13 +156,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			Assert.AreEqual(expectedRevision, actual.renderCoreRevision);
 		}
 
-		/// <summary>Схемы документов до появления полей ревизии. Имена типов совпадают с текущими: BinaryModData сверяет имя корня.</summary>
+		/// <summary>Document schemas before the revision fields. Type names match the current ones: BinaryModData checks the root name.</summary>
 		internal static class BeforeRevision
 		{
 			[Serializable]
 			public sealed class ModRenderCoreMaterial
 			{
-				// Версия документа не менялась: ревизия — необязательное поле той же версии 1.
+				// The document version did not change: the revision is an optional field of the same version 1.
 				public int version = 1;
 				public string variant;
 				public ModRenderCoreProperty[] properties;

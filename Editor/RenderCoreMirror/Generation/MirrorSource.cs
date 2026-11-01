@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Копия Runtime ModRenderCoreSource для ядра без UnityEngine: имена и числа совпадают (проверяет тест таблицы).</summary>
+	/// <summary>Copy of Runtime ModRenderCoreSource for the core without UnityEngine: names and values match (checked by the table test).</summary>
 	public enum MirrorSource
 	{
 		None = 0,
@@ -9,7 +9,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		Normal = 3,
 		Surface = 4,
 
-		// 5 — бывший AlphaCutoff, номер не переиспользуется.
+		// 5 was AlphaCutoff; the number is not reused.
 		EmissionParameters = 6
 	}
 }

@@ -4,12 +4,12 @@ using System.IO;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Остаток <see cref="BinaryModModelReadLimits"/> при чтении одной модели. Проверка идёт до выделения памяти:
-	/// размер блока и число вершин и индексов известны из заголовков.
+	/// Remaining <see cref="BinaryModModelReadLimits"/> while reading one model. Checks happen before allocation:
+	/// block size and vertex/index counts are known from the headers.
 	/// </summary>
 	internal sealed class BinaryModModelReadBudget
 	{
-		// Маленькие блоки (заголовки, простые меши) сжимаются сильно, а памяти не стоят: степень сжатия у них не проверяется.
+		// Small blocks (headers, simple meshes) compress well but cost no memory: their compression ratio is not checked.
 		private const int CompressionCheckBytes = 64 * 1024;
 
 		private readonly BinaryModModelReadLimits m_limits;

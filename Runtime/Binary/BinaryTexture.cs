@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Бинарная текстура мода (.cxtex): заголовок CXTX и готовая цепочка мипов в RGBA32 или BC7.</summary>
+	/// <summary>Mod binary texture (.cxtex): CXTX header and a ready mip chain in RGBA32 or BC7.</summary>
 	public static class BinaryTexture
 	{
 		public const string Extension = ".cxtex";
 		public const string PackedSemantic = "cx_packed";
 		/// <summary>
-		/// Максимальная сторона .cxtex — та же, что у PNG/JPEG мода (<see cref="TexturePngProvider.MaxImageDimension"/>): SDK не собирает
-		/// текстуру больше, а игра отклоняет её по заголовку (<see cref="Inspect"/>) до выделения видеопамяти.
+		/// Maximum .cxtex side, same as for mod PNG/JPEG (<see cref="TexturePngProvider.MaxImageDimension"/>): the SDK does not build
+		/// a larger texture, and the game rejects it by header (<see cref="Inspect"/>) before allocating video memory.
 		/// </summary>
 		public const int MaxDimension = 8192;
 		private const uint Magic = 0x58545843; // CXTX
@@ -141,7 +141,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			try
 			{
-				// Без второй управляемой копии цепочки мипов.
+				// Avoids a second managed copy of the mip chain.
 				GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
 				try
@@ -153,7 +153,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					handle.Free();
 				}
 
-				// Мипы подготовлены SDK; CPU-копию освобождаем.
+				// Mips are prepared by the SDK; release the CPU copy.
 				texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
 				return texture;
 			}

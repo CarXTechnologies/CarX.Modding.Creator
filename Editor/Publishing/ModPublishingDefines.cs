@@ -13,9 +13,8 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 	/// <remarks>
 	/// Each vendor implementation lives behind a define constraint so that a project which only ships one of them
 	/// never has to carry the other's SDK. The defines are derived from which vendor assemblies got loaded.
-	/// Синхронизация не выполняется на загрузке домена: её запускает только работа с публикацией
-	/// (<see cref="ModPublisherSession"/>) или пункт меню. Проект, который ничего не публикует (игра),
-	/// дефайны не меняет и задаёт их явно, если они ему нужны.
+	/// Sync does not run on domain load: only publishing work (<see cref="ModPublisherSession"/>) or the menu item triggers it.
+	/// A project that publishes nothing (the game) does not change the defines and sets them explicitly if it needs them.
 	/// </remarks>
 	public static class ModPublishingDefines
 	{
@@ -23,13 +22,13 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 		public const string ModIoDefine = "CARX_MODDING_MODIO";
 
 		/// <summary>
-		/// Плагин mod.io несёт CARX PATCH 2 (ModfileBuilder.SetUploadProgress, Modio.Mods.Builder.ModfileUploadProgress):
-		/// только с ним публикатор mod.io передаёт настоящий прогресс упаковки и передачи модфайла. Без дефайна
-		/// публикатор собирается и с непропатченным плагином (как в игре).
+		/// The mod.io plugin carries CARX PATCH 2 (ModfileBuilder.SetUploadProgress, Modio.Mods.Builder.ModfileUploadProgress): only with it
+		/// the mod.io publisher reports real modfile packing and upload progress. Without the define the publisher also builds against the
+		/// unpatched plugin (as in the game).
 		/// </summary>
 		public const string ModIoUploadProgressDefine = "CARX_MODDING_MODIO_UPLOAD_PROGRESS";
 
-		/// <summary>Тип, который есть только в плагине mod.io с CARX PATCH 2.</summary>
+		/// <summary>Exists only in the mod.io plugin with CARX PATCH 2.</summary>
 		private const string ModIoUploadProgressTypeName = "Modio.Mods.Builder.ModfileUploadProgress, Modio";
 
 		/// <summary>Assembly name prefixes that mean the vendor SDK is present, keyed by the define they enable.</summary>
@@ -42,8 +41,8 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 		private static bool s_syncScheduled;
 
 		/// <summary>
-		/// Откладывает <see cref="Sync"/> до следующего тика редактора: смена дефайнов запускает перекомпиляцию,
-		/// её нельзя начинать посреди загрузки домена или работы окна.
+		/// Defers <see cref="Sync"/> to the next editor tick: changing defines triggers recompilation, which must not start in the middle of
+		/// a domain load or a window operation.
 		/// </summary>
 		public static void ScheduleSync()
 		{

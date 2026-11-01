@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Находит входы по уникальному имени файла под корнем пакета, поэтому переносы файлов внутри rendercore не ломают зеркало.
-	/// Ноль или несколько совпадений — RCM001. Папки на '.' и '~' не учитываются, как и в Unity. Тексты кэшируются.
+	/// Finds inputs by unique file name under the package root, so moving files inside rendercore does not break the mirror.
+	/// Zero or several matches is RCM001. Folders starting with '.' or ending with '~' are ignored, as in Unity. Texts are cached.
 	/// </summary>
 	public sealed class RenderCoreFileLocator
 	{
-		/// <summary>Префикс include'ов, адресующих файлы этого пакета.</summary>
+		/// <summary>Prefix of includes addressing files of this package.</summary>
 		public const string PackagePrefix = "Packages/com.carxtech.rendercore/";
 
 		private readonly IRenderCoreSourceProvider m_provider;
@@ -48,7 +48,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return m_paths.Contains(path);
 		}
 
-		/// <summary>Единственный файл с таким именем.</summary>
 		public string Locate(string fileName)
 		{
 			if (!m_byName.TryGetValue(fileName, out List<string> paths) || paths.Count == 0)
@@ -77,8 +76,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Путь файла из #include или null, если include адресует другой пакет или файл не найден. Сначала путь как написан (от файла или
-		/// от корня пакета), потом — по уникальному имени: файл мог переехать.
+		/// File path from an #include or null if the include addresses another package or the file is not found. First the path as written (from the file or
+		/// from the package root), then by unique name: the file may have moved.
 		/// </summary>
 		public string ResolveInclude(string includingPath, string include, int line)
 		{
@@ -139,7 +138,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return false;
 		}
 
-		/// <summary>Путь лежит в папке directory или глубже.</summary>
 		public static bool IsUnder(string path, string directory)
 		{
 			return directory.Length == 0 || path.StartsWith(directory + "/", StringComparison.Ordinal);
@@ -164,7 +162,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return dot <= 0 ? name : name.Substring(0, dot);
 		}
 
-		/// <summary>Склеивает путь и снимает '.' и '..'; null, если путь выходит за корень пакета.</summary>
+		/// <summary>Joins the path and resolves '.' and '..'; null if the path leaves the package root.</summary>
 		public static string Combine(string directory, string relative)
 		{
 			var segments = new List<string>();

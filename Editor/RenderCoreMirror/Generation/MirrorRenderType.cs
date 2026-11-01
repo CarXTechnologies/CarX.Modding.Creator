@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Копия Runtime ModRenderCoreRenderType (= RenderCore.Editor.RenderType) для ядра без UnityEngine: имена и числа совпадают.</summary>
+	/// <summary>Copy of Runtime ModRenderCoreRenderType (= RenderCore.Editor.RenderType) for the core without UnityEngine: names and values match.</summary>
 	public enum MirrorRenderType
 	{
 		Opaque = 0,

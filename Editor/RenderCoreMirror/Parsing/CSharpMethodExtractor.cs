@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Нормализованное тело метода C# (EditorUtils.SetupMaterialVariant): без комментариев, пробелы схлопнуты, пустые строки выброшены.
-	/// Клиент (MaterialMappingPBR.ApplyRenderCoreVariant) повторяет этот метод построчно, поэтому изменение тела — Breaking.
-	/// Ровно одно объявление с телом { … }; ноль, перегрузки или тело-выражение — RCM002.
+	/// Normalized body of a C# method (EditorUtils.SetupMaterialVariant): no comments, whitespace collapsed, empty lines dropped.
+	/// The client (MaterialMappingPBR.ApplyRenderCoreVariant) repeats this method line by line, so a body change is Breaking.
+	/// Exactly one declaration with a { … } body; zero, overloads or an expression body is RCM002.
 	/// </summary>
 	public static class CSharpMethodExtractor
 	{
@@ -89,7 +89,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return index;
 		}
 
-		/// <summary>Индекс парной скобки (строковые и символьные литералы пропускаются) или code.Length.</summary>
+		/// <summary>Index of the matching bracket (string and char literals are skipped) or code.Length.</summary>
 		private static int FindMatching(string code, int open, char opening, char closing)
 		{
 			int depth = 0;

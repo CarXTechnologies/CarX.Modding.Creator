@@ -8,25 +8,25 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	{
 		public string name;
 		public string layeredResource;
-		// Переопределение маркером Material: вариант rendercore и документ ModRenderCoreMaterial. Остальные поля — запасной материал.
+		// Material marker override: rendercore variant and ModRenderCoreMaterial document. Other fields are the fallback material.
 		public string renderCoreVariant;
 		public string renderCoreResource;
-		// Ревизия варианта rendercore из MTL (cx_rc_rev); 0 — ревизия 1.
+		// rendercore variant revision from MTL (cx_rc_rev); 0 means revision 1.
 		public int renderCoreRevision;
 		public Vector4 uv = new Vector4(1, 1, 0, 0);
 		public float alpha = 1;
 		public int illumination = -1;
 		public bool doubleSided;
-		// Единственный признак режима для клиентов до появления doubleSidedNormalMode: true — Mirror, false — None.
-		// Для Flip тоже true, чтобы старый клиент показал ближайший режим (Mirror).
+		// The only mode flag for clients older than doubleSidedNormalMode: true = Mirror, false = None.
+		// Flip also writes true so old clients show the closest mode (Mirror).
 		public bool flipNormals = true;
-		// Уточняет flipNormals == true (Mirror или Flip); в .cxmod, собранных до появления поля, его нет.
+		// Refines flipNormals == true (Mirror or Flip); absent in .cxmod built before the field existed.
 		public ModDoubleSidedNormalMode doubleSidedNormalMode = ModDoubleSidedNormalMode.Mirror;
 		public bool alphaTexture;
 		public bool emission;
 		public BinaryMaterialProperty[] properties;
 
-		/// <summary>Режим нормали обратной стороны с учётом документов без поля doubleSidedNormalMode.</summary>
+		/// <summary>Back face normal mode, accounting for documents without doubleSidedNormalMode.</summary>
 		public ModDoubleSidedNormalMode GetDoubleSidedNormalMode()
 		{
 			if (!flipNormals)

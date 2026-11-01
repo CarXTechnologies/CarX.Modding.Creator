@@ -6,15 +6,14 @@ using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
 namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 {
-	/// <summary>Переводит прогресс загрузки модфайла плагина mod.io в общий прогресс операции.</summary>
+	/// <summary>Maps the mod.io plugin modfile upload progress to the overall operation progress.</summary>
 	/// <remarks>
-	/// Доли этапов: подготовка 0..0.02, упаковка 0.02..0.15, передача 0.15..0.97, обработка на mod.io 0.97..1.
-	/// Передаче отдана почти вся шкала, потому что на больших картах дольше всего длится именно она. Плагин сообщает
-	/// о модфайле каждый кадр на главном потоке, поэтому дальше отчёты идут через
-	/// <see cref="ModUploadProgressThrottle"/>. Единица сообщается только из <see cref="ReportSucceeded"/>.
-	/// Отчёты о модфайле умеет только плагин с CARX PATCH 2 (ModfileBuilder.SetUploadProgress), об этом говорит дефайн
-	/// CARX_MODDING_MODIO_UPLOAD_PROGRESS (его выставляет ModPublishingDefines). Без него плагин о модфайле молчит:
-	/// после подготовки полоса встаёт на начало передачи и стоит там до ответа mod.io.
+	/// Stage fractions: preparation 0..0.02, packing 0.02..0.15, upload 0.15..0.97, processing on mod.io 0.97..1.
+	/// Upload gets almost the whole scale because it takes the longest on large maps. The plugin reports the modfile every
+	/// frame on the main thread, so reports go through <see cref="ModUploadProgressThrottle"/>. 1 is reported only from
+	/// <see cref="ReportSucceeded"/>. Only the plugin with CARX PATCH 2 (ModfileBuilder.SetUploadProgress) reports the modfile,
+	/// signaled by the CARX_MODDING_MODIO_UPLOAD_PROGRESS define (set by ModPublishingDefines). Without it the plugin is silent:
+	/// after preparation the bar sits at the start of the upload stage until mod.io responds.
 	/// </remarks>
 	internal sealed class ModIoUploadProgressReporter
 #if CARX_MODDING_MODIO_UPLOAD_PROGRESS
@@ -31,13 +30,13 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		private long m_uploadedBytes;
 #endif
 
-		/// <param name="target">Получатель общего прогресса; при null отчёты отбрасываются.</param>
+		/// <param name="target">Overall progress receiver; reports are dropped when null.</param>
 		public ModIoUploadProgressReporter(IProgress<ModUploadProgress> target)
 		{
 			m_throttle = new ModUploadProgressThrottle(target);
 		}
 
-		/// <summary>Операция началась: запрос ещё проверяется, на mod.io ничего не отправлено.</summary>
+		/// <summary>The operation started: the request is still being validated, nothing has been sent to mod.io.</summary>
 		public void ReportStarted()
 		{
 			m_throttle.Report(
@@ -45,10 +44,10 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				isBoundary: true);
 		}
 
-		/// <summary>Запрос собран; дальше плагин отправляет метаданные и берётся за модфайл.</summary>
+		/// <summary>The request is built; next the plugin sends metadata and handles the modfile.</summary>
 		/// <remarks>
-		/// Без CARX PATCH 2 это последний отчёт до ответа mod.io, поэтому он сразу ставит этап передачи: упаковку и
-		/// передачу плагин делает молча, и сколько байт ушло, неизвестно.
+		/// Without CARX PATCH 2 this is the last report before the mod.io response, so it goes straight to the upload stage:
+		/// the plugin packs and uploads silently, and the number of bytes sent is unknown.
 		/// </remarks>
 		public void ReportPrepared()
 		{
@@ -63,13 +62,13 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 #endif
 		}
 
-		/// <summary>mod.io принял запись вместе с модфайлом.</summary>
+		/// <summary>mod.io accepted the item together with the modfile.</summary>
 		public void ReportSucceeded()
 		{
 #if CARX_MODDING_MODIO_UPLOAD_PROGRESS
 			long uploadedBytes = m_uploadedBytes;
 #else
-			// Размер архива знает только плагин с CARX PATCH 2.
+			// Only the plugin with CARX PATCH 2 knows the archive size.
 			const long uploadedBytes = 0L;
 #endif
 			m_throttle.Report(
@@ -91,7 +90,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 					break;
 
 				case ModfileUploadStage.Processing:
-					// Архив ушёл целиком, ответа mod.io ждём на нижней границе этапа: сколько он займёт, неизвестно.
+					// The whole archive is sent; wait for the mod.io response at the lower bound of the stage, its duration is unknown.
 					m_uploadedBytes = value.TotalBytes;
 					m_throttle.Report(new ModUploadProgress(
 						ModUploadStage.Processing, UploadingEnd, value.DoneBytes, value.TotalBytes));

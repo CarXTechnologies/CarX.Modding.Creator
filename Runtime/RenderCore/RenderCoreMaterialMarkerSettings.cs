@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Значение маркера Material: переопределения материалов рендерера вариантами rendercore (только формат Binary).
-	/// Маркер действует на MeshRenderer своего объекта, а на объекте с LODGroup — на рендереры всех его LOD.
+	/// Material marker value: overrides of renderer materials with rendercore variants (Binary format only).
+	/// The marker applies to the MeshRenderer of its object, and on an object with a LODGroup to the renderers of all its LODs.
 	/// </summary>
 	[Serializable]
 	public sealed class RenderCoreMaterialMarkerSettings
@@ -15,7 +15,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public List<RenderCoreMaterialOverride> overrides = new();
 
-		/// <summary>Переопределение исходного материала или null.</summary>
+		/// <summary>Override for the source material, or null.</summary>
 		public RenderCoreMaterialOverride Find(Material source)
 		{
 			if (source == null)

@@ -1,15 +1,13 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Активность ветки препроцессора в трёхзначной логике HlslConditionEvaluator. Порядок значимый: And — минимум, Or — максимум.</summary>
+	/// <summary>Three-valued preprocessor branch activity of HlslConditionEvaluator. Order matters: And is min, Or is max.</summary>
 	internal enum HlslActivity
 	{
-		/// <summary>Ветка точно не компилируется.</summary>
 		Inactive = 0,
 
-		/// <summary>Зависит от keyword'а времени выполнения или платформы.</summary>
+		/// <summary>Depends on a runtime keyword or platform.</summary>
 		Maybe = 1,
 
-		/// <summary>Ветка точно компилируется.</summary>
 		Active = 2
 	}
 }

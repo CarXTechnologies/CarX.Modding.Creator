@@ -9,9 +9,9 @@ using System.Runtime.Loader;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
-	/// Читает таблицу ModRenderCoreVariants из собранной CarX.Modding.Creator.dll по reflection (отдельный AssemblyLoadContext, UnityEngine из
-	/// --unity-managed или из папки dll) и дампит её как MirrorTableDump. Понимает и старую форму (поле emission, без vertexColors и
-	/// доступности): отсутствующее поле в дамп не попадает, и сравнение покажет его как новое.
+	/// Reads the ModRenderCoreVariants table from the built CarX.Modding.Creator.dll via reflection (separate AssemblyLoadContext, UnityEngine from
+	/// --unity-managed or the dll folder) and dumps it like MirrorTableDump. Also understands the old shape (emission field, no vertexColors or
+	/// availability): a missing field is not dumped, so the comparison shows it as new.
 	/// </summary>
 	internal static class LegacyTableReader
 	{
@@ -65,7 +65,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 				Put(dump, prefix + "unavailableReason", variant, "unavailableReason");
 				Put(dump, prefix + "revision", variant, "revision");
 
-				// Старая таблица: поле emission; новая — свойство Emission (vertexColors == EmissionMultiplier).
+				// Old table: emission field; new one: Emission property (vertexColors == EmissionMultiplier).
 				object emission = Get(variant, "emission") ?? Get(variant, "Emission");
 
 				if (emission != null)
@@ -127,7 +127,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			return property?.GetValue(owner);
 		}
 
-		/// <summary>Как MirrorTableDump: null → "null", enum → имя, bool → true/false, Vector4 → MirrorVector, списки → [a|b].</summary>
+		/// <summary>Like MirrorTableDump: null → "null", enum → name, bool → true/false, Vector4 → MirrorVector, lists → [a|b].</summary>
 		private static string Format(object value)
 		{
 			switch (value)

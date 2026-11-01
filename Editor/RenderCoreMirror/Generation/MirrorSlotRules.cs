@@ -3,13 +3,13 @@ using System;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Правила слотов: роль свойства варианта по его имени, семейству Defs и MATERIALFEATURE_EMISSION. Имя вне правил или чужой тип —
-	/// отказ генератора (RCM031/RCM032), если в аннотации нет переопределения с причиной. Правила:
-	/// u_sTexture → Diffuse/0; u_sTexture1..3 → Diffuse/N у Layered, Emission/0 для N = 1 у Base при EMISSION, иначе None (у Interior
-	/// u_sTexture1 — атлас окон в координатах комнаты, не эмиссия в UV меша);
-	/// u_sPackedMap[N] → Surface/N; u_sNormalMap[N] → Normal/N; u_fParams → EmissionParameters (0,0,0,1) при EMISSION, иначе None (1,1,1,1);
-	/// u_vColor, u_vThirdColor → None (1,1,1,1) (порог альфа-теста в rendercore фиксированный, u_vThirdColor.a — только альфа цели);
-	/// u_fTiling → None со значением по умолчанию из шейдера.
+	/// Slot rules: role of a variant property by its name, Defs family and MATERIALFEATURE_EMISSION. A name outside the rules or a wrong type
+	/// makes the generator refuse (RCM031/RCM032) unless the annotation has an override with a reason. Rules:
+	/// u_sTexture → Diffuse/0; u_sTexture1..3 → Diffuse/N for Layered, Emission/0 for N = 1 for Base with EMISSION, else None (for Interior
+	/// u_sTexture1 is the window atlas in room coordinates, not emission in mesh UV);
+	/// u_sPackedMap[N] → Surface/N; u_sNormalMap[N] → Normal/N; u_fParams → EmissionParameters (0,0,0,1) with EMISSION, else None (1,1,1,1);
+	/// u_vColor, u_vThirdColor → None (1,1,1,1) (the alpha-test threshold in rendercore is fixed, u_vThirdColor.a is only the target alpha);
+	/// u_fTiling → None with the shader default value.
 	/// </summary>
 	public static class MirrorSlotRules
 	{
@@ -27,7 +27,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		private static readonly MirrorVector s_emissionParameters = new MirrorVector(0, 0, 0, 1);
 
 		/// <summary>
-		/// Роль свойства. false — имя вне правил (RCM031). problem не null — имя известно, но значение по умолчанию из шейдера не прочитать.
+		/// Property role. false — the name is outside the rules (RCM031). problem not null — the name is known but the shader default cannot be read.
 		/// </summary>
 		public static bool TryGetSlot(string property, string family, bool emission, RenderCoreLockShaderProperty shaderProperty, out MirrorSlot slot,
 			out string problem)
@@ -79,7 +79,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Тип в asset (0 Color, 1 Vector, 2 Float, 3 Range, 4 Texture, 5 Int) → тип таблицы; Range и Int хранятся как Float.</summary>
+		/// <summary>Asset type (0 Color, 1 Vector, 2 Float, 3 Range, 4 Texture, 5 Int) → table type; Range and Int are stored as Float.</summary>
 		public static bool TryMapAssetType(int assetType, out MirrorPropertyType type)
 		{
 			switch (assetType)
@@ -104,7 +104,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Тип в Properties шейдера подходит типу таблицы (текстура — только 2D).</summary>
+		/// <summary>Shader Properties type fits the table type (textures must be 2D).</summary>
 		public static bool IsShaderTypeCompatible(string shaderType, MirrorPropertyType type)
 		{
 			switch (type)
@@ -142,7 +142,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new MirrorSlot(MirrorPropertyType.Texture, MirrorSource.None, layer: 0, MirrorVector.One, "u_sTextureN → None");
 		}
 
-		/// <summary>prefix (индекс 0) или prefix + 1..MaxLayer; "u_sTexture01", "u_sTexture4" — вне правил.</summary>
+		/// <summary>prefix (index 0) or prefix + 1..MaxLayer; "u_sTexture01", "u_sTexture4" are outside the rules.</summary>
 		private static bool TryParseIndexed(string property, string prefix, out int index)
 		{
 			index = 0;

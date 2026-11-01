@@ -5,17 +5,17 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Правила раскладки: ключ раскладки, каналы packed map, цвет вершин и потоки кандидата по его записям в снимке. Каналы — только для
-	/// сверки с аннотацией (RCM043), в таблицу идут каналы аннотации.
-	/// Ключ: семейство Defs, затем отсортированные MATERIALFEATURE_* без префикса и PACKED_MESH* как есть; у альфа-теста ещё
-	/// " depth:own|generic|none shadow:own|generic|none" — с какими keyword'ами DepthOnly/ShadowCaster компилируют вариант (own — объявлен
-	/// keyword варианта, generic — только общий ALPHATEST, none — ни одного). Что именно компилирует проход выреза, сверяется отдельно:
-	/// отпечаток конфигурации прохода против MirrorPassReview (RCM045).
-	/// Base: R = Roughness при ROUGHNESS; G = Metalness при METALNESS, иначе AO при FOLIAGE и AO; B — первое из ColorMask (COLORMASK),
-	/// Alpha (ALPHABLEND), AmbientOcclusionAlpha (ALPHATEST и AO без FOLIAGE), Alpha (ALPHATEST), AO (AO); A = Zero.
-	/// Layered: (NormalX, NormalY, AO, Roughness). Interior — только аннотация.
-	/// Цвет вершин по семейству: Base с EMISSION → EmissionMultiplier (BaseMaterialFunc умножает эмиссию на цвет вершин, альфа — фаза мерцания),
-	/// Layered → LayerBlend (веса слоёв), Interior и прочее → None (InteriorMaterialFunc цвет вершин не читает).
+	/// Layout rules: layout key, packed map channels, vertex colors and streams of a candidate from its snapshot records. Channels are only
+	/// checked against the annotation (RCM043); the table gets the annotated channels.
+	/// Key: Defs family, then sorted MATERIALFEATURE_* without prefix and PACKED_MESH* as is; alpha-test variants also get
+	/// " depth:own|generic|none shadow:own|generic|none" — which keywords DepthOnly/ShadowCaster compile the variant with (own — the variant
+	/// keyword is declared, generic — only the shared ALPHATEST, none — neither). What the cutout pass actually compiles is checked separately:
+	/// pass config fingerprint against MirrorPassReview (RCM045).
+	/// Base: R = Roughness with ROUGHNESS; G = Metalness with METALNESS, else AO with FOLIAGE and AO; B — first of ColorMask (COLORMASK),
+	/// Alpha (ALPHABLEND), AmbientOcclusionAlpha (ALPHATEST and AO without FOLIAGE), Alpha (ALPHATEST), AO (AO); A = Zero.
+	/// Layered: (NormalX, NormalY, AO, Roughness). Interior — annotation only.
+	/// Vertex colors by family: Base with EMISSION → EmissionMultiplier (BaseMaterialFunc multiplies emission by vertex color, alpha is the
+	/// flicker phase), Layered → LayerBlend (layer weights), Interior and others → None (InteriorMaterialFunc does not read vertex colors).
 	/// </summary>
 	public static class MirrorLayoutRules
 	{
@@ -41,8 +41,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		private const string DefsSuffix = "MaterialDefs";
 
 		/// <summary>
-		/// Особенности, смысл которых правила знают (раскладка, слоты, цвет вершин). WINDOW и ROAD_SIGN_EMISSION раскладку не меняют — только
-		/// глобальную яркость эмиссии. Прочие (VERTEXCOLOR, UVANIM, TILING, MINIMAP, …) у предлагаемого варианта — RCM042.
+		/// Features whose meaning the rules know (layout, slots, vertex colors). WINDOW and ROAD_SIGN_EMISSION do not change the layout, only
+		/// the global emission brightness. Others (VERTEXCOLOR, UVANIM, TILING, MINIMAP, …) in an offered variant give RCM042.
 		/// </summary>
 		public static IReadOnlyList<string> KnownFeatures { get; } = new[]
 		{
@@ -104,7 +104,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				vertexColors = MirrorVertexColors.EmissionMultiplier;
 			}
 
-			// Позицию читает любой вариант; INPUT_NEED_POSITION в rendercore нет, но если появится — тот же поток.
+			// Every variant reads position; rendercore has no INPUT_NEED_POSITION, but if it appears it maps to the same stream.
 			MirrorVertexStreams streams = MirrorVertexStreams.Position;
 			var unknownStreams = new List<string>();
 
@@ -123,13 +123,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new MirrorLayout(family, key, channels, vertexColors, streams, unknownFeatures, unknownStreams, knownFamily);
 		}
 
-		/// <summary>Альфа-тест: особенность ALPHATEST или keyword ALPHATEST (вырез в DepthOnly/ShadowCaster).</summary>
 		public static bool IsAlphaTest(RenderCoreLockVariant variant)
 		{
 			return RenderCoreLock.IsAlphaTest(variant.features, variant.keywords);
 		}
 
-		/// <summary>"BaseMaterialDefs" → "Base"; несколько файлов — через '+'.</summary>
+		/// <summary>"BaseMaterialDefs" → "Base"; several files are joined with '+'.</summary>
 		public static string GetFamily(string defs)
 		{
 			if (string.IsNullOrEmpty(defs))
@@ -159,7 +158,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 			else if (variant.HasFeature(AlphaBlend))
 			{
-				// BaseMaterialFunc не читает AO при ALPHABLEND: B — только альфа.
+				// BaseMaterialFunc does not read AO with ALPHABLEND: B is alpha only.
 				b = MirrorChannel.Alpha;
 			}
 			else if (alphaTest && ao && !foliage)

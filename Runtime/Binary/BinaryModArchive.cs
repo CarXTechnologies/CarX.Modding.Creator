@@ -9,9 +9,9 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Индексированное хранилище ресурсов мода. Логические имена — алиасы для совместимости, а не извлечённые файлы.
-	/// Алиасы могут делить одно содержимое. Чтение потокобезопасно: пока идут чтения, открыт один дескриптор на архив, под блокировкой
-	/// читаются только сырые байты блока, распаковка и CRC — параллельно в вызывающих потоках.
+	/// Indexed mod resource storage. Logical names are compatibility aliases, not extracted files, and may share content.
+	/// Reads are thread-safe: one handle per archive while reads are in flight; only raw block bytes are read under the lock,
+	/// decompression and CRC run in the calling threads.
 	/// </summary>
 	public sealed class BinaryModArchive
 	{
@@ -21,9 +21,9 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private const int MaxEntries = 100000;
 		private const int EntryHeaderSize = 56;
 		private const int HashSize = 32;
-		// Без границы ресурс в килобайты объявляет размер до MaxBlock, и память под него выделяется до распаковки и CRC.
-		// Граница — теоретический предел deflate (1032:1): больше честное сжатие дать не может, значит размер подделан.
-		// Строже нельзя: однотонные текстуры (маски, заливки) и однородная геометрия законно сжимаются в сотни раз
+		// Without a bound, a resource of a few kilobytes could declare a size up to MaxBlock and get that memory allocated before
+		// decompression and CRC. The bound is the theoretical deflate limit (1032:1): anything above it is a forged size.
+		// It cannot be stricter: solid-color textures (masks, fills) and uniform geometry legitimately compress hundreds of times.
 		public const int MaxDeflateCompressionRatio = 1032;
 		private const int CompressionCheckBytes = 1024 * 1024;
 
@@ -89,7 +89,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					compression = reader.ReadByte()
 				};
 
-				// SHA256 нужен только сборке для общих ресурсов: при чтении он не хранится.
+				// SHA256 is only needed when building (shared resources); it is not kept on read.
 				if (stream.Length - stream.Position < HashSize)
 				{
 					throw new EndOfStreamException();
@@ -123,7 +123,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return name;
 		}
 
-		/// <summary>Перечисление может отдавать ресурсы лениво; PNG и геометрия повторно не сжимаются.</summary>
+		/// <summary>The enumeration may yield resources lazily; PNG and geometry are not recompressed.</summary>
 		public static void Write(string path, IEnumerable<KeyValuePair<string, byte[]>> resources, int formatVersion = 1)
 		{
 			if (formatVersion < 1 || formatVersion > 2)
@@ -137,7 +137,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			{
 				WriteFile(temporary, resources, formatVersion);
 
-				// Заменяем исходный файл, только если новый индекс целиком читается.
+				// Replace the original file only if the new index reads back completely.
 				_ = new BinaryModArchive(temporary);
 
 				if (File.Exists(path))
@@ -173,7 +173,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return bytes;
 		}
 
-		/// <summary>Читает ресурс, если он есть в индексе: одна нормализация имени вместо пары Contains + Read.</summary>
+		/// <summary>Reads a resource if it is in the index: one name normalization instead of Contains + Read.</summary>
 		public bool TryRead(string name, out byte[] bytes)
 		{
 			if (!m_entries.TryGetValue(Normalize(name), out Entry entry))
@@ -188,8 +188,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		private byte[] ReadEntry(Entry entry, string name)
 		{
-			// Степень сжатия проверяем при чтении самого ресурса, а не при открытии архива: подозрительный ресурс отказывает
-			// только себе, а мета, иконки и остальные ресурсы мода читаются
+			// The compression ratio is checked when reading the resource itself, not when opening the archive: a suspicious
+			// resource fails only itself, while the meta, icons and other mod resources stay readable.
 			if (entry.compression == 1 && entry.size > CompressionCheckBytes && entry.size > (long)entry.stored * MaxDeflateCompressionRatio)
 			{
 				throw new InvalidDataException("Binary resource exceeds the compression ratio limit: " + name);
@@ -197,8 +197,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			var stored = new byte[entry.stored];
 
-			// Дескриптор живёт, пока есть читатели: параллельная загрузка карты читает через один дескриптор,
-			// а после неё файл не остаётся открытым (удаление и пересборка мода не блокируются).
+			// The handle lives while there are readers: parallel map loading shares one handle,
+			// and afterwards the file is not left open (deleting or rebuilding the mod is not blocked).
 			lock (m_streamLock)
 			{
 				m_readers++;
@@ -242,8 +242,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				}
 			}
 
-			// SHA256 определяет общие ресурсы при сборке; CRC32 дёшево ловит порчу при чтении.
-			// Управляемый SHA256 в Unity Mono добавлял бы секунды на карту с PNG.
+			// SHA256 identifies shared resources at build time; CRC32 cheaply catches corruption on read.
+			// Managed SHA256 in Unity Mono would add seconds per map with PNGs.
 			if (BinaryCrc32.Compute(bytes) != entry.checksum)
 			{
 				throw new InvalidDataException("Binary resource checksum mismatch: " + name);

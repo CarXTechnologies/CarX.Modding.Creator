@@ -3,8 +3,8 @@ using System;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Сбой уровня Error: файл rendercore не найден или неоднозначен, синтаксис вне поддержанного подмножества, испорченный снимок.
-	/// Ничего не угадывается: сообщение называет код RCMxxx, файл и строку; парсер расширяют руками.
+	/// Error-tier failure: rendercore file not found or ambiguous, syntax outside the supported subset, corrupt snapshot.
+	/// Nothing is guessed: the message names the RCMxxx code, file and line; the parser is extended by hand.
 	/// </summary>
 	public sealed class RenderCoreMirrorException : Exception
 	{

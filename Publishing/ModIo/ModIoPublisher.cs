@@ -220,8 +220,8 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 			}
 			catch (Exception exception) when (builder.EditTarget != null)
 			{
-				// AddMod уже создал запись, а работу модфайла с диском (zip, File.Open) плагин не защищает: исключение
-				// ввода-вывода выходит из Publish мимо Results. Запись без модфайла оставлять нельзя и здесь.
+				// AddMod has already created the item, and the plugin does not guard the modfile disk work (zip, File.Open): an I/O
+				// exception escapes Publish bypassing Results. An item without a modfile must not be left here either.
 				return await RemoveIncompleteModAsync(builder.EditTarget.Id, exception.Message);
 			}
 
@@ -230,8 +230,8 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				return ModOperationResult<ModItemKey>.Fail($"mod.io refused to create the mod: {Describe(error, builder)}");
 			}
 
-			// Для новой записи Publish возвращает Error.None, как только прошёл AddMod; отказ в модфайле виден только в
-			// Results. Запись без модфайла оставлять нельзя (см. комментарий выше), поэтому она удаляется.
+			// For a new item Publish returns Error.None as soon as AddMod succeeds; a modfile failure is visible only in
+			// Results. An item without a modfile must not be left (see above), so it is deleted.
 			if (HasFailedResults(builder))
 			{
 				return await RemoveIncompleteModAsync(mod.Id, Describe(Error.None, builder));
@@ -310,8 +310,8 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				// Only Windows is supported by this iteration of the uploader.
 				.SetPlatform(ModfileBuilder.Platform.Windows)
 #if CARX_MODDING_MODIO_UPLOAD_PROGRESS
-				// Плагин с CARX PATCH 2 сообщает упаковку и передачу модфайла каждый кадр; reporter переводит это в общую
-				// шкалу. Без патча (плагин игры) отчётов о модфайле нет, см. ModIoUploadProgressReporter.
+				// The plugin with CARX PATCH 2 reports modfile packing and upload every frame; the reporter maps it to the overall
+				// scale. Without the patch (the game's plugin) there are no modfile reports, see ModIoUploadProgressReporter.
 				.SetUploadProgress(reporter)
 #endif
 				.FinishModfile();
@@ -475,10 +475,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		/// Builds a message out of the top level error plus whatever the builder recorded per field, because a
 		/// multi field publish reports "something failed" at the top and the useful detail only in the results list.
 		/// </summary>
-		/// <remarks>
-		/// Без ошибки верхнего уровня (новая запись создана, отказала её часть) сообщение состоит только из отказов по
-		/// частям.
-		/// </remarks>
+		/// <remarks>Without a top level error (the new item was created, a part of it failed) the message lists only the failed parts.</remarks>
 		private static string Describe(Error error, ModBuilder builder)
 		{
 			string[] failures = (builder.Results ?? new List<(ChangeFlags, Error)>())
@@ -496,7 +493,7 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				: string.Join("; ", failures);
 		}
 
-		/// <summary>Отказала ли какая-то часть публикации, о которой <see cref="ModBuilder.Publish"/> сам не сообщает.</summary>
+		/// <summary>Whether some part of the publish failed that <see cref="ModBuilder.Publish"/> does not report itself.</summary>
 		private static bool HasFailedResults(ModBuilder builder)
 		{
 			List<(ChangeFlags, Error)> results = builder.Results;
@@ -505,12 +502,12 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		}
 
 		/// <summary>
-		/// Удаляет запись, которую mod.io создал, но без принятого содержимого, тем же способом, что и
-		/// <see cref="DeleteItemAsync"/>, и возвращает отказ создания с причиной и итогом удаления.
+		/// Deletes an item mod.io created without accepted content, the same way as <see cref="DeleteItemAsync"/>,
+		/// and returns the creation failure with the reason and the deletion outcome.
 		/// </summary>
 		private async Task<ModOperationResult<ModItemKey>> RemoveIncompleteModAsync(long modId, string contentError)
 		{
-			// Без токена операции: отмена не должна оставить запись, из-за которой не читается список работ пользователя.
+			// No operation token: cancellation must not leave an item that breaks reading the user's list of works.
 			ModOperationResult cleanup = await DeleteItemAsync(
 				new ModItemKey(VendorId, modId.ToString()),
 				CancellationToken.None);

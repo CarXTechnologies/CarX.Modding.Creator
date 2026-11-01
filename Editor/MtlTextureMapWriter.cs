@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Текстурные карты .mtl. Путь проверяется по кэшу упакованных текстур до любой GPU-конвертации,
-	/// временные текстуры (Blit, распакованные копии) уничтожаются сразу после упаковки.
+	/// .mtl texture maps. The path is checked against the packed texture cache before any GPU conversion; temporary textures (Blit,
+	/// unpacked copies) are destroyed right after packing.
 	/// </summary>
 	internal static class MtlTextureMapWriter
 	{
@@ -41,8 +41,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			bool isAlphaTest = blendMode == MaterialBlendMode.AlphaTest;
 			Vector4 alphaRemap = GetAlphaMapRemap(material, blendMode);
 
-			// Суффикс ремапа: одна base map с разными Alpha Remapping не должна схлопнуться в один файл. Суффикс порога альфа-теста ещё и
-			// отличает карту от прежней сырой альфы и от прозрачной копии той же карты.
+			// Remap suffix: one base map with different Alpha Remapping must not collapse into one file. The alpha-test cutoff suffix also
+			// distinguishes the map from the former raw alpha and from the transparent copy of the same map.
 			string alphaName = stableId + "_dissolve" + GetAlphaRemapSuffix(alphaRemap) + (isAlphaTest ? "_c" + FormatSuffixNumber(alphaRemap.w) : string.Empty);
 			string alphaPath = hasAlpha ? ExportTextureUtility.GetTexturePath(collectionProvider, baseMap, alphaName, directory) : null;
 
@@ -132,7 +132,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			string stableId = MeshExportUtility.GetStableObjectId(maskMap);
 			string tilingOptions = GetTilingOptions(material, property);
 
-			// Альфа mask map в HDRP — гладкость, а map_Pr ожидает шероховатость: проход с инверсией альфы.
+			// In HDRP the mask map alpha is smoothness, while map_Pr expects roughness: a pass with inverted alpha.
 			string roughnessName = stableId + "_roughness";
 			string roughnessPath = ExportTextureUtility.GetTexturePath(collectionProvider, maskMap, roughnessName, directory);
 			string metallicName = stableId + "_metallic";
@@ -165,7 +165,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				emissiveColor = material.GetColor("_EmissionColor");
 			}
 
-			// HDRP умножает карту на _EmissiveColor: при чёрном цвете эмиссии нет в любом случае.
+			// HDRP multiplies the map by _EmissiveColor: with black color there is no emission anyway.
 			if (emissiveColor.maxColorComponent <= 0f)
 			{
 				return;
@@ -219,10 +219,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Значение d (.mtl) прозрачного или альфа-тест материала с учётом Alpha Remapping HDRP Lit (_AlphaRemapMin/_AlphaRemapMax), как в шейдере HDRP:
-		/// AlphaBlend — lerp(min, max, a * _BaseColor.a), AlphaTest — lerp(min, max, a) * _BaseColor.a, где a — альфа base map (без карты — 1).
-		/// Клиент домножает map_d на d. При AlphaBlend с ремапом и base map вся альфа запечена в map_d, поэтому d = 1. При AlphaTest с base map
-		/// в map_d запечены альфа, _BaseColor.a и порог (<see cref="RenderCoreAlphaClip"/>), поэтому d = 1: иначе клиент сделал бы материал прозрачным.
+		/// .mtl d of a transparent or alpha-test material with HDRP Lit Alpha Remapping (_AlphaRemapMin/_AlphaRemapMax), as in the HDRP shader:
+		/// AlphaBlend is lerp(min, max, a * _BaseColor.a), AlphaTest is lerp(min, max, a) * _BaseColor.a, where a is base map alpha (1 without a map).
+		/// The client multiplies map_d by d. For AlphaBlend with a remap and base map all alpha is baked into map_d, so d = 1. For AlphaTest with
+		/// a base map, alpha, _BaseColor.a and the cutoff (<see cref="RenderCoreAlphaClip"/>) are baked into map_d, so d = 1: otherwise the client
+		/// would make the material transparent.
 		/// </summary>
 		public static float GetDissolve(Material material, MaterialBlendMode blendMode)
 		{
@@ -250,9 +251,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Параметры прохода альфы <see cref="ExportTextureUtility.Blit(Texture2D, int, float, Vector4)"/>: x, y — диапазон ремапа, z — множитель до ремапа,
-		/// w — порог Alpha Clipping (только для прохода альфа-теста). AlphaTest: lerp(min, max, a) * _BaseColor.a = lerp(min * _BaseColor.a, max * _BaseColor.a, a) —
-		/// множитель уходит в диапазон, проход переносит порог в полосу дизеринга rendercore (см. <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
+		/// Alpha pass parameters for <see cref="ExportTextureUtility.Blit(Texture2D, int, float, Vector4)"/>: x, y are the remap range, z is the
+		/// multiplier before remap, w is the Alpha Clipping cutoff (alpha-test pass only). AlphaTest: lerp(min, max, a) * _BaseColor.a =
+		/// lerp(min * _BaseColor.a, max * _BaseColor.a, a), so the multiplier goes into the range; the pass maps the cutoff into the rendercore
+		/// dithering band (see <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
 		/// </summary>
 		private static Vector4 GetAlphaMapRemap(Material material, MaterialBlendMode blendMode)
 		{
@@ -269,15 +271,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return new Vector4(0.0f, 1.0f, 1.0f, 0.0f);
 			}
 
-			// AlphaBlend: HDRP ремапит уже умноженную на _BaseColor.a альфу — множитель уходит в текстуру (см. GetDissolve).
+			// AlphaBlend: HDRP remaps alpha already multiplied by _BaseColor.a, so the multiplier goes into the texture (see GetDissolve).
 			float multiplier = blendMode == MaterialBlendMode.AlphaBlend ? GetBaseAlpha(material) : 1.0f;
 
 			return new Vector4(remapMin, remapMax, multiplier, 0.0f);
 		}
 
 		/// <summary>
-		/// Суффикс имени текстуры с запечённой альфой (x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа);
-		/// пустой для тождественного ремапа. Общий для map_d HDRP Lit и diffuse слоёв Layered Lit.
+		/// Name suffix of a texture with baked alpha (x, y are the Alpha Remapping range, z is the alpha multiplier before remap); empty for
+		/// an identity remap. Shared by HDRP Lit map_d and Layered Lit layer diffuse.
 		/// </summary>
 		public static string GetAlphaRemapSuffix(Vector4 alphaRemap)
 		{
@@ -299,16 +301,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Переносится ли Alpha Remapping HDRP: только у Transparent (_SurfaceType 1). Инспектор HDRP показывает ремап лишь там; у Opaque,
-		/// в том числе с Alpha Clipping, шейдер применяет оставшееся в материале значение, но автор его не видит и не задаёт, поэтому
-		/// экспорт его не учитывает.
+		/// Only Transparent (_SurfaceType 1) transfers HDRP Alpha Remapping. The HDRP inspector shows the remap only there; for Opaque, including
+		/// Alpha Clipping, the shader applies the value left in the material, but the author neither sees nor sets it, so export ignores it.
 		/// </summary>
 		internal static bool AppliesAlphaRemap(Material material)
 		{
 			return material != null && material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") >= 0.5f;
 		}
 
-		/// <summary>Диапазон Alpha Remapping HDRP Lit. false — ремапа нет, он тождественный (0..1) или не переносится (<see cref="AppliesAlphaRemap"/>).</summary>
+		/// <summary>HDRP Lit Alpha Remapping range. false: no remap, identity (0..1) or not transferred (<see cref="AppliesAlphaRemap"/>).</summary>
 		private static bool TryGetAlphaRemap(Material material, out float remapMin, out float remapMax)
 		{
 			remapMin = 0.0f;
@@ -340,7 +341,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			PackConverted(collectionProvider, ExportTextureUtility.Blit(source, pass, normalScale), name, directory);
 		}
 
-		/// <summary>Упаковывает результат Blit и сразу уничтожает временную текстуру.</summary>
+		/// <summary>Packs the Blit result and immediately destroys the temporary texture.</summary>
 		private static void PackConverted(IModCollectionProvider collectionProvider, Texture2D converted, string name, string directory)
 		{
 			try

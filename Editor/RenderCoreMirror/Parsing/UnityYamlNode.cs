@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Узел YAML-подмножества Unity. Обращение не того вида — RCM002 с файлом и строкой узла.</summary>
+	/// <summary>Node of the Unity YAML subset. Accessing it as the wrong kind is RCM002 with the node file and line.</summary>
 	public sealed class UnityYamlNode
 	{
 		public readonly UnityYamlNodeKind kind;
@@ -46,13 +46,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new UnityYamlNode(UnityYamlNodeKind.Sequence, path, line, value: null);
 		}
 
-		/// <summary>reason — что именно не поддержано.</summary>
+		/// <summary>reason is what exactly is not supported.</summary>
 		public static UnityYamlNode Unsupported(string path, int line, string reason)
 		{
 			return new UnityYamlNode(UnityYamlNodeKind.Unsupported, path, line, reason);
 		}
 
-		/// <summary>Пары ключ-значение карты в порядке файла.</summary>
+		/// <summary>Map key-value pairs in file order.</summary>
 		public IReadOnlyList<KeyValuePair<string, UnityYamlNode>> Entries
 		{
 			get
@@ -95,7 +95,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Первое значение по ключу; ключи-дубли Unity не пишет.</summary>
+		/// <summary>First value by key; Unity does not write duplicate keys.</summary>
 		public bool TryGet(string key, out UnityYamlNode value)
 		{
 			foreach (KeyValuePair<string, UnityYamlNode> entry in Entries)
@@ -126,7 +126,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return Get(key).Value;
 		}
 
-		/// <summary>Строка по ключу или fallback, если ключа нет.</summary>
 		public string GetString(string key, string fallback)
 		{
 			return TryGet(key, out UnityYamlNode value) ? value.Value : fallback;

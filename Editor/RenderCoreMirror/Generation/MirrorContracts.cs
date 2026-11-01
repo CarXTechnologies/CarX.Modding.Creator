@@ -5,9 +5,9 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Контракт варианта из сгенерированных данных и замороженные правила, от которых он зависит. Правила цветового пространства и нормалей
-	/// повторяют Runtime ModRenderCoreVariants.IsColorTexture / ModRenderCoreVariantProperty.IsNormalMap (тест таблицы держит их равными):
-	/// они запечены в заголовки BinaryTexture опубликованных модов и за rendercore не следуют.
+	/// Variant contract from the generated data and the frozen rules it depends on. Color space and normal rules mirror Runtime
+	/// ModRenderCoreVariants.IsColorTexture / ModRenderCoreVariantProperty.IsNormalMap (the table test keeps them equal): they are baked
+	/// into BinaryTexture headers of published mods and do not follow rendercore.
 	/// </summary>
 	public static class MirrorContracts
 	{
@@ -27,7 +27,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return propertyName != null && propertyName.StartsWith(NormalMapPrefix, StringComparison.Ordinal);
 		}
 
-		/// <summary>Контракт, который запекают текущие данные варианта (его ревизия — из аннотации).</summary>
+		/// <summary>The contract baked by the current variant data (revision comes from the annotation).</summary>
 		public static MirrorBakedContract Derive(MirrorVariant variant)
 		{
 			var textures = new List<string>();
@@ -61,13 +61,12 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return $"{variant}@{revision} vertexColors={vertexColors}" + string.Concat(textures.Select(texture => " " + texture));
 		}
 
-		/// <summary>12 hex SHA-256 строки контракта: запись реестра в тесте таблицы.</summary>
+		/// <summary>12 hex SHA-256 of the contract line: the registry entry in the table test.</summary>
 		public static string Hash(MirrorBakedContract contract)
 		{
 			return RenderCoreText.Hash(new[] { contract.Text });
 		}
 
-		/// <summary>Все контракты строками, по варианту и ревизии.</summary>
 		public static List<string> FormatBlock(IEnumerable<MirrorBakedContract> contracts)
 		{
 			return contracts.OrderBy(contract => contract.variant, StringComparer.Ordinal).ThenBy(contract => contract.revision)

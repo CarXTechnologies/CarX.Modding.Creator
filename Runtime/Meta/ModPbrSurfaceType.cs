@@ -1,15 +1,15 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Поверхность материала Layered PBR (.pbr.json), как Surface Type / Blending Mode у HDRP Layered Lit.
-	/// Opaque = 0, чтобы поле, отсутствующее в документах старых модов, означало прежнее поведение. Значения дописываются только в конец.
+	/// Layered PBR (.pbr.json) material surface, like Surface Type / Blending Mode of HDRP Layered Lit.
+	/// Opaque = 0 so that a field missing from old mod documents means the previous behavior. Append new values only at the end.
 	/// </summary>
 	public enum ModPbrSurfaceType
 	{
-		/// <summary>Непрозрачный материал (альфа используется только альфа-тестом cutoff).</summary>
+		/// <summary>Opaque material (alpha is used only by the cutoff alpha test).</summary>
 		Opaque = 0,
 
-		/// <summary>Прозрачный: смешивание SrcAlpha / OneMinusSrcAlpha без записи глубины (HDRP Transparent, Blending Mode Alpha).</summary>
+		/// <summary>Transparent: SrcAlpha / OneMinusSrcAlpha blending without depth write (HDRP Transparent, Blending Mode Alpha).</summary>
 		AlphaBlend = 1
 	}
 }

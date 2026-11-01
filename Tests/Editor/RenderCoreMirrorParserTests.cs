@@ -7,9 +7,9 @@ using Plugins.CarX.Modding.Creator.RenderCoreMirror;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Парсеры ядра зеркала rendercore на коротких фрагментах и сравнение снимков на маленьком пакете в памяти.
-	/// Только Assert.That: тот же файл собирается и вне Unity (NUnit 4). SDK публичный: код во фрагментах синтетический — совпадают с
-	/// rendercore только структура препроцессора и имена.
+	/// rendercore mirror core parsers on short fragments and snapshot comparison on a small in-memory package.
+	/// Assert.That only: the same file also builds outside Unity (NUnit 4). The SDK is public: fragment code is synthetic,
+	/// only the preprocessor structure and names match rendercore.
 	/// </summary>
 	public class RenderCoreMirrorParserTests
 	{
@@ -56,7 +56,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(root.Get("list").Items[0].GetString("tooltip"), Is.EqualTo("B"));
 			Assert.That(root.GetInt("after"), Is.EqualTo(1));
 
-			// Непустая flow-карта в заголовке Unity не мешает, пока её не читают.
+			// A non-empty flow map in the Unity header does not matter until it is read.
 			RenderCoreMirrorException error = Assert.Throws<RenderCoreMirrorException>(() => _ = root.Get("m_Script").Value);
 			Assert.That(error.code, Is.EqualTo(RenderCoreFindingCodes.Parse));
 			Assert.That(error.line, Is.EqualTo(5));
@@ -153,7 +153,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				"\t[Serializable]",
 				"\tpublic enum MaterialVariant",
 				"\t{",
-				"\t\tMAT_UNSUPPORTED = 0, // комментарий, с запятой",
+				"\t\tMAT_UNSUPPORTED = 0, // comment, with a comma",
 				"\t\tMAT_A = 0x10,",
 				"\t\t/* MAT_DEAD = 3, */ MAT_B,",
 				"\t\t[InspectorName(\"C\")] MAT_C = 5,",
@@ -283,8 +283,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			List<string> lines = HlslFunctionExtractor.Preprocess(text, defines, new[] { "QUALITY_LOW", "QUALITY_MID" }, "Func.hlsl");
 
-			// Ветки на keyword'ах времени выполнения и платформе — целиком, с директивами; решённое условие (FEATURE_DEAD ложно) — отброшено,
-			// даже если вторая половина неизвестна; define в неизвестной ветке делает неизвестным и условие на нём.
+			// Branches on runtime keywords and platform are kept whole, with directives; a resolved condition (FEATURE_DEAD is false) is dropped
+			// even if the other half is unknown; a define in an unknown branch makes a condition on it unknown too.
 			Assert.That(lines, Is.EqualTo(new[]
 			{
 				"#if defined(QUALITY_LOW) || defined(QUALITY_MID)", "value = fetch.y;", "#else", "value = fetch.x;", "#endif",
@@ -343,7 +343,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				"\t\t\tHLSLPROGRAM",
 				"\t\t\t\t#pragma multi_compile_local \\",
 				"\t\t\t\t\tMAT_A \\",
-				"\t\t\t\t\tMAT_B // комментарий",
+				"\t\t\t\t\tMAT_B // comment",
 				"\t\t\t\t#pragma shader_feature_local_fragment _ FEATURE",
 				"\t\t\t\t#pragma multi_compile_instancing",
 				"#ifndef SHADER_API_MOBILE",
@@ -456,11 +456,11 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		{
 			var defines = new Dictionary<string, string> { ["FEATURE_CUT"] = "" };
 			string original = Lines(
-				"// заголовок",
+				"// header",
 				"void FixtureSurface(inout FixtureSurfaceData surface)",
 				"{",
 				"#ifdef FEATURE_CUT",
-				"\tClipBelow(sample.z - noise * 0.3, 0.6); /* порог */",
+				"\tClipBelow(sample.z - noise * 0.3, 0.6); /* threshold */",
 				"#endif",
 				"#ifdef FEATURE_CUT_PLAIN",
 				"\tClipBelow(sample.z, 0.7);",
@@ -474,7 +474,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				"    ClipBelow(sample.z  -  noise * 0.3, 0.6);",
 				"#endif",
 				"#ifdef FEATURE_CUT_PLAIN",
-				"\tClipBelow(sample.z, 0.9); // другой порог в мёртвой ветке",
+				"\tClipBelow(sample.z, 0.9); // another threshold in a dead branch",
 				"#endif",
 				"}");
 			string activeEdited = original.Replace("0.3", "0.35");
@@ -496,7 +496,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				"",
 				"\tpublic static void SetupMaterialVariant(FixtureTarget target, FixtureEntry entry)",
 				"\t{",
-				"\t\t// комментарий",
+				"\t\t// comment",
 				"\t\tstring braces = \"{ } /* not a comment */\";",
 				"\t\tforeach (string token in   entry.Tokens)",
 				"\t\t{",
@@ -543,7 +543,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(lockData.GetPassKind("DepthOnly", RenderCoreLock.AlphaTestKeyword), Is.EqualTo("multi_compile_local"));
 			Assert.That(lockData.GetPassKind("ShadowCaster", RenderCoreLock.AlphaTestKeyword), Is.EqualTo(RenderCoreLockPassKeyword.AbsentKind));
 
-			// Вырез варианта альфа-теста: DepthOnly вычисляется своей программой (ALPHATEST и define'ы прохода), ShadowCaster в фикстуре нет.
+			// Alpha test variant cutout: DepthOnly is computed by its own program (ALPHATEST and pass defines); the fixture has no ShadowCaster.
 			Assert.That(lockData.passConfigs.Select(config => $"{config.pass}/{config.keywords}"), Is.EqualTo(new[] { "DepthOnly/ALPHATEST" }));
 			RenderCoreLockPassConfig depth = lockData.passConfigs[0];
 			Assert.That(depth.features, Is.EqualTo(new[] { "MATERIALFEATURE_ALPHATEST" }));
@@ -578,7 +578,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(RenderCoreLockText.SplitList(RenderCoreLockText.JoinList(new[] { "a|b", "", "c\\d\te" }, separator: '|'), separator: '|', "t", line: 1),
 				Is.EqualTo(new[] { "a|b", "", "c\\d\te" }));
 
-			// SDK публичный: в снимок попадают только отпечатки кода rendercore, не сами строки.
+			// The SDK is public: only fingerprints of rendercore code go into the snapshot, not the lines themselves.
 			string text = RenderCoreLockText.Write(Extract(CreateFixture()));
 			Assert.That(text, Does.Not.Contain("ClipBelow("));
 			Assert.That(text, Does.Not.Contain("target.Mark("));
@@ -627,7 +627,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Dictionary<string, string> fixture = CreateFixture();
 			RenderCoreLock committed = Extract(fixture);
 
-			Dictionary<string, string> deadBranch = Replace(fixture, "\tClipBelow(packed.z, 0.9);", "\tClipBelow(packed.z, 0.95); // мёртвая ветка");
+			Dictionary<string, string> deadBranch = Replace(fixture, "\tClipBelow(packed.z, 0.9);", "\tClipBelow(packed.z, 0.95); // dead branch");
 			Assert.That(RenderCoreLockDiff.Compare(committed, Extract(deadBranch), relevant: null), Is.Empty);
 
 			Dictionary<string, string> carOnly = Replace(fixture, "value: 2200", "value: 2300");
@@ -691,7 +691,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			return string.Join("\n", lines);
 		}
 
-		/// <summary>Маленький синтетический пакет rendercore: два кандидата, член без данных и исключённый car-вариант.</summary>
+		/// <summary>Small synthetic rendercore package: two candidates, a member without data and an excluded car variant.</summary>
 		private static Dictionary<string, string> CreateFixture()
 		{
 			return new Dictionary<string, string>
@@ -773,7 +773,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 					"{",
 					"\tpublic static void SetupMaterialVariant(FixtureTarget target, FixtureEntry entry)",
 					"\t{",
-					"\t\ttarget.Order = entry.Order; // очередь",
+					"\t\ttarget.Order = entry.Order; // queue",
 					"\t\ttarget.Mark(entry.Name);",
 					"\t}",
 					"}"),

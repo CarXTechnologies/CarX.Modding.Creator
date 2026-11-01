@@ -11,9 +11,9 @@ using Object = UnityEngine.Object;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Export from material маркера Material: заполняет свойства варианта rendercore из материала HDRP Lit / Layered Lit.
-	/// Текстуры в раскладке rendercore (packed map, окрашенный diffuse, эмиссия, нормаль с Normal Scale) сохраняются PNG-ассетами
-	/// в папку RenderCore рядом с материалом; неизменённые исходные карты используются напрямую.
+	/// Material marker export: fills rendercore variant properties from an HDRP Lit / Layered Lit material. Textures in the rendercore
+	/// layout (packed map, tinted diffuse, emission, normal with Normal Scale) are saved as PNG assets in a RenderCore folder next to the
+	/// material; unmodified source maps are used directly.
 	/// </summary>
 	public static class RenderCoreMaterialBaker
 	{
@@ -25,20 +25,19 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private const string ChannelNames = "RGBA";
 		private const float OcclusionTolerance = 0.5f / 255;
 
-		/// <summary>Доля texel'ей в окне дизеринга вокруг порога, начиная с которой автор получает заметку: штриховка заметна.</summary>
+		/// <summary>Share of texels in the dithering window around the cutoff above which the author gets a note: the hatching is visible.</summary>
 		private const float DitheredShareThreshold = 0.1f;
 
-		/// <summary>Плоская нормаль в RGB (0, 0, 1).</summary>
 		private static readonly Color s_flatNormal = new(0.5f, 0.5f, 1, 1);
 
 		/// <summary>
-		/// Вариант по настройкам материала HDRP (альфа-тест, прозрачность, эмиссия, карта нормалей) из подсказок зеркала rendercore.
-		/// Без точной подсказки: у прозрачных и альфа-тест вариантов карт нет эмиссии, поэтому сначала без неё, затем без учёта
-		/// карты нормалей, затем первый доступный вариант того же типа рендера. Null — только для пустой таблицы.
-		/// Для альфа-теста вариант, у которого канал отсечения несёт ещё и AO (<see cref="ModRenderCoreChannel.AmbientOcclusionAlpha"/>),
-		/// не предлагается, пока есть другой: rendercore отсекал бы непрозрачные в HDRP, но затенённые texel'и. Поэтому материалу
-		/// без карты нормалей достаётся вариант с нормалью: <see cref="Bake"/> запишет плоскую нормаль, AO при этом не переносится.
-		/// Растительности (<see cref="IsFoliage"/>) зеркало предлагает вариант листвы: с картой нормалей и без неё.
+		/// Variant from the HDRP material settings (alpha test, transparency, emission, normal map) using rendercore mirror suggestions.
+		/// Without an exact suggestion: transparent and alpha-test variants have no emission, so try without it, then ignore the normal map,
+		/// then take the first available variant of the same render type. Null only for an empty table.
+		/// For alpha test, a variant whose clip channel also carries AO (<see cref="ModRenderCoreChannel.AmbientOcclusionAlpha"/>) is not
+		/// suggested while another exists: rendercore would clip texels that are opaque but occluded in HDRP. That is why a material without
+		/// a normal map gets a variant with one: <see cref="Bake"/> writes a flat normal and AO is not transferred.
+		/// Foliage (<see cref="IsFoliage"/>) gets a foliage variant, with or without a normal map.
 		/// </summary>
 		public static string SuggestVariant(Material source)
 		{
@@ -50,8 +49,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Растительность: включены Alpha Clipping и Double-Sided (HDRP _AlphaCutoffEnable и _DoubleSidedEnable; так же у материалов ShaderGraph,
-		/// у которых эти свойства есть). Такой материал без маркера рендерится запасным Cutout-вариантом без освещения листвы. Null — false.
+		/// Foliage: Alpha Clipping and Double-Sided are enabled (HDRP _AlphaCutoffEnable and _DoubleSidedEnable; same for ShaderGraph materials
+		/// that have these properties). Without a marker such a material renders with the fallback Cutout variant without foliage lighting.
 		/// </summary>
 		public static bool IsFoliage(Material material)
 		{
@@ -63,7 +62,6 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return material.HasProperty(property) && material.GetFloat(property) > 0;
 		}
 
-		/// <summary>Выбор <see cref="SuggestVariant(Material)"/> по уже определённым настройкам материала; только таблица, без Unity API.</summary>
 		private static string SuggestVariant(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
 		{
 			string[] candidates =
@@ -93,7 +91,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return first;
 		}
 
-		/// <summary>Канал packed map варианта — AO × альфа: AO в нём участвует и в альфа-тесте.</summary>
+		/// <summary>The variant's packed map channel is AO × alpha, so AO also takes part in the alpha test.</summary>
 		private static bool ClipsOnOcclusion(string variantName)
 		{
 			if (!ModRenderCoreVariants.TryGet(variantName, out ModRenderCoreVariant variant))
@@ -140,7 +138,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return offered.Count > 0 ? offered[0].name : null;
 		}
 
-		/// <summary>Папка сгенерированных текстур: RenderCore рядом с материалом, для материала вне Assets — Assets/RenderCore.</summary>
+		/// <summary>RenderCore next to the material; Assets/RenderCore for materials outside Assets.</summary>
 		public static string GetOutputFolder(Material source)
 		{
 			string materialPath = AssetDatabase.GetAssetPath(source);
@@ -152,10 +150,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Заполняет значения варианта <see cref="RenderCoreMaterialOverride.variant"/> (пустой — <see cref="SuggestVariant"/>)
-		/// из <see cref="RenderCoreMaterialOverride.source"/> и запоминает ревизию варианта, для которой они запечены
-		/// (<see cref="RenderCoreMaterialOverride.revision"/>). Возвращает подписи свойств, которым в HDRP нет источника, и заметки
-		/// о том, что автору стоит проверить вручную.
+		/// Fills the values of <see cref="RenderCoreMaterialOverride.variant"/> (empty means <see cref="SuggestVariant"/>) from
+		/// <see cref="RenderCoreMaterialOverride.source"/> and stores the variant revision they were baked for
+		/// (<see cref="RenderCoreMaterialOverride.revision"/>). Returns labels of properties with no HDRP source and notes for manual review.
 		/// </summary>
 		public static IReadOnlyList<string> Bake(RenderCoreMaterialOverride target)
 		{
@@ -223,7 +220,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					value.texture = BakeSurface(hdrp, property, variant.renderType, output, manual);
 					return true;
 				case ModRenderCoreSource.EmissionParameters:
-					// Постоянная яркость: период и разброс нулевые, минимум — интенсивность HDR (цвет нормирован в карте эмиссии).
+					// Constant brightness: zero period and spread, the minimum is the HDR intensity (the color is normalized in the emission map).
 					value.vector = new Vector4(0, 0, 0, Mathf.Max(1, hdrp.EmissiveColor.maxColorComponent));
 					return true;
 				default:
@@ -231,7 +228,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Каналы packed map, которым в HDRP нет источника: маску окраски (MAT_COLORMASK_*) рисует автор, экспорт пишет ноль.</summary>
+		/// <summary>HDRP has no source for the tint mask (MAT_COLORMASK_*): the author paints it, export writes zero.</summary>
 		private static void AddManualChannels(ModRenderCoreVariantProperty property, List<string> manual)
 		{
 			if (property.channels == null)
@@ -248,7 +245,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Base Map × Base Color. Без окраски — исходная карта, без карты — текстура цвета.</summary>
+		/// <summary>Base Map × Base Color. Without a tint, the source map; without a map, a color texture.</summary>
 		private static Texture2D BakeDiffuse(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, TextureOutput output)
 		{
 			Texture2D baseMap = hdrp.GetTexture("_BaseColorMap", property.layer);
@@ -264,11 +261,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return output.Save(property.name, Solid(new Color(tint.r, tint.g, tint.b, 1)), isColor: true);
 			}
 
-			// Цвет материала и пиксели — в гамма-пространстве: произведение совпадает с линейным умножением HDRP.
+			// Material color and pixels are in gamma space: the product matches the HDRP linear multiplication.
 			return output.Save(property.name, Recolor(baseMap, pixel => new Color(pixel.r * tint.r, pixel.g * tint.g, pixel.b * tint.b, pixel.a)), isColor: true);
 		}
 
-		/// <summary>Emissive Map, окрашенная Emissive Color, нормированным на интенсивность (её задают параметры эмиссии).</summary>
+		/// <summary>Emissive Map tinted by Emissive Color normalized by intensity (intensity is set by the emission parameters).</summary>
 		private static Texture2D BakeEmission(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, TextureOutput output)
 		{
 			Color emissive = hdrp.EmissiveColor;
@@ -293,8 +290,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Normal Map: при Normal Scale = 1 — исходная карта (экспорт сам распакует её в RGB), иначе — RGB-нормаль с масштабом.
-		/// Без карты — плоская RGB-нормаль: документ не полагается на значение слота нормали по умолчанию в шаблоне клиента.
+		/// Normal Map: with Normal Scale = 1 the source map (export unpacks it to RGB itself), otherwise an RGB normal with the scale applied.
+		/// Without a map, a flat RGB normal: the document does not rely on the client template default normal slot value.
 		/// </summary>
 		private static Texture2D BakeNormal(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, TextureOutput output)
 		{
@@ -324,10 +321,11 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Packed map по раскладке каналов свойства из Mask Map, альфы Base Map и Normal Map слоя. У альфа-теста с Alpha Clipping исходника
-		/// в канал альфы пишется альфа HDRP, перенесённая с порогом в полосу дизеринга rendercore (<see cref="RenderCoreAlphaClip.ToRenderCore"/>).
-		/// Заметки автору: канал AO × альфа альфа-тест rendercore читает целиком, поэтому затенённые texel'и, непрозрачные в HDRP, могут
-		/// отсекаться; заметная доля texel'ей с альфой у самого порога (<see cref="RenderCoreAlphaClip.Window"/>) рендерится штриховкой дизеринга.
+		/// Packed map in the property channel layout from the layer Mask Map, Base Map alpha and Normal Map. For alpha test with source
+		/// Alpha Clipping the alpha channel gets HDRP alpha with the cutoff moved into the rendercore dithering band
+		/// (<see cref="RenderCoreAlphaClip.ToRenderCore"/>). Author notes: rendercore alpha-tests the whole AO × alpha channel, so occluded
+		/// texels opaque in HDRP may be clipped; a visible share of texels near the cutoff (<see cref="RenderCoreAlphaClip.Window"/>)
+		/// renders as dithering hatching.
 		/// </summary>
 		private static Texture2D BakeSurface(HdrpMaterial hdrp, ModRenderCoreVariantProperty property, ModRenderCoreRenderType renderType, TextureOutput output,
 			List<string> manual)
@@ -451,7 +449,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return Mathf.Abs(color.r - 1) < WhiteTolerance && Mathf.Abs(color.g - 1) < WhiteTolerance && Mathf.Abs(color.b - 1) < WhiteTolerance;
 		}
 
-		/// <summary>Свойства HDRP Lit / Layered Lit; у Layered Lit имена слоя с суффиксом номера.</summary>
+		/// <summary>HDRP Lit / Layered Lit properties; Layered Lit layer names have a numeric suffix.</summary>
 		private sealed class HdrpMaterial
 		{
 			private readonly Material m_material;
@@ -465,10 +463,10 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			public Color EmissiveColor => m_material.HasProperty("_EmissiveColor") ? m_material.GetColor("_EmissiveColor") : Color.black;
 
-			/// <summary>Alpha Clipping включён: у HDRP — _AlphaCutoffEnable, у прочих шейдеров — признаки вырезки по альфе (<see cref="MaterialBlendMode.AlphaTest"/>).</summary>
+			/// <summary>HDRP uses _AlphaCutoffEnable; other shaders use alpha cutout hints (<see cref="MaterialBlendMode.AlphaTest"/>).</summary>
 			public bool IsAlphaClipping => MtlMaterialWriter.DetectBlendMode(m_material) == MaterialBlendMode.AlphaTest;
 
-			/// <summary>Порог Alpha Clipping (общий для слоёв Layered Lit), см. <see cref="RenderCoreAlphaClip.GetCutoff"/>.</summary>
+			/// <summary>Shared by Layered Lit layers, see <see cref="RenderCoreAlphaClip.GetCutoff"/>.</summary>
 			public float AlphaCutoff => RenderCoreAlphaClip.GetCutoff(m_material);
 
 			public bool AppliesAlphaRemap => MtlTextureMapWriter.AppliesAlphaRemap(m_material);
@@ -496,7 +494,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Каналы поверхности слоя по формулам HDRP 17 (LitDataIndividualLayer) с ремапами Mask Map и альфы.</summary>
+		/// <summary>Layer surface channels per HDRP 17 formulas (LitDataIndividualLayer) with Mask Map and alpha remaps.</summary>
 		private readonly struct SurfaceInputs
 		{
 			private readonly Vector2 m_smoothnessRemap;
@@ -516,7 +514,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				m_smoothnessRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_SmoothnessRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_SmoothnessRemapMax", layer), fallback: 1));
 				m_metallicRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_MetallicRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_MetallicRemapMax", layer), fallback: 1));
 				m_aoRemap = new Vector2(hdrp.GetFloat(hdrp.Key("_AORemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_AORemapMax", layer), fallback: 1));
-				// Ремап альфы — только у Transparent, как его показывает инспектор HDRP (MtlTextureMapWriter.AppliesAlphaRemap).
+				// Alpha remap applies only to Transparent, as the HDRP inspector shows it (MtlTextureMapWriter.AppliesAlphaRemap).
 				m_alphaRemap = hdrp.AppliesAlphaRemap
 					? new Vector2(hdrp.GetFloat(hdrp.Key("_AlphaRemapMin", layer), fallback: 0), hdrp.GetFloat(hdrp.Key("_AlphaRemapMax", layer), fallback: 1))
 					: new Vector2(0, 1);
@@ -530,8 +528,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			/// <summary>
-			/// Texel непрозрачен в HDRP (без Alpha Clipping — любой, с ним — не ниже порога), но AO снижает его покрытие альфа-тестом rendercore:
-			/// <see cref="RenderCoreAlphaClip.Coverage"/> от AO × альфа ниже, чем от одной альфы.
+			/// The texel is opaque in HDRP (any without Alpha Clipping, at or above the cutoff with it), but AO reduces its rendercore alpha-test
+			/// coverage: <see cref="RenderCoreAlphaClip.Coverage"/> of AO × alpha is lower than of alpha alone.
 			/// </summary>
 			public bool OccludesOpaqueTexel(Color mask, float baseAlpha, bool hasMask)
 			{
@@ -543,7 +541,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					&& RenderCoreAlphaClip.Coverage(ambientOcclusion * alpha) < RenderCoreAlphaClip.Coverage(alpha);
 			}
 
-			/// <summary>Альфа HDRP у порога: альфа-тест rendercore оставляет texel лишь частично (дизеринг), а HDRP режет жёстко.</summary>
+			/// <summary>HDRP alpha near the cutoff: rendercore keeps the texel only partially (dithering), while HDRP clips hard.</summary>
 			public bool IsDithered(float baseAlpha)
 			{
 				if (!m_mapsAlphaClip)
@@ -574,7 +572,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					case ModRenderCoreChannel.NormalY:
 						return normal.g;
 					case ModRenderCoreChannel.ColorMask:
-						// Маски окраски в HDRP нет: ноль — без окраски u_vColor, автор рисует маску сам.
+						// HDRP has no tint mask: zero means no u_vColor tint, the author paints the mask.
 						return 0;
 					default:
 						return 0;
@@ -587,8 +585,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 
 			/// <summary>
-			/// Альфа в packed map: у альфа-теста с Alpha Clipping исходника — альфа HDRP, перенесённая с порогом в полосу дизеринга rendercore
-			/// (<see cref="RenderCoreAlphaClip.ToRenderCore"/>), иначе — альфа HDRP как есть.
+			/// For alpha test with source Alpha Clipping, HDRP alpha with the cutoff moved into the rendercore dithering band
+			/// (<see cref="RenderCoreAlphaClip.ToRenderCore"/>); otherwise HDRP alpha as is.
 			/// </summary>
 			private float PackedAlpha(float baseAlpha)
 			{
@@ -596,7 +594,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				return m_mapsAlphaClip ? RenderCoreAlphaClip.ToRenderCore(alpha, m_alphaCutoff) : alpha;
 			}
 
-			/// <summary>Альфа HDRP. Прозрачный: lerp(min, max, a · color.a); альфа-тест и прочие: lerp(min, max, a) · color.a.</summary>
+			/// <summary>HDRP alpha. Transparent: lerp(min, max, a · color.a); alpha test and others: lerp(min, max, a) · color.a.</summary>
 			private float Alpha(float baseAlpha)
 			{
 				return m_isAlphaBlend
@@ -605,7 +603,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Пиксели текстуры (значения как хранятся в ней) с билинейной выборкой по UV для карт разного размера.</summary>
+		/// <summary>Texture pixels (as stored) with bilinear UV sampling for maps of different sizes.</summary>
 		private sealed class PixelGrid
 		{
 			public readonly int width;
@@ -687,9 +685,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// PNG-ассеты в папке RenderCore: имя — материал, хэш его стабильного id, вариант и свойство; цветовые — sRGB, остальные — линейные.
-		/// Хэш id нужен, потому что папка общая: одноимённые материалы из разных FBX одной папки или из пакетов (Assets/RenderCore)
-		/// иначе перезаписали бы текстуры друг друга.
+		/// PNG assets in the RenderCore folder: name is material, hash of its stable id, variant and property; color ones are sRGB, others linear.
+		/// The id hash is needed because the folder is shared: same-named materials from different FBX in one folder or from packages
+		/// (Assets/RenderCore) would otherwise overwrite each other's textures.
 		/// </summary>
 		private sealed class TextureOutput
 		{

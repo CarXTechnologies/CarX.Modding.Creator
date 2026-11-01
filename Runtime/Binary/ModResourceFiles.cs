@@ -5,16 +5,16 @@ using System.IO;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Чтение ресурса мода из <see cref="BinaryModArchive"/> (если он есть выше по каталогам) или с диска.
-	/// Открытые архивы кэшируются по пути: индекс читается один раз, а не на каждый ресурс.
-	/// Запись кэша сбрасывается при смене файла (время записи или размер) и через <see cref="ClearCache"/> при выгрузке мода;
-	/// в кэше живут только несколько последних архивов (превью каталога не копит индексы всех модов).
+	/// Reads a mod resource from a <see cref="BinaryModArchive"/> (if one exists up the directory tree) or from disk.
+	/// Open archives are cached by path so the index is read once, not per resource. A cache entry is dropped when the file
+	/// changes (write time or size) and via <see cref="ClearCache"/> on mod unload; only a few recent archives are kept
+	/// (the catalog preview must not accumulate the indices of all mods).
 	/// </summary>
 	/// <remarks>
-	/// Контракт <see cref="ReadAllBytes"/> и <see cref="FindArchive"/>: путь уже разрешён вызывающим кодом внутри каталога мода
-	/// (<see cref="ModPathResolver"/>), корень мода здесь неизвестен. Архив ищется вверх от файла не дальше
-	/// <see cref="MaxSearchDepth"/> каталогов, поэтому для мода из отдельных файлов подхватится <c>mod.cxmod</c>
-	/// из каталога выше папки мода, если он там лежит.
+	/// <see cref="ReadAllBytes"/> and <see cref="FindArchive"/> expect a path already resolved inside the mod directory
+	/// (<see cref="ModPathResolver"/>); the mod root is unknown here. The archive is searched upwards from the file at most
+	/// <see cref="MaxSearchDepth"/> directories, so a mod made of loose files will pick up <c>mod.cxmod</c>
+	/// from the directory above the mod folder if it is there.
 	/// </remarks>
 	public static class ModResourceFiles
 	{
@@ -26,7 +26,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private static long s_accessCounter;
 		private static int s_generation;
 
-		/// <summary>Открывает архив по пути или берёт его из кэша. Если файла нет — null.</summary>
+		/// <summary>Opens the archive at the path or takes it from the cache; null if the file does not exist.</summary>
 		public static BinaryModArchive OpenArchive(string archivePath)
 		{
 			string fullPath = Path.GetFullPath(archivePath);
@@ -57,12 +57,12 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				generation = s_generation;
 			}
 
-			// Индекс читается вне блокировки: он может быть большим, а параллельные чтения разных модов не должны ждать друг друга.
+			// The index is read outside the lock: it can be large, and parallel reads of different mods must not wait for each other.
 			var archive = new BinaryModArchive(fullPath);
 
 			lock (s_lock)
 			{
-				// ClearCache во время чтения индекса: архив выгружаемого мода в кэш не возвращается.
+				// ClearCache ran while the index was read: the archive of an unloaded mod is not put back into the cache.
 				if (generation == s_generation)
 				{
 					s_archives[fullPath] = new CachedArchive(archive, lastWrite, length, ++s_accessCounter);
@@ -111,7 +111,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return archive != null ? archive.Read(name) : File.ReadAllBytes(file);
 		}
 
-		// Вызывается под s_lock. Архивов в кэше единицы, поэтому линейный поиск самого старого дешевле отдельного списка LRU.
+		// Called under s_lock. The cache holds a handful of archives, so a linear search for the oldest is cheaper than an LRU list.
 		private static void TrimCache()
 		{
 			while (s_archives.Count > MaxCachedArchives)

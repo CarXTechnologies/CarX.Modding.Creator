@@ -7,9 +7,9 @@ using UnityEngine.Experimental.Rendering;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Работа с текстурами при экспорте: читаемая несжатая версия исходника, GPU-проходы конвертации
-	/// и упаковка под заданным именем. Все временные текстуры уничтожает вызывающий код через <see cref="Release"/>
-	/// или <see cref="Object.DestroyImmediate(Object)"/>; GPU-ресурсы освобождаются в <see cref="ClearCache"/>.
+	/// Export texture helpers: readable uncompressed source, GPU conversion passes and packing under a given name. The caller destroys all
+	/// temporary textures via <see cref="Release"/> or <see cref="Object.DestroyImmediate(Object)"/>; GPU resources are freed in
+	/// <see cref="ClearCache"/>.
 	/// </summary>
 	public static class ExportTextureUtility
 	{
@@ -31,7 +31,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			s_processedTexturePaths.Add(path);
 		}
 
-		/// <summary>Сбрасывает кэш упакованных путей и освобождает материал и RT для Blit.</summary>
+		/// <summary>Resets the packed path cache and frees the Blit material and RT.</summary>
 		public static void ClearCache()
 		{
 			s_processedTexturePaths.Clear();
@@ -50,8 +50,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Читаемая несжатая версия текстуры: сам ассет (импортёр временно переключается через <see cref="ExportImporterSettings"/>)
-		/// или временная копия для текстуры без ассета. Копию освобождает <see cref="Release"/>.
+		/// Readable uncompressed texture: the asset itself (the importer is switched temporarily via <see cref="ExportImporterSettings"/>)
+		/// or a temporary copy for a texture without an asset. <see cref="Release"/> frees the copy.
 		/// </summary>
 		public static Texture2D AcquireReadable(Texture2D texture)
 		{
@@ -75,7 +75,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return Decompress(texture);
 		}
 
-		/// <summary>Уничтожает временную копию из <see cref="AcquireReadable"/>; ассеты не трогает.</summary>
+		/// <summary>Destroys the temporary copy from <see cref="AcquireReadable"/>; leaves assets alone.</summary>
 		public static void Release(Texture2D readable, Texture2D source)
 		{
 			if (readable != null && readable != source && !AssetDatabase.Contains(readable))
@@ -84,16 +84,16 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Проход шейдера конвертации над исходником. Результат — временная текстура, её уничтожает вызывающий код.</summary>
+		/// <summary>The result is a temporary texture the caller destroys.</summary>
 		public static Texture2D Blit(Texture2D source, int pass, float normalScale = 1f)
 		{
 			return Blit(source, pass, normalScale, s_identityAlphaRemap);
 		}
 
 		/// <summary>
-		/// Проход шейдера конвертации с параметрами прохода альфы <paramref name="alphaRemap"/>:
-		/// x, y — диапазон Alpha Remapping, z — множитель альфы до ремапа (альфа = lerp(x, y, a * z)), w — порог Alpha Clipping
-		/// для прохода альфа-теста (см. <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
+		/// Conversion pass with alpha pass parameters <paramref name="alphaRemap"/>: x, y are the Alpha Remapping range, z is the alpha
+		/// multiplier before remap (alpha = lerp(x, y, a * z)), w is the Alpha Clipping cutoff for the alpha-test pass
+		/// (see <see cref="RenderCoreAlphaClip.ToRenderCore"/>).
 		/// </summary>
 		public static Texture2D Blit(Texture2D source, int pass, float normalScale, Vector4 alphaRemap)
 		{
@@ -124,10 +124,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Путь, под которым текстура с именем <paramref name="name"/> будет упакована в мод.</summary>
 		public static string GetTexturePath(IModCollectionProvider collectionProvider, Texture2D texture, string name, string directory)
 		{
-			// Путь провайдер строит из имени текстуры; имя ассета меняется только на время вызова.
+			// The provider builds the path from the texture name; the asset name changes only for the duration of the call.
 			string originalName = texture.name;
 
 			try
@@ -141,7 +140,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Упаковывает текстуру под именем <paramref name="name"/> и отмечает путь как обработанный.</summary>
+		/// <summary>Also marks the path as processed.</summary>
 		public static string Pack(IModCollectionProvider collectionProvider, Texture2D texture, string name, string directory)
 		{
 			string originalName = texture.name;
@@ -214,8 +213,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private static Texture2D Decompress(Texture2D compressedTexture)
 		{
-			// sRGB-исходник при сэмплинге переводится в linear; sRGB-цель кодирует его обратно, и в PNG попадают исходные байты.
-			// С linear-целью цвет base/emissive в PNG получился бы темнее.
+			// An sRGB source is converted to linear when sampled; an sRGB target encodes it back, so the PNG gets the original bytes.
+			// With a linear target base/emissive color in the PNG would come out darker.
 			RenderTextureReadWrite readWrite = GraphicsFormatUtility.IsSRGBFormat(compressedTexture.graphicsFormat)
 				? RenderTextureReadWrite.sRGB
 				: RenderTextureReadWrite.Linear;

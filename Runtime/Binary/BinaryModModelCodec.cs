@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Кодек бинарной геометрии мода (.cxmesh). Запись — всегда версия 2 (<see cref="BinaryModModelCodecV2"/>),
-	/// чтение — версии 1 и 2. Little endian, заголовок CXBM.
+	/// Mod binary geometry codec (.cxmesh). Always writes version 2 (<see cref="BinaryModModelCodecV2"/>),
+	/// reads versions 1 and 2. Little endian, CXBM header.
 	/// </summary>
 	public static class BinaryModModelCodec
 	{
@@ -34,7 +34,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return Read(path, BinaryModModelReadLimits.Default);
 		}
 
-		/// <summary>Чтение с лимитами на всю модель (например, из бюджета загрузки мода).</summary>
+		/// <summary>Reads with limits for the whole model (e.g. from the mod load budget).</summary>
 		public static BinaryModModel Read(string path, BinaryModModelReadLimits limits)
 		{
 			using FileStream stream = File.OpenRead(path);
@@ -46,7 +46,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return Read(bytes, BinaryModModelReadLimits.Default);
 		}
 
-		/// <summary>Чтение с лимитами на всю модель (например, из бюджета загрузки мода).</summary>
+		/// <summary>Reads with limits for the whole model (e.g. from the mod load budget).</summary>
 		public static BinaryModModel Read(byte[] bytes, BinaryModModelReadLimits limits)
 		{
 			using var stream = new MemoryStream(bytes, false);

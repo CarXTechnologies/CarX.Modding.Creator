@@ -13,9 +13,9 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Validation (BuildFlow игры): живой пакет rendercore против закоммиченного снимка зеркала. Только проверка, ничего не пишет и не трогает
-	/// MaterialEditorSettings.instance. В MapUploader (нет ни rendercore, ни загрузчика CarX.Modding) — Ignore; в игре без rendercore — Fail,
-	/// чтобы проверка не выключалась сама.
+	/// Validation (game BuildFlow): the live rendercore package against the committed mirror snapshot. Check only: writes nothing and does not
+	/// touch MaterialEditorSettings.instance. Ignored in MapUploader (no rendercore and no CarX.Modding loader); fails in the game without
+	/// rendercore so the check cannot silently turn itself off.
 	/// </summary>
 	[TestFixture]
 	[Category("Validation")]
@@ -77,7 +77,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			string loaderAssetDirectory = Path.GetDirectoryName(RenderCoreMirrorUnityPaths.GetAssemblyDefinitionAssetPath(RenderCoreMirrorUnityPaths.LoaderAssemblyName))
 				.Replace('\\', '/');
 
-			// Шаблоны клиента включают keyword варианта, который rendercore обязан компилировать в Forward.
+			// Client templates include the variant keyword, which rendercore must compile in Forward.
 			foreach (string template in s_clientTemplates)
 			{
 				string path = $"{loaderAssetDirectory}/Resources/{template}.mat";
@@ -90,7 +90,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				Assert.That(live.GetPassKind(RenderCoreLock.ForwardPass, keyword), Does.StartWith("multi_compile"), $"{path}: {keyword} in Forward");
 			}
 
-			// Шейдеры загрузчика (VAT, Layered PBR) включают файлы rendercore по пути: перенос файла ломает их только при компиляции шейдера.
+			// Loader shaders (VAT, Layered PBR) include rendercore files by path: moving a file breaks them only at shader compilation.
 			Assert.That(live.TryGetFile(RenderCoreLockFile.DefinitionsRole, out string definitions), Is.True);
 			string loaderDirectory = RenderCoreMirrorUnityPaths.GetAssemblyDirectory(RenderCoreMirrorUnityPaths.LoaderAssemblyName);
 			var problems = new List<string>();
@@ -133,7 +133,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				return package;
 			}
 
-			// Тот же признак игры, что у RenderCoreMirrorBuildGuard: загрузчик есть — пакет обязателен.
+			// Same game check as RenderCoreMirrorBuildGuard: if the loader is present, the package is required.
 			if (RenderCoreMirrorUnityPaths.IsLoaderLoaded())
 			{
 				Assert.Fail($"loader CarX.Modding is present, but package {RenderCoreMirrorPaths.RenderCorePackageName} is missing: the mirror check must not turn itself off");

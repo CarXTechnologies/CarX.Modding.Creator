@@ -2,7 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Копия Runtime ModRenderCoreVertexStreams для ядра без UnityEngine: имена и числа совпадают (проверяет тест таблицы).</summary>
+	/// <summary>Copy of Runtime ModRenderCoreVertexStreams for the core without UnityEngine: names and values match (checked by the table test).</summary>
 	[Flags]
 	public enum MirrorVertexStreams
 	{

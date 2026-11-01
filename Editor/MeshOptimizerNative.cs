@@ -22,8 +22,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Упрощает каждый сабмеш отдельно (индексы — в исходный буфер вершин меша), атрибуты собираются один раз на меш.
-		/// Открытые края сабмеша закреплены (LockBorder), поэтому граница между материалами не расходится.
+		/// Simplifies each submesh separately (indices into the mesh's source vertex buffer), attributes are gathered once per mesh.
+		/// Open submesh edges are locked (LockBorder), so borders between materials do not split.
 		/// </summary>
 		public static int[][] Simplify(Mesh mesh, float ratio, float errorMeters, bool collider, byte[] locks)
 		{

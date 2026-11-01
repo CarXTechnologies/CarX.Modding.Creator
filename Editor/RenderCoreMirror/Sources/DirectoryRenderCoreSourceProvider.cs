@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Пакет rendercore в папке: Packages/com.carxtech.rendercore проекта игры или фикстура теста.</summary>
+	/// <summary>rendercore package in a folder: Packages/com.carxtech.rendercore of the game project or a test fixture.</summary>
 	public sealed class DirectoryRenderCoreSourceProvider : IRenderCoreSourceProvider
 	{
 		private readonly string m_root;
@@ -75,7 +75,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				string name = Path.GetFileName(child);
 
-				// .git, Samples~ и т.п. Unity не импортирует; заходить туда незачем.
+				// Unity does not import .git, Samples~ etc.; no need to go there.
 				if (!RenderCoreFileLocator.IsIgnoredDirectory(name))
 				{
 					Collect(child, prefix + name + "/", files);

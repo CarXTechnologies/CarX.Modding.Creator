@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Текст .mtl для набора материалов Unity: параметры поверхности и ссылки на упакованные текстуры.</summary>
+	/// <summary>.mtl text for a set of Unity materials: surface parameters and references to packed textures.</summary>
 	internal static class MtlMaterialWriter
 	{
 		public static string Build(IModCollectionProvider collectionProvider, Material[] materials, string directory)
@@ -31,15 +31,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		{
 			mtl.AppendFormat("newmtl {0}", MeshExportUtility.GetStableObjectId(material)).AppendLine();
 
-			// Переопределение маркером Material главнее Layered PBR: запасным остаётся обычный материал ниже.
-			// Неприменимый вариант документа не получает, и материал экспортируется как без маркера.
+			// A Material marker override wins over Layered PBR: the regular material below stays as the fallback.
+			// An unusable variant gets no document, and the material is exported as if unmarked.
 			if (RenderCoreMaterialOverrides.TryGet(material, out RenderCoreMaterialOverride renderCore)
 				&& RenderCoreMaterialWriter.TryWrite(material, renderCore, directory, out ModRenderCoreVariant variant, out int revision, out string document))
 			{
 				mtl.Append("cx_rc ").Append(variant.name).Append(' ').AppendLine(document);
 
-				// Ревизия — та, что записана в документ (ревизия запекания маркера). Ревизия 1 не пишется: такой MTL совпадает с прежним,
-				// а отсутствие строки читается как ревизия 1.
+				// The revision written to the document (the marker bake revision). Revision 1 is not written: such MTL matches the old one,
+				// and a missing line reads as revision 1.
 				if (revision > 1)
 				{
 					mtl.AppendFormat(CultureInfo.InvariantCulture, "cx_rc_rev {0}", revision).AppendLine();
@@ -87,7 +87,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			mtl.AppendFormat("ds {0}", MtlDoubleSidedCode.FromNormalMode(GetDoubleSidedNormalMode(material))).AppendLine();
 		}
 
-		/// <summary>Double-Sided Normal Mode материала HDRP (Lit, Layered Lit); без свойства — None, как прежний экспорт.</summary>
+		/// <summary>HDRP Double-Sided Normal Mode (Lit, Layered Lit); None without the property, as the old export did.</summary>
 		public static ModDoubleSidedNormalMode GetDoubleSidedNormalMode(Material material)
 		{
 			if (!material.HasProperty("_DoubleSidedNormalMode"))
@@ -130,15 +130,15 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (blendMode != MaterialBlendMode.Opaque)
 			{
-				// Без Alpha Remapping d = _BaseColor.a; с ремапом — по формуле HDRP Lit (часть альфы может быть запечена в map_d).
+				// Without Alpha Remapping d = _BaseColor.a; with a remap, per the HDRP Lit formula (part of the alpha may be baked into map_d).
 				mtl.AppendFormat(CultureInfo.InvariantCulture, "d {0:F6}", MtlTextureMapWriter.GetDissolve(material, blendMode)).AppendLine();
 			}
 		}
 
 		/// <summary>
-		/// Экспорт запишет материалу эмиссию (Ke, по которому клиент считает материал эмиссионным): цвет эмиссии HDRP _EmissiveColor
-		/// или, без него, _EmissionColor при включённом _EMISSION — с ненулевой компонентой. То же правило, что и в
-		/// <see cref="MtlTextureMapWriter.AppendEmission"/>: без цвета карта эмиссии не пишется.
+		/// Export writes emission for the material (Ke, by which the client treats it as emissive): HDRP _EmissiveColor or, without it,
+		/// _EmissionColor with _EMISSION enabled, with a non-zero component. Same rule as <see cref="MtlTextureMapWriter.AppendEmission"/>:
+		/// without a color the emission map is not written.
 		/// </summary>
 		internal static bool WritesEmission(Material material)
 		{

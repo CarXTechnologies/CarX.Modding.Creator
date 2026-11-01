@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
-	/// <summary>Запуск git -C &lt;repo&gt; … с сырым stdout (git show отдаёт байты файла как есть).</summary>
+	/// <summary>Runs git -C &lt;repo&gt; … with raw stdout (git show returns file bytes as is).</summary>
 	internal static class GitProcess
 	{
-		/// <summary>stdout команды; ненулевой код выхода — RenderCoreMirrorException RCM001 с текстом stderr.</summary>
+		/// <summary>Command stdout; a non-zero exit code throws RenderCoreMirrorException RCM001 with the stderr text.</summary>
 		public static byte[] Run(string repository, params string[] arguments)
 		{
 			if (!TryRun(repository, arguments, out byte[] output, out string error))

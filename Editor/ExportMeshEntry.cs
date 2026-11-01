@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Меш, ожидающий записи в файл группы материалов.</summary>
+	/// <summary>A mesh waiting to be written to a material group file.</summary>
 	internal readonly struct ExportMeshEntry
 	{
 		public readonly Mesh mesh;

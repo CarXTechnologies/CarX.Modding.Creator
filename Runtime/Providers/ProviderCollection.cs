@@ -46,7 +46,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			if (string.IsNullOrEmpty(versionProvider.version) || versionProvider.providers == null)
 			{
-				// Понятная ошибка вместо ArgumentNullException ниже по стеку: мод собран более новым SDK.
+				// A clear error instead of an ArgumentNullException further down the stack: the mod was built by a newer SDK.
 				throw new InvalidDataException($"Mod format version '{version}' is not supported by this game client. Update the game.");
 			}
 

@@ -6,19 +6,19 @@ using System.Text.RegularExpressions;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Извлекает снимок из пакета rendercore, читая его только как текст: enum MaterialVariant и RenderType, MaterialEditorSettings.asset,
-	/// EditorUtils.SetupMaterialVariant, Standard.shader, StandardMaterialDefinitions/Functions.hlsl с Definitions/* и Functions/*.
-	/// Каждый кандидат вычисляется для Forward, кандидат альфа-теста — ещё и для проходов выреза DepthOnly/ShadowCaster (passconfig).
-	/// Ничего не угадывает: файл не найден или не разобран — RenderCoreMirrorException (RCM001/RCM002).
+	/// Extracts a snapshot from the rendercore package reading it only as text: MaterialVariant and RenderType enums, MaterialEditorSettings.asset,
+	/// EditorUtils.SetupMaterialVariant, Standard.shader, StandardMaterialDefinitions/Functions.hlsl with Definitions/* and Functions/*.
+	/// Each candidate is evaluated for Forward, an alpha-test candidate also for the DepthOnly/ShadowCaster clip passes (passconfig).
+	/// Never guesses: a file not found or not parsed throws RenderCoreMirrorException (RCM001/RCM002).
 	/// </summary>
 	public static class RenderCoreExtractor
 	{
-		/// <summary>Версия извлечения (provenance tool): поднимать, когда меняется смысл записей при том же формате.</summary>
+		/// <summary>Extraction version (provenance tool): bump when record semantics change within the same format.</summary>
 		public const string ToolVersion = "2";
 
 		public const string PackageManifest = "package.json";
 
-		/// <summary>Разделители additionalKeywords, как в EditorUtils.SetupMaterialVariant.</summary>
+		/// <summary>additionalKeywords separators, as in EditorUtils.SetupMaterialVariant.</summary>
 		public static char[] KeywordSeparators { get; } = { ' ', ',', ';', '.' };
 
 		private static readonly Regex s_version = new Regex("\"version\"\\s*:\\s*\"(?<version>[^\"]*)\"", RegexOptions.CultureInvariant);
@@ -65,7 +65,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			foreach (RenderCoreLockEnumEntry entry in scopedEntries)
 			{
-				// Кандидат — член enum с данными в asset; первая запись с этим id выигрывает, как в StandardShaderGUI.
+				// The first asset entry with this id wins, as in StandardShaderGUI.
 				List<RenderCoreSettingsEntry> data = settings.Where(setting => setting.id == entry.id).ToList();
 
 				if (data.Count == 0 || !seenNames.Add(entry.name))
@@ -135,7 +135,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				decodeLines, RenderCoreText.Hash(setupLines), setupLines);
 		}
 
-		/// <summary>Конфигурации DepthOnly/ShadowCaster, которыми рисуется вырез варианта альфа-теста (одна на проход и набор keyword'ов).</summary>
+		/// <summary>DepthOnly/ShadowCaster configs that draw the clip of an alpha-test variant (one per pass and keyword set).</summary>
 		private static void AddPassConfigs(RenderCoreShaderInfo shader, MaterialDefinitionsParser definitions, string variant, List<string> variantKeywords,
 			SortedDictionary<string, RenderCoreLockPassConfig> passConfigs, Dictionary<string, IReadOnlyList<string>> decodeLines, Dictionary<string, string> files)
 		{
@@ -143,7 +143,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!shader.TryGetPass(passName, out RenderCoreShaderPass pass))
 				{
-					// Прохода нет: вариант без выреза; генератор требует конфигурацию (RCM045) и ALPHATEST в проходе (RCM020).
+					// No pass: the variant has no clip; the generator requires a config (RCM045) and ALPHATEST in the pass (RCM020).
 					continue;
 				}
 
@@ -168,7 +168,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>additionalKeywords так, как их включает SetupMaterialVariant.</summary>
+		/// <summary>additionalKeywords the way SetupMaterialVariant enables them.</summary>
 		public static List<string> SplitKeywords(string additionalKeywords)
 		{
 			return new List<string>((additionalKeywords ?? "").Split(KeywordSeparators, StringSplitOptions.RemoveEmptyEntries));

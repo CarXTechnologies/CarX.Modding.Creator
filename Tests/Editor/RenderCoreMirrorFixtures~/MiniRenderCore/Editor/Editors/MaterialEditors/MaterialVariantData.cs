@@ -1,4 +1,4 @@
-// Фикстура RenderCoreMirrorScenarioTests: маленький синтетический rendercore, не копия пакета.
+// RenderCoreMirrorScenarioTests fixture: a small synthetic rendercore, not a copy of the package.
 namespace RenderCore.Editor
 {
 	public enum MaterialVariant

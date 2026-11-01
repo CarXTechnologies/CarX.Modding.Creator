@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Содержимое канала packed map варианта rendercore (по MATERIALFEATURE_* варианта и декодированию в шейдере).</summary>
+	/// <summary>Content of a rendercore variant packed map channel (by the variant's MATERIALFEATURE_* and shader decoding).</summary>
 	public enum ModRenderCoreChannel
 	{
 		Zero = 0,
@@ -9,16 +9,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		AmbientOcclusion = 3,
 		Alpha = 4,
 
-		/// <summary>AO, умноженное на альфу: в вариантах MAT_ROUGHNESS_ALPHA* один канал хранит и то и другое.</summary>
+		/// <summary>AO multiplied by alpha: MAT_ROUGHNESS_ALPHA* variants store both in one channel.</summary>
 		AmbientOcclusionAlpha = 5,
 
-		/// <summary>X нормали в диапазоне 0..1 (MAT_LAYERS4).</summary>
+		/// <summary>Normal X in the 0..1 range (MAT_LAYERS4).</summary>
 		NormalX = 6,
 
-		/// <summary>Y нормали в диапазоне 0..1 (MAT_LAYERS4).</summary>
+		/// <summary>Normal Y in the 0..1 range (MAT_LAYERS4).</summary>
 		NormalY = 7,
 
-		/// <summary>Маска окраски u_vColor (MAT_COLORMASK_*): при экспорте из HDRP — ноль, маску автор рисует сам.</summary>
+		/// <summary>u_vColor paint mask (MAT_COLORMASK_*): zero when exported from HDRP, the author paints the mask.</summary>
 		ColorMask = 8
 	}
 }

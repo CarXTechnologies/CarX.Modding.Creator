@@ -5,19 +5,19 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Зеркало вариантов Standard-шейдера rendercore для маркера Material (только Binary). Данные — в ModRenderCoreVariantTable.g.cs: его генерирует
-	/// зеркало rendercore (Editor/RenderCoreMirror) из снимка RenderCoreLock.txt и ручных аннотаций. Здесь — API и правила, которые запечены
-	/// в опубликованные моды и потому не меняются (цветовое пространство текстур по имени свойства).
-	/// Таблица — только управляемые данные без Unity API: клиент читает её с пула потоков.
+	/// Mirror of rendercore Standard shader variants for the Material marker (Binary only). The data is in ModRenderCoreVariantTable.g.cs, generated
+	/// by the rendercore mirror (Editor/RenderCoreMirror) from the RenderCoreLock.txt snapshot and manual annotations. This file holds the API and
+	/// the rules baked into published mods that therefore never change (texture color space by property name).
+	/// The table is managed data only, without Unity API: the client reads it from the thread pool.
 	/// </summary>
 	public static class ModRenderCoreVariants
 	{
-		/// <summary>LockContentHash снимка rendercore, из которого сгенерирована таблица.</summary>
+		/// <summary>LockContentHash of the rendercore snapshot the table was generated from.</summary>
 		public const string LockContentHash = ModRenderCoreVariantTable.LockContentHash;
 
 		private const string ColorTexturePrefix = "u_sTexture";
 
-		/// <summary>Потоки, которые несут меши модов (BinaryModMesh: позиция, нормаль, UV0, цвет; тангенсы клиент пересчитывает).</summary>
+		/// <summary>Streams carried by mod meshes (BinaryModMesh: position, normal, UV0, color; the client recomputes tangents).</summary>
 		public const ModRenderCoreVertexStreams SupportedStreams = ModRenderCoreVertexStreams.Position | ModRenderCoreVertexStreams.Normal |
 			ModRenderCoreVertexStreams.Tangent | ModRenderCoreVertexStreams.Uv0 | ModRenderCoreVertexStreams.Color;
 
@@ -27,7 +27,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		private static readonly Dictionary<string, ModRenderCoreVariant> s_byName;
 		private static readonly string[] s_duplicates;
 
-		/// <summary>Единственное место инициализации: таблица строится один раз, без исключений.</summary>
+		/// <summary>The only initialization point: the table is built once, without exceptions.</summary>
 		static ModRenderCoreVariants()
 		{
 			s_variants = ModRenderCoreVariantTable.CreateVariants();
@@ -36,22 +36,22 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			s_offered = Array.FindAll(s_variants, variant => variant.Available);
 		}
 
-		/// <summary>Все варианты зеркала, включая недоступные в модах.</summary>
+		/// <summary>All mirror variants, including ones unavailable in mods.</summary>
 		public static IReadOnlyList<ModRenderCoreVariant> All => s_variants;
 
-		/// <summary>Варианты, которые можно выбрать в маркере.</summary>
+		/// <summary>Variants that can be selected in the marker.</summary>
 		public static IReadOnlyList<ModRenderCoreVariant> Offered => s_offered;
 
-		/// <summary>Имена, встретившиеся в таблице повторно (берётся первое); для корректной таблицы пусто.</summary>
+		/// <summary>Names repeated in the table (the first one wins); empty for a correct table.</summary>
 		public static IReadOnlyList<string> Duplicates => s_duplicates;
 
-		/// <summary>Доступный вариант по имени (keyword). Недоступный или неизвестный — false.</summary>
+		/// <summary>Available variant by name (keyword). Unavailable or unknown gives false.</summary>
 		public static bool TryGet(string name, out ModRenderCoreVariant variant)
 		{
 			return TryFind(name, out variant) && variant.Available;
 		}
 
-		/// <summary>Вариант по имени независимо от доступности: чтобы объяснить автору, почему его нельзя использовать.</summary>
+		/// <summary>Variant by name regardless of availability: to explain to the author why it cannot be used.</summary>
 		public static bool TryFind(string name, out ModRenderCoreVariant variant)
 		{
 			if (string.IsNullOrEmpty(name))
@@ -63,16 +63,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return s_byName.TryGetValue(name, out variant);
 		}
 
-		/// <summary>Вариант, который Export from material предлагает для материала HDRP (не растительности), или null.</summary>
+		/// <summary>Variant Export from material offers for an HDRP material (not foliage), or null.</summary>
 		public static string Suggest(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission)
 		{
 			return Suggest(renderType, hasNormal, hasEmission, isFoliage: false);
 		}
 
 		/// <summary>
-		/// Вариант, который Export from material предлагает для материала HDRP, или null. Растительность (isFoliage: двусторонний материал
-		/// с вырезом по альфе) получает свою подсказку таблицы (AlphaTest: MAT_FOLIAGE_ALPHATEST с нормалью, MAT_FOLIAGE_SIMPLE_ALPHATEST без
-		/// неё), а без своей — ту же, что и не растительность.
+		/// Variant Export from material offers for an HDRP material, or null. Foliage (isFoliage: a double-sided material with alpha cutout)
+		/// gets its own table suggestion (AlphaTest: MAT_FOLIAGE_ALPHATEST with a normal map, MAT_FOLIAGE_SIMPLE_ALPHATEST without), and
+		/// without one the same as non-foliage.
 		/// </summary>
 		public static string Suggest(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
 		{
@@ -81,21 +81,21 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		}
 
 		/// <summary>
-		/// Цветовая текстура (u_sTexture*) хранится в sRGB, остальные (packed map, нормали) — линейные. Правило запечено в заголовки BinaryTexture
-		/// опубликованных модов и поэтому не следует за rendercore; зеркало проверяет, что [Gamma] шейдера с ним согласен.
+		/// A color texture (u_sTexture*) is stored in sRGB, the rest (packed map, normals) are linear. The rule is baked into BinaryTexture headers
+		/// of published mods and therefore does not follow rendercore; the mirror checks that the shader's [Gamma] agrees with it.
 		/// </summary>
 		public static bool IsColorTexture(string propertyName)
 		{
 			return propertyName != null && propertyName.StartsWith(ColorTexturePrefix, StringComparison.Ordinal);
 		}
 
-		/// <summary>Меши модов дают все потоки, которые читает вариант.</summary>
+		/// <summary>Mod meshes provide all streams the variant reads.</summary>
 		public static bool HasSupportedStreams(ModRenderCoreVariant variant)
 		{
 			return (variant.requiredStreams & ~SupportedStreams) == ModRenderCoreVertexStreams.None;
 		}
 
-		/// <summary>Первая подсказка с точно таким ключом, ведущая на доступный вариант; только чтение неизменяемой таблицы.</summary>
+		/// <summary>First suggestion with exactly this key that points to an available variant; read-only access to the immutable table.</summary>
 		private static string FindSuggestion(ModRenderCoreRenderType renderType, bool hasNormal, bool hasEmission, bool isFoliage)
 		{
 			foreach (ModRenderCoreSuggestion suggestion in s_suggestions)
@@ -117,7 +117,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 			foreach (ModRenderCoreVariant variant in variants)
 			{
-				// Первый выигрывает, как в rendercore; исключение в статическом конструкторе сломало бы клиент на пуле потоков.
+				// First one wins, as in rendercore; an exception in the static constructor would break the client on the thread pool.
 				if (!lookup.TryAdd(variant.name, variant))
 				{
 					repeated.Add(variant.name);

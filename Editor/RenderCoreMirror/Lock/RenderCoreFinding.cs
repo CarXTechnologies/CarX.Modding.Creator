@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Находка сравнения снимков или проверки: код RCMxxx (RenderCoreFindingCodes), уровень, предмет (вариант, свойство, проход) и текст.</summary>
+	/// <summary>Snapshot comparison or check finding: RCMxxx code (RenderCoreFindingCodes), tier, subject (variant, property, pass) and text.</summary>
 	public sealed class RenderCoreFinding
 	{
 		public readonly string code;
@@ -18,7 +18,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			this.message = message;
 		}
 
-		/// <summary>Худший уровень; пустой список — Info (для кодов выхода «чисто» и «только Info» совпадают).</summary>
+		/// <summary>Worst tier; an empty list is Info (exit codes for "clean" and "Info only" are the same).</summary>
 		public static RenderCoreFindingTier GetWorstTier(IEnumerable<RenderCoreFinding> findings)
 		{
 			RenderCoreFindingTier worst = RenderCoreFindingTier.Info;

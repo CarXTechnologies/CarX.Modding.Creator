@@ -3,43 +3,42 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// ЕДИНСТВЕННЫЙ ручной вход зеркала rendercore: решения команды модов. Таблица Runtime/RenderCore/ModRenderCoreVariantTable.g.cs =
-	/// generate(RenderCoreLock.txt, эти аннотации); после правки — ModSystem/Render Core/Regenerate Table (или CLI generate).
+	/// The ONLY manual input of the rendercore mirror: decisions of the mods team. Table Runtime/RenderCore/ModRenderCoreVariantTable.g.cs =
+	/// generate(RenderCoreLock.txt, these annotations); after editing run ModSystem/Render Core/Regenerate Table (or CLI generate).
 	///
-	/// Variants — предлагаемые варианты в порядке таблицы. Для каждого:
-	///   layoutKey и reviewedDecodeHash — то, что человек проверил в rendercore; при расхождении генератор отказывает (RCM040/RCM041) и
-	///   печатает текущие значения. Смысл не изменился — обновить значение; изменился — поправить каналы/цвет вершин и поднять ревизию;
-	///   channels — раскладка R, G, B, A всех u_sPackedMap* варианта (null — packed map нет); для Base/Layered сверяется с define'ами (RCM043);
-	///   vertexColors — как вариант использует цвет вершин (сверяется с define'ами, RCM061);
-	///   unavailableReason — почему вариант нельзя использовать в модах (обязателен, если потоки шире SupportedStreams, RCM060);
-	///   revision — ревизия запечённого контракта; документы мода хранят её, клиент применяет только совпадающую.
-	/// Contracts — замороженные контракты (вариант, ревизия): только дописываются. Новая ревизия = новая запись; старые не правятся
-	/// (реестр отпечатков в RenderCoreMirrorTableTests это проверяет).
-	/// Suggestions — какой вариант Export from material предлагает для материала HDRP по ключу (RenderType, нормаль, эмиссия, растительность);
-	///   ключ уникален, вариант доступен и с тем же RenderType (RCM080). Растительность — двусторонний материал с вырезом по альфе: без своей
-	///   подсказки ModRenderCoreVariants.Suggest берёт подсказку того же ключа без растительности.
-	/// AlphaTestPasses — проверенные конфигурации проходов выреза (DepthOnly/ShadowCaster): вырез модов альфа-теста делают они, Forward
-	///   рисует с ZTest Equal. reviewedHash — что человек посмотрел в rendercore (Defs, особенности, потоки, Func и программа прохода);
-	///   при расхождении генератор отказывает (RCM045) и печатает текущее значение.
-	/// Ревизия 1 — состояние после исправлений перед первым выпуском модов: u_vThirdColor без роли (порог альфа-теста фиксированный),
-	/// MAT_ROUGHNESS_ALPHABLEND B = Alpha, MAT_COLORMASK_* B = ColorMask, u_sTexture1 у MAT_ROAD_SIGN_EMISSION — эмиссия, MAT_INTERIOR
-	/// недоступен (нужен TEXCOORD1) и цвет вершин не читает, MAT_LAYERS4 смешивает слои цветом вершин.
+	/// Variants — offered variants in table order. For each:
+	///   layoutKey and reviewedDecodeHash — what a human reviewed in rendercore; on mismatch the generator refuses (RCM040/RCM041) and
+	///   prints the current values. Meaning unchanged — update the value; changed — fix channels/vertex colors and bump the revision;
+	///   channels — R, G, B, A layout of all u_sPackedMap* of the variant (null — no packed map); checked against defines for Base/Layered (RCM043);
+	///   vertexColors — how the variant uses vertex colors (checked against defines, RCM061);
+	///   unavailableReason — why the variant cannot be used in mods (required if streams exceed SupportedStreams, RCM060);
+	///   revision — baked contract revision; mod documents store it and the client applies only a matching one.
+	/// Contracts — frozen (variant, revision) contracts: append only. A new revision is a new entry; old ones are never edited
+	/// (the fingerprint registry in RenderCoreMirrorTableTests enforces this).
+	/// Suggestions — which variant Export from material offers for an HDRP material by key (RenderType, normal, emission, foliage);
+	///   the key is unique, the variant is available and has the same RenderType (RCM080). Foliage is a double-sided alpha-cutout material:
+	///   without its own suggestion ModRenderCoreVariants.Suggest falls back to the same key without foliage.
+	/// AlphaTestPasses — reviewed cutout pass configs (DepthOnly/ShadowCaster): they do the alpha-test cutout of mods, Forward
+	///   draws with ZTest Equal. reviewedHash — what a human reviewed in rendercore (Defs, features, streams, Func and the pass program);
+	///   on mismatch the generator refuses (RCM045) and prints the current value.
+	/// Revision 1 is the state after the fixes before the first mods release: u_vThirdColor has no role (fixed alpha-test threshold),
+	/// MAT_ROUGHNESS_ALPHABLEND B = Alpha, MAT_COLORMASK_* B = ColorMask, u_sTexture1 of MAT_ROAD_SIGN_EMISSION is emission, MAT_INTERIOR
+	/// is unavailable (needs TEXCOORD1) and does not read vertex colors, MAT_LAYERS4 blends layers by vertex color.
 	/// </summary>
 	public static class RenderCoreMirrorAnnotations
 	{
-		/// <summary>Потоки мешей модов (BinaryModMesh: позиция, нормаль, UV0, цвет; тангенсы клиент пересчитывает). Равно Runtime SupportedStreams.</summary>
+		/// <summary>Mod mesh streams (BinaryModMesh: position, normal, UV0, color; the client recomputes tangents). Equals Runtime SupportedStreams.</summary>
 		public const MirrorVertexStreams SupportedStreams = MirrorVertexStreams.Position | MirrorVertexStreams.Normal | MirrorVertexStreams.Tangent |
 			MirrorVertexStreams.Uv0 | MirrorVertexStreams.Color;
 
 		/// <summary>
-		/// Отпечаток тела EditorUtils.SetupMaterialVariant, с которым сверён MaterialMappingPBR.ApplyRenderCoreVariant в CarX.Modding
-		/// (keyword варианта + additionalKeywords, разбитые по ' ', ',', ';', '.', очередь base + offset, тег RenderType, materialVariant).
+		/// Fingerprint of the EditorUtils.SetupMaterialVariant body that MaterialMappingPBR.ApplyRenderCoreVariant in CarX.Modding was checked against
+		/// (variant keyword + additionalKeywords split by ' ', ',', ';', '.', queue base + offset, RenderType tag, materialVariant).
 		/// </summary>
 		public const string ReviewedSetupHash = "b342e9ce390b";
 
 		private const string NoSecondUv = "needs a second UV set (TEXCOORD1); mod meshes carry only UV0";
 
-		/// <summary>Область вариантов карт: та же, с которой извлекается снимок.</summary>
 		public static RenderCoreScope Scope => RenderCoreScope.Default;
 
 		public static IReadOnlyList<MirrorVariantAnnotation> Variants { get; } = new[]
@@ -53,7 +52,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			Variant("MAT_ROUGHNESS", revision: 1, layoutKey: "Base AO ROUGHNESS", reviewedDecodeHash: "ae8f407f8c00", MirrorVertexColors.None,
 				Ch(MirrorChannel.Roughness, MirrorChannel.Zero, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero), unavailableReason: null),
 
-			// BaseMaterialFunc не читает AO при ALPHABLEND: B — только альфа (подсказка rendercore «ao and alpha» устарела).
+			// BaseMaterialFunc does not read AO with ALPHABLEND: B is alpha only (the rendercore hint "ao and alpha" is outdated).
 			Variant("MAT_ROUGHNESS_ALPHABLEND", revision: 1, layoutKey: "Base ALPHABLEND AO ROUGHNESS", reviewedDecodeHash: "f5d976a5eacd",
 				MirrorVertexColors.None, Ch(MirrorChannel.Roughness, MirrorChannel.Zero, MirrorChannel.Alpha, MirrorChannel.Zero), unavailableReason: null),
 			Variant("MAT_ROUGHNESS_ALPHATEST", revision: 1, layoutKey: "Base ALPHATEST AO ROUGHNESS depth:generic shadow:generic",
@@ -76,7 +75,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				reviewedDecodeHash: "1ea8d2c2c751", MirrorVertexColors.None,
 				Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.Alpha, MirrorChannel.Zero), unavailableReason: null),
 
-			// B — маска окраски u_vColor: из HDRP её не взять, Export from material пишет 0, маску автор рисует сам.
+			// B is the u_vColor paint mask: it cannot be taken from HDRP, Export from material writes 0 and the author paints the mask.
 			Variant("MAT_COLORMASK_ROUGHNESS_METALNESS", revision: 1, layoutKey: "Base COLORMASK METALNESS ROUGHNESS", reviewedDecodeHash: "28ce2a3515a3",
 				MirrorVertexColors.None, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.ColorMask, MirrorChannel.Zero),
 				unavailableReason: null),
@@ -84,7 +83,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				reviewedDecodeHash: "6d351be6cb92", MirrorVertexColors.None,
 				Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.ColorMask, MirrorChannel.Zero), unavailableReason: null),
 
-			// Веса слоёв — из цвета вершин (rgb — маска, a — оттенок): без цвета у меша видно только четвёртый слой.
+			// Layer weights come from vertex color (rgb — mask, a — tint): without mesh colors only the fourth layer is visible.
 			Variant("MAT_LAYERS4", revision: 1, layoutKey: "Layered", reviewedDecodeHash: "c86c330d411d", MirrorVertexColors.LayerBlend,
 				Ch(MirrorChannel.NormalX, MirrorChannel.NormalY, MirrorChannel.AmbientOcclusion, MirrorChannel.Roughness), unavailableReason: null),
 			Variant("MAT_FOLIAGE_SIMPLE_ALPHATEST", revision: 1, layoutKey: "Base ALPHATEST AO FOLIAGE depth:generic shadow:generic",
@@ -97,7 +96,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				MirrorVertexColors.EmissionMultiplier, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero),
 				unavailableReason: null),
 
-			// Эмиссия дорожного знака видна только ночью при включённом свете (глобальная яркость игры).
+			// Road sign emission is visible only at night with lights on (global game brightness).
 			Variant("MAT_ROAD_SIGN_EMISSION", revision: 1, layoutKey: "Base AO EMISSION METALNESS NORMAL ROAD_SIGN_EMISSION ROUGHNESS",
 				reviewedDecodeHash: "b81c1f6de961", MirrorVertexColors.EmissionMultiplier,
 				Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero), unavailableReason: null),
@@ -105,8 +104,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				MirrorVertexColors.EmissionMultiplier, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero),
 				unavailableReason: null),
 
-			// Interior: каналы правилами не выводятся (InteriorMaterialFunc), только аннотация. Цвет вершин не читается: эмиссия окон — из
-			// глобальной яркости и атласа u_sTexture1 в координатах комнаты.
+			// Interior: channels are not derived by rules (InteriorMaterialFunc), annotation only. Vertex color is not read: window emission comes
+			// from the global brightness and the u_sTexture1 atlas in room coordinates.
 			Variant("MAT_INTERIOR", revision: 1, layoutKey: "Interior EMISSION METALNESS NORMAL ROUGHNESS WINDOW", reviewedDecodeHash: "550745410d88",
 				MirrorVertexColors.None, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.Zero, MirrorChannel.Zero),
 				unavailableReason: NoSecondUv)
@@ -158,8 +157,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		};
 
 		/// <summary>
-		/// Все предлагаемые варианты альфа-теста режутся общей веткой ALPHATEST: ни DepthOnly, ни ShadowCaster не объявляют их keyword'ы
-		/// (ключ раскладки "depth:generic shadow:generic"). Проверено: вырез по packed B, порог фиксированный, вершинные потоки — UV0.
+		/// All offered alpha-test variants are cut by the shared ALPHATEST branch: neither DepthOnly nor ShadowCaster declares their keywords
+		/// (layout key "depth:generic shadow:generic"). Reviewed: cutout by packed B, fixed threshold, vertex streams — UV0.
 		/// </summary>
 		public static IReadOnlyList<MirrorPassReview> AlphaTestPasses { get; } = new[]
 		{
@@ -169,7 +168,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 		public static IReadOnlyList<MirrorSuggestion> Suggestions { get; } = new[]
 		{
-			// Листва, хвоя, трава: освещение растительности; вырез — тот же общий ALPHATEST по packed B.
+			// Leaves, needles, grass: foliage lighting; the cutout is the same shared ALPHATEST by packed B.
 			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST"),
 			Suggest(MirrorRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_SIMPLE_ALPHATEST"),
 			Suggest(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: false, "MAT_ROUGHNESS_NORMAL_ALPHATEST"),
@@ -198,7 +197,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return new[] { r, g, b, a };
 		}
 
-		/// <summary>Переопределение слота: только с причиной, понятной ревьюеру.</summary>
 		private static MirrorSlotOverride Slot(string property, MirrorSource source, int layer, MirrorVector defaultValue, string reason)
 		{
 			return new MirrorSlotOverride(property, source, layer, defaultValue, reason);

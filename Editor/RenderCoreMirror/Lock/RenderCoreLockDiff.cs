@@ -6,16 +6,16 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Сравнивает закоммиченный снимок с живым и раскладывает отличия по уровням (provenance не сравнивается):
-	/// Info — тексты, прочие define'ы, литералы по умолчанию, пути, имя файла Func, новые кандидаты, порядок свойств;
-	/// Stale — id, очередь, RenderType варианта, keyword'ы, свойства (добавлены, убраны, тип), потоки, тип в Properties, [Gamma] не текстуры,
-	/// объявления keyword'ов в проходах, область;
-	/// Breaking — пропавший вариант, метка ≠ enum, defs/features, декодирование и библиотеки Definitions, [Gamma] текстуры, конфигурация
-	/// проходов выреза, члены enum RenderType, setup.
-	/// Breaking — ровно то, что не пропускают и ворота генератора (код ворот — в RenderCoreFindingCodes): Update Lock решает по воротам, и
-	/// снимок, записанный им, не должен быть Breaking для Check/Validation/проверки сборки. То, что ворота проверяют частично (потоки,
-	/// объявления keyword'ов, типы), — Stale, а опасную часть Check показывает находками ворот.
-	/// Изменения вариантов вне relevant (не предлагаемых) — всегда Info. relevant == null — значимы все кандидаты закоммиченного снимка.
+	/// Compares the committed snapshot with the live one and sorts differences by tier (provenance is not compared):
+	/// Info — texts, other defines, default literals, paths, Func file name, new candidates, property order;
+	/// Stale — id, queue, variant RenderType, keywords, properties (added, removed, type), streams, type in Properties, [Gamma] of non-textures,
+	/// keyword declarations in passes, scope;
+	/// Breaking — removed variant, label ≠ enum, defs/features, decoding and Definitions libraries, [Gamma] of textures, clip pass
+	/// config, RenderType enum members, setup.
+	/// Breaking is exactly what the generator gates also reject (gate code in RenderCoreFindingCodes): Update Lock decides by the gates, and
+	/// the snapshot it writes must not be Breaking for Check/Validation/build check. What the gates check only partially (streams,
+	/// keyword declarations, types) is Stale, and Check reports the dangerous part through gate findings.
+	/// Changes of variants outside relevant (not suggested) are always Info. relevant == null means all committed candidates matter.
 	/// </summary>
 	public static class RenderCoreLockDiff
 	{
@@ -203,7 +203,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (!live.TryGetShaderProperty(before.name, out RenderCoreLockShaderProperty after))
 				{
-					// Свойство больше никто из кандидатов не перечисляет: это уже видно по записям prop.
+					// No candidate lists the property anymore: the prop records already show that.
 					continue;
 				}
 
@@ -217,7 +217,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (before.gamma != after.gamma)
 				{
-					// Ворота сверяют [Gamma] текстур предлагаемых вариантов живого снимка с замороженным правилом префикса (RCM050).
+					// The gates check [Gamma] of textures of suggested live variants against the frozen prefix rule (RCM050).
 					bool texture = after.type == TextureShaderType && UsedByRelevant(live, before.name, isRelevant);
 					Add(findings, RenderCoreFindingCodes.ShaderPropertyGamma, texture ? RenderCoreFindingTier.Breaking : Tier(relevant, RenderCoreFindingTier.Stale),
 						before.name, $"[Gamma] {(before.gamma ? "on" : "off")} → {(after.gamma ? "on" : "off")}" +
@@ -247,7 +247,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				string after = live.GetPassKind(before.pass, before.keyword);
 				bool known = live.passKeywords.Any(entry => entry.pass == before.pass && entry.keyword == before.keyword);
 
-				// Keyword пропал из снимка вместе с кандидатом — об этом уже сказано в RCM101.
+				// The keyword left the snapshot together with its candidate, already reported by RCM101.
 				if (!known || after == before.kind)
 				{
 					continue;
@@ -259,8 +259,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Конфигурации проходов выреза: изменение той, которой рисуется предлагаемый вариант альфа-теста (в любом из снимков), — Breaking.
-		/// Появление и пропажа конфигурации (вариант перешёл на свою ветку или общую) видны по RCM140 и ключу раскладки (RCM040).
+		/// Clip pass configs: a change of the one a suggested alpha-test variant is drawn with (in either snapshot) is Breaking.
+		/// A config appearing or disappearing (variant moved to its own or the shared branch) shows up in RCM140 and the layout key (RCM040).
 		/// </summary>
 		private static void ComparePassConfigs(RenderCoreLock committed, RenderCoreLock live, Func<string, bool> isRelevant, List<RenderCoreFinding> findings)
 		{
@@ -356,7 +356,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Члены enum RenderType: SetupMaterialVariant пишет тег RenderType именем члена, клиент — именем ModRenderCoreRenderType.</summary>
+		/// <summary>SetupMaterialVariant writes the RenderType tag by enum member name, the client by ModRenderCoreRenderType name.</summary>
 		private static void CompareRenderTypes(RenderCoreLock committed, RenderCoreLock live, List<RenderCoreFinding> findings)
 		{
 			List<string> before = committed.renderTypes.Select(Describe).ToList();
@@ -483,8 +483,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Разница строк кода rendercore. Закоммиченный снимок их не хранит (SDK публичный), тогда разница не строится:
-		/// изменение смотрится через git diff rendercore между пином снимка и текущим.
+		/// The committed snapshot does not store rendercore code lines (the SDK is public), so no diff is built then:
+		/// review the change via git diff of rendercore between the snapshot pin and the current one.
 		/// </summary>
 		private static string DescribeCode(IReadOnlyList<string> before, IReadOnlyList<string> after)
 		{
@@ -496,7 +496,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return DescribeLines(before, after);
 		}
 
-		/// <summary>Построчный diff (LCS) для сообщений: "- было" / "+ стало", не больше MaxDiffLines строк.</summary>
+		/// <summary>Line diff (LCS) for messages: "- old" / "+ new", at most MaxDiffLines lines.</summary>
 		public static string DescribeLines(IReadOnlyList<string> before, IReadOnlyList<string> after)
 		{
 			int[,] lengths = new int[before.Count + 1, after.Count + 1];

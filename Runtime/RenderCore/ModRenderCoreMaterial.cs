@@ -3,9 +3,9 @@ using System;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Документ материала rendercore (.rc.json) — переопределение материала маркером Material. На него ссылается MTL
-	/// (cx_rc &lt;вариант&gt; &lt;файл&gt;) и <see cref="BinaryMaterial.renderCoreResource"/>. Обычные свойства того же материала
-	/// остаются запасным вариантом для клиента, который вариант не знает.
+	/// rendercore material document (.rc.json): a material override from the Material marker. Referenced by MTL
+	/// (cx_rc &lt;variant&gt; &lt;file&gt;) and <see cref="BinaryMaterial.renderCoreResource"/>. The regular properties of the same material
+	/// remain a fallback for a client that does not know the variant.
 	/// </summary>
 	[Serializable]
 	public sealed class ModRenderCoreMaterial
@@ -15,13 +15,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public int version = CurrentVersion;
 
-		/// <summary>Имя варианта из <see cref="ModRenderCoreVariants"/> (keyword MAT_*).</summary>
+		/// <summary>Variant name from <see cref="ModRenderCoreVariants"/> (MAT_* keyword).</summary>
 		public string variant;
 
-		/// <summary>Заданные автором свойства; незаданные остаются значениями по умолчанию шаблона клиента.</summary>
+		/// <summary>Properties set by the author; the rest keep the client template defaults.</summary>
 		public ModRenderCoreProperty[] properties;
 
-		/// <summary>Ревизия контракта варианта (ModRenderCoreVariant.revision) на момент экспорта; 0 в документах до её появления означает 1.</summary>
+		/// <summary>Variant contract revision (ModRenderCoreVariant.revision) at export time; 0 in documents older than the field means 1.</summary>
 		public int variantRevision;
 	}
 }

@@ -5,13 +5,13 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Строки C# для RenderCoreMirrorAnnotations, которые генератор печатает в находках: аннотация нового кандидата (выведенные ключ,
-	/// отпечаток, каналы, цвет вершин), контракт новой ревизии и проверка конфигурации прохода выреза. Человек проверяет их и переносит
-	/// в аннотации.
+	/// C# lines for RenderCoreMirrorAnnotations that the generator prints in findings: annotation of a new candidate (derived key,
+	/// fingerprint, channels, vertex colors), a new revision contract and a cutout pass config review. A human checks and copies them
+	/// into the annotations.
 	/// </summary>
 	public static class MirrorAnnotationSnippets
 	{
-		/// <summary>hasPackedMap — у кандидата есть u_sPackedMap*: только тогда предлагаются выведенные каналы.</summary>
+		/// <summary>hasPackedMap — the candidate has u_sPackedMap*: only then derived channels are suggested.</summary>
 		public static string FormatVariant(string name, int revision, MirrorLayout layout, string decodeHash, MirrorVertexStreams supportedStreams,
 			bool hasPackedMap)
 		{

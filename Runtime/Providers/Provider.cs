@@ -70,8 +70,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public abstract string GetPath(string catalog, T resource);
 
 		/// <summary>
-		/// Байты ресурса в первом найденном формате из списка загрузки или null, если ресурса нет ни в одном.
-		/// Отмена проверяется между форматами: <see cref="IModFileProvider.LoadAsync"/> токен не принимает.
+		/// Resource bytes in the first found format from the load list, or null if none has it.
+		/// Cancellation is checked between formats because <see cref="IModFileProvider.LoadAsync"/> takes no token.
 		/// </summary>
 		protected async Task<byte[]> LoadBytesAsync(string catalog, CancellationToken cancellationToken)
 		{

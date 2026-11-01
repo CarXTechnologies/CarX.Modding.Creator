@@ -1,5 +1,5 @@
-# Снимок rendercore для зеркала вариантов Standard-шейдера. Сгенерирован, руками не править.
-# Обновить: ModSystem/Render Core/Update Lock From Project Render Core или Tools~/RenderCoreMirror (extract).
+# rendercore snapshot for the Standard shader variant mirror. Generated, do not edit by hand.
+# Update: ModSystem/Render Core/Update Lock From Project Render Core or Tools~/RenderCoreMirror (extract).
 format	2
 provenance	package	3.1.0
 provenance	commit	dc37c839506f6da1a7d7b2170b1b70a1d8b9db43

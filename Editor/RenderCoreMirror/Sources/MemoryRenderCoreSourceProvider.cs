@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Пакет rendercore в памяти: путь → текст. Для тестов и сценариев (подмена одного файла без копии пакета на диске).</summary>
+	/// <summary>In-memory rendercore package: path → text. For tests and scenarios (replacing one file without a package copy on disk).</summary>
 	public sealed class MemoryRenderCoreSourceProvider : IRenderCoreSourceProvider
 	{
 		private readonly Dictionary<string, string> m_files;

@@ -5,8 +5,8 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
-	/// Пакет rendercore из коммита git-репозитория (git ls-tree -r и git show): рабочая копия не нужна и не трогается. Override подменяет
-	/// отдельные файлы (по имени) версией из другого ref — так каждый детектор проверяется на исторических правках по отдельности.
+	/// rendercore package from a git repository commit (git ls-tree -r and git show): no working copy is needed or touched. Overrides replace
+	/// individual files (by name) with a version from another ref, so each detector can be checked against historical changes separately.
 	/// </summary>
 	internal sealed class GitRenderCoreSourceProvider : IRenderCoreSourceProvider
 	{
@@ -16,7 +16,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		private readonly IReadOnlyDictionary<string, string> m_overrides;
 		private readonly Dictionary<string, string> m_pathCommits = new Dictionary<string, string>(StringComparer.Ordinal);
 
-		/// <param name="overrides">Имя файла → ref, из которого его читать.</param>
+		/// <param name="overrides">File name → ref to read it from.</param>
 		public GitRenderCoreSourceProvider(string repository, string reference, IReadOnlyDictionary<string, string> overrides)
 		{
 			m_repository = repository;

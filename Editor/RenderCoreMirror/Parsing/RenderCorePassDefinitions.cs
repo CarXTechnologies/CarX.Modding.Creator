@@ -1,14 +1,14 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Конфигурация прохода выреза (DepthOnly/ShadowCaster) для набора keyword'ов материала: вычисленные Definitions и Func так, как их
-	/// компилирует этот проход, и отпечаток активных строк программы прохода (без #pragma) по всем конфигурациям его keyword'ов.
+	/// Clip pass (DepthOnly/ShadowCaster) config for a set of material keywords: Definitions and Func evaluated the way this pass
+	/// compiles them, and the hash of the pass program active lines (without #pragma) over all configs of its keywords.
 	/// </summary>
 	public sealed class RenderCorePassDefinitions
 	{
 		public readonly string pass;
 
-		/// <summary>Ключ: keyword'ы материала, которые проход объявляет, через '+' (ordinal), или "_".</summary>
+		/// <summary>Key: material keywords the pass declares, joined with '+' (ordinal), or "_".</summary>
 		public readonly string keywords;
 
 		public readonly RenderCoreVariantDefinitions definitions;

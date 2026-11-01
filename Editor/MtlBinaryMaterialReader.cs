@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Однократный импорт staging-представления материалов (.mtl) в типизированную <see cref="BinaryMaterialLibrary"/> при сборке.
-	/// Клиент получает готовые значения и не запускает парсер Wavefront для контейнера.
+	/// One-time import of the staging material representation (.mtl) into a typed <see cref="BinaryMaterialLibrary"/> at build time.
+	/// The client gets ready values and does not run the Wavefront parser for the container.
 	/// </summary>
 	internal static class MtlBinaryMaterialReader
 	{
@@ -105,7 +105,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>cx_rc &lt;вариант&gt; &lt;документ&gt;: переопределение материала маркером Material.</summary>
+		/// <summary>cx_rc &lt;variant&gt; &lt;document&gt;: Material marker override.</summary>
 		private static void ReadRenderCore(BinaryMaterial material, string value)
 		{
 			int space = value.IndexOf(' ');
@@ -119,7 +119,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			material.renderCoreResource = value.Substring(space + 1).Trim();
 		}
 
-		/// <summary>cx_rc_rev &lt;n&gt;: ревизия варианта документа cx_rc. Экспорт пишет строку только для n &gt; 1; без неё — 0 (ревизия 1).</summary>
+		/// <summary>cx_rc_rev &lt;n&gt;: cx_rc document variant revision. Export writes the line only for n &gt; 1; without it, 0 (revision 1).</summary>
 		private static int ReadRenderCoreRevision(string value)
 		{
 			if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int revision) || revision < 1)
@@ -181,7 +181,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Разбирает опции -s/-o/-t/-bm перед именем текстуры. Возвращает индекс имени текстуры.</summary>
+		/// <summary>Parses -s/-o/-t/-bm options before the texture name. Returns the texture name index.</summary>
 		private static int ReadTextureOptions(string[] parts, out Vector4 uv)
 		{
 			uv = new Vector4(1, 1, 0, 0);

@@ -10,14 +10,13 @@ using Object = UnityEngine.Object;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Подготовка текстур карты к бинарному контейнеру: перекодирование в <see cref="BinaryTexture"/>,
-	/// упаковка шероховатости/металличности/альфы в одну карту и запекание цвета эмиссии.
-	/// Готовые ресурсы именуются по SHA-256 содержимого и отдаются через <see cref="Drain"/>.
-	/// О каждой перекодируемой текстуре сообщается в <see cref="BinaryMapPackProgress"/> до перекодирования.
+	/// Prepares map textures for the binary container: re-encoding to <see cref="BinaryTexture"/>, packing roughness/metallic/alpha into
+	/// one map and baking emission color. Ready resources are named by content SHA-256 and returned via <see cref="Drain"/>.
+	/// Each re-encoded texture is reported to <see cref="BinaryMapPackProgress"/> before re-encoding.
 	/// </summary>
 	internal sealed class BinaryTexturePreparation
 	{
-		// Как NativePropertyBlock.ResolveMaterialType клиента: d ниже порога — прозрачный материал.
+		// Same as the client's NativePropertyBlock.ResolveMaterialType: d below the threshold means a transparent material.
 		private const float AlphaScaleThreshold = 0.999f;
 
 		private readonly SortedDictionary<string, string> m_files;
@@ -77,7 +76,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			}
 		}
 
-		/// <summary>Текстуры варианта rendercore: u_sTexture* — sRGB, packed map и нормали — линейные (как читает клиент).</summary>
+		/// <summary>rendercore variant textures: u_sTexture* are sRGB, packed map and normals are linear (as the client reads them).</summary>
 		public void Prepare(string document, ModRenderCoreMaterial material)
 		{
 			foreach (ModRenderCoreProperty property in material.properties ?? Array.Empty<ModRenderCoreProperty>())
@@ -104,7 +103,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 			}
 
-			// Атласы анимации позиций/нормалей/тангенсов остаются точными RGBAHalf.
+			// Position/normal/tangent animation atlases stay exact RGBAHalf.
 		}
 
 		public void Prepare(string document, BinaryMaterialLibrary library)
@@ -113,7 +112,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			{
 				if (!string.IsNullOrEmpty(material.layeredResource))
 				{
-					// Layered PBR главнее: его Wavefront-запасной вариант этим клиентом не используется.
+					// Layered PBR wins: this client does not use its Wavefront fallback.
 					foreach (BinaryMaterialProperty property in material.properties.Where(property => property.type == BinaryMaterialPropertyType.Texture))
 					{
 						m_consumed.Add(Resolve(document, property.texture));
@@ -139,7 +138,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			BinaryMaterialProperty[] packed = properties.Where(IsPackedSurfaceProperty).ToArray();
 
-			// d (dissolve) запекается в альфу packed map: клиент берёт готовую карту как есть, без пересборки на GPU.
+			// d (dissolve) is baked into the packed map alpha: the client takes the ready map as is, without rebuilding it on the GPU.
 			float alphaScale = Mathf.Clamp01(material.alpha);
 
 			if (packed.Length != 0 || alphaScale < AlphaScaleThreshold)
@@ -173,7 +172,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return BinaryModArchive.Normalize(path);
 		}
 
-		/// <param name="label">Что кодируется, для хода упаковки.</param>
+		/// <param name="label">What is being encoded, for packing progress.</param>
 		private byte[] Bake(string label, string text, byte[] bytes, bool linear)
 		{
 			if (bytes == null && string.IsNullOrEmpty(text))
@@ -264,7 +263,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				string texture = Emit(document, BinaryTextureBaker.Encode(source, linear: false, m_encoding));
 				properties.Add(new BinaryMaterialProperty { semantic = "map_Ke", type = BinaryMaterialPropertyType.Texture, texture = texture });
 
-				// Цвет запечён в текстуру, а HDR-интенсивность остаётся в параметрах поверхности клиента.
+				// The color is baked into the texture, while HDR intensity stays in the client surface parameters.
 				properties.Add(new BinaryMaterialProperty { semantic = "Ke", type = BinaryMaterialPropertyType.Vector3, vector = Vector3.one * Mathf.Max(1, intensity) });
 			}
 			finally

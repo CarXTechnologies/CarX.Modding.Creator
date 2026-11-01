@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Переносимые данные меша: раскладки Unity ECS и значения Shader.PropertyToID не сохраняются.</summary>
+	/// <summary>Portable mesh data: Unity ECS layouts and Shader.PropertyToID values are not stored.</summary>
 	public sealed class BinaryModModel
 	{
 		public string name;

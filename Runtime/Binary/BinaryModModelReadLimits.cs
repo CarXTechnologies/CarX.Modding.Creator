@@ -3,8 +3,8 @@ using System;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Накопительные лимиты чтения .cxmesh на всю модель: небольшой файл мода не должен раздуваться при распаковке в гигабайты.
-	/// По умолчанию — пределы формата; бюджет загрузки мода может передать более строгие значения.
+	/// Cumulative .cxmesh read limits for the whole model: a small mod file must not inflate to gigabytes on decompression.
+	/// Defaults are the format limits; the mod load budget may pass stricter values.
 	/// </summary>
 	public sealed class BinaryModModelReadLimits
 	{
@@ -14,16 +14,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			maxRawBytes: 1024L * 1024 * 1024,
 			maxCompressionRatio: BinaryModArchive.MaxDeflateCompressionRatio);
 
-		/// <summary>Сумма вершин по всем мешам модели.</summary>
+		/// <summary>Total vertices over all meshes of the model.</summary>
 		public int MaxVertices { get; }
 
-		/// <summary>Сумма индексов по всем сабмешам модели.</summary>
+		/// <summary>Total indices over all submeshes of the model.</summary>
 		public int MaxIndices { get; }
 
-		/// <summary>Сумма распакованных байт по всем блокам модели.</summary>
+		/// <summary>Total decompressed bytes over all blocks of the model.</summary>
 		public long MaxRawBytes { get; }
 
-		/// <summary>Верхняя граница отношения распакованного размера сжатого блока к хранимому.</summary>
+		/// <summary>Upper bound of decompressed to stored size ratio for a compressed block.</summary>
 		public int MaxCompressionRatio { get; }
 
 		public BinaryModModelReadLimits(int maxVertices, int maxIndices, long maxRawBytes, int maxCompressionRatio)

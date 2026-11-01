@@ -3,19 +3,19 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Свойство в документе <see cref="ModRenderCoreMaterial"/>.</summary>
+	/// <summary>Property in a <see cref="ModRenderCoreMaterial"/> document.</summary>
 	[Serializable]
 	public sealed class ModRenderCoreProperty
 	{
-		/// <summary>Имя свойства шейдера rendercore (u_sTexture, u_sPackedMap, u_fParams...).</summary>
+		/// <summary>rendercore shader property name (u_sTexture, u_sPackedMap, u_fParams...).</summary>
 		public string name;
 
 		public ModRenderCorePropertyType type;
 
-		/// <summary>Color/Vector — все компоненты, Float — x.</summary>
+		/// <summary>Color/Vector use all components, Float uses x.</summary>
 		public Vector4 value;
 
-		/// <summary>Имя файла текстуры рядом с документом (Texture).</summary>
+		/// <summary>Texture file name next to the document (Texture).</summary>
 		public string texture;
 	}
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
-	/// <summary>Неверные аргументы командной строки: код выхода 1 и справка.</summary>
+	/// <summary>Invalid command-line arguments: exit code 1 and help.</summary>
 	internal sealed class RenderCoreMirrorUsageException : Exception
 	{
 		public RenderCoreMirrorUsageException(string message)

@@ -4,30 +4,30 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Решение команды модов по предлагаемому варианту: что из rendercore проверено человеком (ключ раскладки, отпечаток декодирования,
-	/// каналы packed map, цвет вершин) и под какой ревизией контракта вариант публикуется. Генератор сверяет это со снимком и отказывает
-	/// при расхождении (MirrorFindingCodes).
+	/// Mods team decision on an offered variant: what a human reviewed in rendercore (layout key, decode fingerprint, packed map channels,
+	/// vertex colors) and under which contract revision the variant is published. The generator checks this against the snapshot and
+	/// refuses on mismatch (MirrorFindingCodes).
 	/// </summary>
 	public sealed class MirrorVariantAnnotation
 	{
-		/// <summary>Имя члена enum MaterialVariant = keyword шейдера.</summary>
+		/// <summary>MaterialVariant enum member name = shader keyword.</summary>
 		public readonly string name;
 
-		/// <summary>Ревизия запечённого контракта (≥ 1): поднимается, когда меняется смысл уже опубликованных текстур или цвета вершин.</summary>
+		/// <summary>Baked contract revision (≥ 1): bumped when the meaning of already published textures or vertex colors changes.</summary>
 		public readonly int revision;
 
-		/// <summary>Ключ раскладки, как его выводит MirrorLayoutRules: "Base ALPHATEST AO ROUGHNESS depth:generic shadow:generic".</summary>
+		/// <summary>Layout key as MirrorLayoutRules derives it: "Base ALPHATEST AO ROUGHNESS depth:generic shadow:generic".</summary>
 		public readonly string layoutKey;
 
-		/// <summary>Отпечаток активных строк Func варианта, который просмотрел человек (decode в снимке).</summary>
+		/// <summary>Fingerprint of the variant's active Func lines that a human reviewed (decode in the snapshot).</summary>
 		public readonly string reviewedDecodeHash;
 
 		public readonly MirrorVertexColors vertexColors;
 
-		/// <summary>Каналы R, G, B, A для каждого u_sPackedMap* варианта; null — у варианта нет packed map.</summary>
+		/// <summary>R, G, B, A channels for each u_sPackedMap* of the variant; null — the variant has no packed map.</summary>
 		public readonly IReadOnlyList<MirrorChannel> channels;
 
-		/// <summary>Почему вариант недоступен в модах (например, нужен второй UV) или null.</summary>
+		/// <summary>Why the variant is unavailable in mods (e.g. it needs a second UV), or null.</summary>
 		public readonly string unavailableReason;
 
 		public readonly IReadOnlyList<MirrorSlotOverride> overrides;

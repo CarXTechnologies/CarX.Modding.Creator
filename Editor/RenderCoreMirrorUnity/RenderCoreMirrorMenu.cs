@@ -10,9 +10,9 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Меню зеркала rendercore. Regenerate Table — таблица из закоммиченного снимка и аннотаций (работает и в MapUploader); Update Lock —
-	/// новый снимок из пакета rendercore проекта и таблица из него (только в игре); Check — сверка без записи. При находках Breaking/Error
-	/// ничего не пишется: коды RCM в консоли и диалог. Никакой записи при импорте или сборке — только по команде.
+	/// rendercore mirror menu. Regenerate Table — table from the committed snapshot and annotations (works in MapUploader too); Update Lock —
+	/// a new snapshot from the project's rendercore package and its table (game only); Check — comparison without writing. On Breaking/Error
+	/// findings nothing is written: RCM codes go to the console and a dialog. Nothing is written on import or build, only on command.
 	/// </summary>
 	internal static class RenderCoreMirrorMenu
 	{
@@ -119,7 +119,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			if (package == null)
 			{
-				// В MapUploader rendercore нет: проверяются только ворота и актуальность таблицы против закоммиченного снимка.
+				// MapUploader has no rendercore: only the gates and table freshness against the committed snapshot are checked.
 				findings = RenderCoreMirrorPipeline.Sort(RenderCoreMirrorPipeline.CheckTable(committed, annotations, table)
 					.Concat(MirrorGenerator.Generate(committed, annotations).findings));
 				Debug.Log(LogPrefix + $"package {RenderCoreMirrorPaths.RenderCorePackageName} is not in the project: " +
@@ -163,7 +163,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return false;
 		}
 
-		/// <summary>Прежний снимок для справки об изменениях; испорченный или отсутствующий — null (обновление его и заменит).</summary>
+		/// <summary>Previous snapshot for the change summary; corrupted or missing gives null (the update replaces it).</summary>
 		private static RenderCoreLock ReadPreviousLock(string lockPath)
 		{
 			if (!File.Exists(lockPath))
@@ -195,7 +195,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		/// <summary>Импорт записанного файла, если он внутри проекта (снимок лежит в Assets или Packages).</summary>
+		/// <summary>Imports the written file if it is inside the project (the snapshot lives in Assets or Packages).</summary>
 		private static void ImportIfAsset(string fullPath)
 		{
 			string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -220,7 +220,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			EditorUtility.DisplayDialog(DialogTitle, $"{title}: {codes}. Nothing was written; see the Console for details.", "OK");
 		}
 
-		/// <summary>Находки по уровням; includeBlocking: false — без Breaking/Error (их пишет Refuse вместе с диалогом).</summary>
+		/// <summary>Findings by level; includeBlocking: false skips Breaking/Error (Refuse logs them together with the dialog).</summary>
 		private static void Log(IEnumerable<RenderCoreFinding> findings, bool includeBlocking)
 		{
 			foreach (RenderCoreFinding finding in findings)

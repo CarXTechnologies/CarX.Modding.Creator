@@ -9,12 +9,12 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Удаление побайтовых дублей PNG, созданных экспортом Layered Lit. Удаляются только сгенерированные копии
-	/// (<c>*_pbr.png</c>, <c>*_pbr_normal.png</c>); .mtl и исходные ассеты не трогаются.
+	/// Removes byte-identical PNG duplicates created by the Layered Lit export. Only generated copies are removed
+	/// (<c>*_pbr.png</c>, <c>*_pbr_normal.png</c>); .mtl files and source assets are left alone.
 	/// </summary>
 	public static class PbrTextureDeduplicator
 	{
-		/// <summary>Возвращает число освобождённых байт.</summary>
+		/// <summary>Returns the number of bytes freed.</summary>
 		public static long Deduplicate(string directory)
 		{
 			(string path, ModPbrMaterial data)[] documents = Directory.GetFiles(directory, "*.pbr.json")
@@ -47,7 +47,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				File.WriteAllText(path, JsonUtility.ToJson(data));
 			}
 
-			// Ссылки переписаны до удаления файлов: прерванный проход не оставит висячих ссылок.
+			// References are rewritten before files are deleted: an interrupted pass leaves no dangling references.
 			long saved = 0;
 
 			foreach (string name in aliases.Keys)
@@ -92,7 +92,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 					continue;
 				}
 
-				// Хэш только находит кандидатов; байты сравниваются, чтобы дедупликация была строго без потерь.
+				// The hash only finds candidates; bytes are compared so deduplication is strictly lossless.
 				if (File.ReadAllBytes(path).SequenceEqual(File.ReadAllBytes(Path.Combine(directory, original))))
 				{
 					aliases.Add(name, original);

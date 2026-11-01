@@ -1,9 +1,9 @@
 using System;
 
-// DTO для тестов должны лежать в пространстве имён формата: BinaryModData читает только его типы.
+// Test DTOs must live in the format namespace: BinaryModData reads only its types.
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Схема DTO на момент публикации мода.</summary>
+	/// <summary>DTO schema at the time the mod was published.</summary>
 	internal static class SchemaOld
 	{
 		[Serializable]

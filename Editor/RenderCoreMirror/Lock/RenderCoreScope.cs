@@ -5,20 +5,20 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Какие члены enum зеркало не рассматривает: машины, частицы и служебные варианты. Исключённое не попадает в снимок, поэтому car-only
-	/// изменения rendercore снимок не меняют. Записывается в снимок (scope); другая область при сравнении — Stale.
+	/// Enum members the mirror ignores: cars, particles and service variants. Excluded ones are not in the snapshot, so car-only
+	/// rendercore changes do not change it. Written to the snapshot (scope); a different scope on comparison is Stale.
 	/// </summary>
 	public sealed class RenderCoreScope
 	{
-		/// <summary>Область вариантов карт. Аннотации генератора должны ссылаться на неё, а не держать копию.</summary>
+		/// <summary>Map variant scope. Generator annotations must reference it instead of keeping a copy.</summary>
 		public static RenderCoreScope Default { get; } = new RenderCoreScope(
 			new[] { "MAT_CAR_", "MAT_PARTICLE" },
 			new[] { "MAT_SLOD", "MAT_MATTESHADOW", "MAT_SKIDMARK", "MAT_UNSUPPORTED" });
 
-		/// <summary>Отсортированы (ordinal), без повторов.</summary>
+		/// <summary>Sorted (ordinal), no duplicates.</summary>
 		public readonly IReadOnlyList<string> excludedPrefixes;
 
-		/// <summary>Отсортированы (ordinal), без повторов.</summary>
+		/// <summary>Sorted (ordinal), no duplicates.</summary>
 		public readonly IReadOnlyList<string> excludedNames;
 
 		public RenderCoreScope(IEnumerable<string> excludedPrefixes, IEnumerable<string> excludedNames)

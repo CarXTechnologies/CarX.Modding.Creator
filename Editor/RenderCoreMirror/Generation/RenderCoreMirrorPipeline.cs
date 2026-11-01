@@ -5,15 +5,15 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Сценарии зеркала поверх ядра — общие для меню Unity, проверки сборки, Validation-теста и CLI. Ничего не пишут на диск: вызывающий
-	/// записывает возвращённые тексты сам и только если нет находок Breaking/Error.
+	/// Mirror scenarios on top of the core, shared by the Unity menu, the build check, the Validation test and the CLI. Nothing is written
+	/// to disk: the caller writes the returned texts itself, and only when there are no Breaking/Error findings.
 	/// </summary>
 	public static class RenderCoreMirrorPipeline
 	{
 		/// <summary>
-		/// Проверка без записи: живой rendercore против закоммиченного снимка (RCM1xx; варианты вне аннотаций — Info), ворота генератора
-		/// на живом снимке (RCM0xx) и актуальность закоммиченной таблицы (RCM091/RCM092; committedTable null — не проверяется).
-		/// Сбой извлечения — находка Error.
+		/// Read-only check: live rendercore against the committed snapshot (RCM1xx; variants outside annotations are Info), generator gates
+		/// on the live snapshot (RCM0xx) and whether the committed table is up to date (RCM091/RCM092; skipped when committedTable is null).
+		/// An extraction failure is an Error finding.
 		/// </summary>
 		public static List<RenderCoreFinding> Check(RenderCoreLock committed, IRenderCoreSourceProvider liveSource, MirrorAnnotationSet annotations,
 			string committedTable)
@@ -36,7 +36,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return Sort(findings);
 		}
 
-		/// <summary>Закоммиченная таблица (CRLF/BOM не важны) равна generate(снимок, аннотации); иначе RCM091 (Stale) или RCM092 (Breaking).</summary>
+		/// <summary>The committed table (CRLF/BOM ignored) equals generate(snapshot, annotations); otherwise RCM091 (Stale) or RCM092 (Breaking).</summary>
 		public static List<RenderCoreFinding> CheckTable(RenderCoreLock committed, MirrorAnnotationSet annotations, string committedTable)
 		{
 			var findings = new List<RenderCoreFinding>();
@@ -59,7 +59,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return findings;
 		}
 
-		/// <summary>Таблица из закоммиченного снимка (меню Regenerate Table, CLI generate). table — null, если генерация заблокирована.</summary>
+		/// <summary>Table from the committed snapshot (Regenerate Table menu, CLI generate). table is null if generation is blocked.</summary>
 		public static MirrorGenerationResult Regenerate(RenderCoreLock committed, MirrorAnnotationSet annotations, out string table)
 		{
 			MirrorGenerationResult result = MirrorGenerator.Generate(committed, annotations);
@@ -68,11 +68,11 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Новый снимок из rendercore и таблица из него (меню Update Lock, CLI update). Решают только ворота генератора против аннотаций:
-		/// отличия от прежнего снимка (changes) — справка, иначе однажды проверенное изменение (например, новый отпечаток декодирования)
-		/// навсегда блокировало бы обновление. Это согласовано с Check: всё, что сравнение снимков называет Breaking, ворота тоже не
-		/// пропускают (RenderCoreLockDiff, RenderCoreFindingCodes), поэтому записанный снимок не бывает Breaking для Check, Validation и
-		/// проверки сборки. lockText/table — null, если генерация заблокирована. Сбой извлечения — исключение.
+		/// A new snapshot from rendercore and its table (Update Lock menu, CLI update). Only the generator gates against annotations decide:
+		/// differences from the previous snapshot (changes) are informational, otherwise a once-reviewed change (e.g. a new decode fingerprint)
+		/// would block updates forever. This is consistent with Check: everything snapshot comparison calls Breaking is also rejected by the
+		/// gates (RenderCoreLockDiff, RenderCoreFindingCodes), so a written snapshot is never Breaking for Check, Validation or the build check.
+		/// lockText/table are null if generation is blocked. An extraction failure throws.
 		/// </summary>
 		public static MirrorGenerationResult Update(IRenderCoreSourceProvider source, RenderCoreLock committed, MirrorAnnotationSet annotations,
 			out List<RenderCoreFinding> changes, out string lockText, out string table)

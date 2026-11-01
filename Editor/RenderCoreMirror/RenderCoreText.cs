@@ -4,21 +4,21 @@ using System.Text;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Общие операции над исходниками rendercore: декодирование, комментарии, логические строки, отпечатки.</summary>
+	/// <summary>Common operations on rendercore sources: decoding, comments, logical lines, hashes.</summary>
 	public static class RenderCoreText
 	{
-		/// <summary>Длина отпечатков (hex) в снимке: decode, setup, LockContentHash.</summary>
+		/// <summary>Length of snapshot hashes (hex): decode, setup, LockContentHash.</summary>
 		public const int HashLength = 12;
 
 		private static readonly UTF8Encoding s_utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-		/// <summary>UTF-8 без BOM, переводы строк — только LF.</summary>
+		/// <summary>UTF-8 without BOM, LF line breaks only.</summary>
 		public static string Decode(byte[] bytes)
 		{
 			return Normalize(s_utf8.GetString(bytes));
 		}
 
-		/// <summary>Убирает BOM и приводит CRLF/CR к LF: снимок не должен зависеть от git autocrlf.</summary>
+		/// <summary>Strips the BOM and converts CRLF/CR to LF: the snapshot must not depend on git autocrlf.</summary>
 		public static string Normalize(string text)
 		{
 			if (text == null)
@@ -40,8 +40,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Заменяет комментарии // и /* */ пробелами, сохраняя переводы строк (номера строк не сдвигаются). Строковые литералы "…",
-		/// @"…" и символьные '…' не трогает. Годится для C#, HLSL и ShaderLab.
+		/// Replaces // and /* */ comments with spaces, keeping line breaks (line numbers do not shift). String literals "…",
+		/// @"…" and char literals '…' are left as is. Works for C#, HLSL and ShaderLab.
 		/// </summary>
 		public static string StripComments(string text)
 		{
@@ -110,7 +110,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return result.ToString();
 		}
 
-		/// <summary>Индекс после литерала, начатого перед start; литерал не переходит через перевод строки.</summary>
+		/// <summary>Index after a literal started before start; a literal does not cross a line break.</summary>
 		public static int SkipQuoted(string text, int start, char quote)
 		{
 			int index = start;
@@ -158,7 +158,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Логические строки: строка, оканчивающаяся на '\', продолжается следующей (как в препроцессоре HLSL). Номер — первой физической строки.
+		/// Logical lines: a line ending with '\' continues on the next one (as in the HLSL preprocessor). The number is of the first physical line.
 		/// </summary>
 		public static List<RenderCoreSourceLine> ToLogicalLines(string text)
 		{
@@ -198,7 +198,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return result;
 		}
 
-		/// <summary>Пробелы и табы схлопываются в один пробел, края обрезаются.</summary>
+		/// <summary>Spaces and tabs collapse into one space, ends are trimmed.</summary>
 		public static string CollapseWhitespace(string text)
 		{
 			var result = new StringBuilder(text.Length);
@@ -224,7 +224,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return result.ToString();
 		}
 
-		/// <summary>Первые 12 hex SHA-256 по строкам, соединённым LF.</summary>
+		/// <summary>First 12 hex of SHA-256 over the lines joined with LF.</summary>
 		public static string Hash(IEnumerable<string> lines)
 		{
 			string joined = string.Join("\n", lines);
@@ -243,7 +243,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Номер строки (с 1) для смещения в тексте.</summary>
+		/// <summary>1-based line number for a text offset.</summary>
 		public static int LineOf(string text, int offset)
 		{
 			int line = 1;
@@ -270,7 +270,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return character == '_' || char.IsLetterOrDigit(character);
 		}
 
-		// '…' считается символьным литералом, только если закрывается в пределах пары символов: апостроф в тексте HLSL/ShaderLab не ломает разбор.
+		// '…' is a char literal only if it closes within a couple of characters: an apostrophe in HLSL/ShaderLab text does not break parsing.
 		private static bool IsCharLiteral(string text, int index)
 		{
 			if (index + 2 < text.Length && text[index + 1] != '\\' && text[index + 2] == '\'')
@@ -283,7 +283,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				return false;
 			}
 
-			// '\n', '\'', '\x41': закрывающий апостроф не дальше нескольких символов.
+			// '\n', '\'', '\x41': the closing apostrophe is at most a few characters away.
 			int close = text.IndexOf('\'', index + 3);
 			return close > 0 && close <= index + 10;
 		}

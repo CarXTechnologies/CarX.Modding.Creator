@@ -9,11 +9,11 @@ using Plugins.CarX.Modding.Creator.RenderCoreMirror;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Сценарии изменений rendercore и аннотаций против ворот генератора: каждый проверяет точный набор кодов RCM, которые блокируют таблицу.
-	/// Два источника: маленький синтетический пакет RenderCoreMirrorFixtures~/MiniRenderCore (то, что нужно извлекать из исходников:
-	/// декодирование в живой и мёртвой ветке, define'ы, проходы и их программы, setup) и закоммиченный снимок с правкой записей в памяти
-	/// (настоящие данные rendercore и настоящие аннотации). Пакет rendercore проекту не нужен — тесты идут в MapUploader. SDK публичный:
-	/// код фикстуры и строки замен придуманы, совпадает с rendercore только структура ветвлений и имена.
+	/// rendercore and annotation change scenarios against the generator gates: each checks the exact set of RCM codes that block the table.
+	/// Two sources: the small synthetic package RenderCoreMirrorFixtures~/MiniRenderCore (what must be extracted from sources:
+	/// decoding in live and dead branches, defines, passes and their programs, setup) and the committed snapshot with records edited
+	/// in memory (real rendercore data and real annotations). The project does not need the rendercore package, so the tests run in
+	/// MapUploader. The SDK is public: fixture code and replacement strings are made up, only branch structure and names match rendercore.
 	/// </summary>
 	public class RenderCoreMirrorScenarioTests
 	{
@@ -51,7 +51,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(alphaTest.keywords, Is.EqualTo(new[] { RenderCoreLock.AlphaTestKeyword }));
 			Assert.That(alphaTest.requiredStreams, Is.EqualTo(MirrorVertexStreams.Position | MirrorVertexStreams.Normal | MirrorVertexStreams.Uv0));
 
-			// Порог альфа-теста в rendercore фиксированный: u_vThirdColor без роли, по умолчанию как в шейдере.
+			// The alpha test threshold in rendercore is fixed: u_vThirdColor has no role and keeps the shader default.
 			MirrorProperty thirdColor = alphaTest.properties[0];
 			Assert.That(thirdColor.name, Is.EqualTo("u_vThirdColor"));
 			Assert.That(thirdColor.source, Is.EqualTo(MirrorSource.None));
@@ -72,7 +72,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(MirrorCSharpWriter.Write(MirrorGenerator.Generate(Extract(fixture), CreateFixtureAnnotations(baseline))), Is.EqualTo(table));
 			Assert.That(table, Does.Not.Contain("\r"));
 			Assert.That(table, Does.Contain("public const string LockContentHash = \"" + RenderCoreLockText.ContentHash(baseline) + "\";"));
-			Assert.That(table, Does.Contain("// Не предлагаются (нет аннотации): —"));
+			Assert.That(table, Does.Contain("// Not suggested (no annotation): —"));
 			Assert.That(table, Does.Contain("new ModRenderCoreSuggestion(ModRenderCoreRenderType.AlphaTest, hasNormal: false, hasEmission: false, isFoliage: false, " +
 				$"\"{AlphaTestVariant}\")\n"));
 			Assert.That(table, Does.Contain("Value(\"u_fParams\", \"Emission Parameters\""));
@@ -88,7 +88,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(renamed, baseline);
 
-			// Подсказка Export from material тоже ведёт на пропавший вариант.
+			// The Export from material suggestion also points to the missing variant.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.OfferedMissing, MirrorFindingCodes.Suggestion }),
 				Describe(result.findings));
 			Assert.That(Find(result.findings, MirrorFindingCodes.OfferedMissing).message, Does.Contain("MAT_EMISSION_RENAMED"));
@@ -120,7 +120,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Ключ раскладки, активные строки Func (occlusion больше не читается) и выведенный канал B (Alpha вместо AmbientOcclusionAlpha).
+			// Layout key, active Func lines (occlusion is no longer read) and the derived channel B (Alpha instead of AmbientOcclusionAlpha).
 			Assert.That(BlockingCodes(result.findings),
 				Is.EqualTo(new[] { MirrorFindingCodes.LayoutKey, MirrorFindingCodes.DecodeHash, MirrorFindingCodes.Channels }), Describe(result.findings));
 			Assert.That(result.findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).Select(finding => finding.subject).Distinct(),
@@ -138,7 +138,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Строку видит и Forward варианта, и общая ветка ALPHATEST проходов выреза.
+			// The line is seen by both the variant Forward and the shared ALPHATEST branch of the cutout passes.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.DecodeHash, MirrorFindingCodes.PassConfig }),
 				Describe(result.findings));
 			Assert.That(Find(result.findings, MirrorFindingCodes.DecodeHash).subject, Is.EqualTo(AlphaTestVariant));
@@ -150,7 +150,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		{
 			Dictionary<string, string> fixture = LoadFixture();
 			RenderCoreLock baseline = Extract(fixture);
-			Dictionary<string, string> changed = Replace(fixture, "\t\tClipBelow(packed.z, 0.7);", "\t\tClipBelow(packed.z, 0.75); // ветка NO_DITHER не активна");
+			Dictionary<string, string> changed = Replace(fixture, "\t\tClipBelow(packed.z, 0.7);", "\t\tClipBelow(packed.z, 0.75); // NO_DITHER branch is inactive");
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
@@ -198,7 +198,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Без ALPHATEST DepthOnly рисует вариант без выреза: объявление (RCM020), ключ раскладки (depth:none) и непроверенная конфигурация.
+			// Without ALPHATEST DepthOnly draws the variant without cutout: declaration (RCM020), layout key (depth:none) and an unverified config.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.PassKind, MirrorFindingCodes.LayoutKey, MirrorFindingCodes.PassConfig }),
 				Describe(result.findings));
 			Assert.That(Find(result.findings, MirrorFindingCodes.PassKind).subject, Is.EqualTo("DepthOnly/" + RenderCoreLock.AlphaTestKeyword));
@@ -219,7 +219,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(result.findings.Count(finding => finding.code == MirrorFindingCodes.Streams), Is.EqualTo(3));
 			Assert.That(DiffCodes(baseline, changed), Is.EqualTo(new[] { RenderCoreFindingCodes.Streams }));
 
-			// С причиной вариант генерируется, но недоступен: клиент и маркер его не предложат.
+			// With a reason the variant is generated but unavailable: neither the client nor the marker will offer it.
 			annotations.TryGetVariant("MAT_DEFAULT", out MirrorVariantAnnotation original);
 			MirrorAnnotationSet withReason = annotations.WithVariant(Copy(original, original.revision, original.channels, "needs a second UV set"));
 			MirrorGenerationResult reasoned = MirrorGenerator.Generate(Extract(changed), withReason);
@@ -247,7 +247,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorAnnotationSet annotations = CreateFixtureAnnotations(baseline);
 			annotations.TryGetVariant("MAT_DEFAULT", out MirrorVariantAnnotation original);
-			var slot = new MirrorSlotOverride("u_fFoo", MirrorSource.None, layer: 0, new MirrorVector(0.5f, 0, 0, 0), "фикстура: значение задаёт автор");
+			var slot = new MirrorSlotOverride("u_fFoo", MirrorSource.None, layer: 0, new MirrorVector(0.5f, 0, 0, 0), "fixture: the value is set by the author");
 			MirrorAnnotationSet overridden = annotations.WithVariant(new MirrorVariantAnnotation(original.name, original.revision, original.layoutKey,
 				original.reviewedDecodeHash, original.vertexColors, original.channels, original.unavailableReason, new[] { slot }));
 			MirrorGenerationResult fixedResult = MirrorGenerator.Generate(Extract(changed), overridden);
@@ -258,7 +258,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(foo.defaultValue, Is.EqualTo(new MirrorVector(0.5f, 0, 0, 0)));
 			Assert.That(MirrorCSharpWriter.Write(fixedResult), Does.Contain("new Vector4(0.5f, 0, 0, 0), vectorLabels: null)"));
 
-			// Переопределение без причины не принимается.
+			// An override without a reason is not accepted.
 			var silent = new MirrorSlotOverride("u_fFoo", MirrorSource.None, layer: 0, MirrorVector.One, reason: "");
 			MirrorAnnotationSet noReason = annotations.WithVariant(new MirrorVariantAnnotation(original.name, original.revision, original.layoutKey,
 				original.reviewedDecodeHash, original.vertexColors, original.channels, original.unavailableReason, new[] { silent }));
@@ -425,7 +425,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(result.Succeeded, Is.True, Describe(result.findings));
 			Assert.That(result.notAnnotated, Is.EqualTo(new[] { "MAT_WINDOW" }));
 			Assert.That(Find(result.findings, MirrorFindingCodes.NotAnnotated).message, Does.Contain("layoutKey: \"Base AO EMISSION METALNESS NORMAL ROUGHNESS WINDOW\""));
-			Assert.That(MirrorCSharpWriter.Write(result), Does.Contain("// Не предлагаются (нет аннотации): MAT_WINDOW\n"));
+			Assert.That(MirrorCSharpWriter.Write(result), Does.Contain("// Not suggested (no annotation): MAT_WINDOW\n"));
 		}
 
 		[Test]
@@ -449,7 +449,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			MirrorAnnotationSet annotations = RenderCoreMirrorAnnotations.Create();
 			var suggestions = new List<MirrorSuggestion>(annotations.suggestions)
 			{
-				// Двусторонний непрозрачный материал без выреза: вариант альфа-теста резал бы то, что в HDRP не режется.
+				// Double-sided opaque material without cutout: the alpha test variant would clip what HDRP does not.
 				new MirrorSuggestion(MirrorRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_FOLIAGE_ALPHATEST")
 			};
 
@@ -467,7 +467,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			MirrorAnnotationSet annotations = RenderCoreMirrorAnnotations.Create();
 			var suggestions = new List<MirrorSuggestion>(annotations.suggestions)
 			{
-				// Тот же ключ, что у подсказки MAT_FOLIAGE_ALPHATEST: Suggest никогда её не вернёт.
+				// Same key as the MAT_FOLIAGE_ALPHATEST suggestion: Suggest never returns this one.
 				new MirrorSuggestion(MirrorRenderType.AlphaTest, hasNormal: true, hasEmission: false, isFoliage: true, "MAT_ROUGHNESS_NORMAL_ALPHATEST")
 			};
 
@@ -490,7 +490,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Forward варианта не меняется: вырез мода делают DepthOnly/ShadowCaster общей веткой ALPHATEST — её и ловит конфигурация прохода.
+			// The variant Forward does not change: mod cutout is done by DepthOnly/ShadowCaster in the shared ALPHATEST branch, which the pass config catches.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.PassConfig }), Describe(result.findings));
 			Assert.That(result.findings.Where(finding => finding.code == MirrorFindingCodes.PassConfig).Select(finding => finding.subject),
 				Is.EquivalentTo(new[] { DepthOnlyAlphaTest, ShadowCasterAlphaTest }));
@@ -518,7 +518,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Dictionary<string, string> fixture = LoadFixture();
 			RenderCoreLock baseline = Extract(fixture);
 
-			// Define программы перед Definitions в конфигурации по умолчанию и строка ветки на keyword'е прохода (не по умолчанию).
+			// A program define before Definitions in the default config and a branch line on a pass keyword (non-default).
 			Dictionary<string, string> setup = Replace(fixture, "#ifdef ALPHATEST\n\t\t\t\t#define FIXTURE_NOISE_ON\n", "#ifdef ALPHATEST\n");
 			Dictionary<string, string> extraBuffer = Replace(fixture, "\t\t\t\tFixtureExtraOutput extra;\n", "\t\t\t\tFixtureExtraOutput extra[2];\n");
 
@@ -556,7 +556,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Ветка пресета качества или платформы компилируется на части машин: обе ветки в отпечатке, а не только «выключенная».
+			// A quality preset or platform branch compiles on some machines: both branches are in the fingerprint, not just the "disabled" one.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.DecodeHash }), Describe(result.findings));
 			Assert.That(result.findings.Where(finding => finding.code == MirrorFindingCodes.DecodeHash).Select(finding => finding.subject),
 				Is.EquivalentTo(new[] { AlphaTestVariant, EmissionVariant }));
@@ -573,7 +573,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Внутрь библиотеки зеркало не заходит: её include в активной ветке — часть отпечатка декодирования.
+			// The mirror does not descend into the library: its include in an active branch is part of the decode fingerprint.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.DecodeHash }), Describe(result.findings));
 			Assert.That(Find(result.findings, MirrorFindingCodes.DecodeHash).subject, Is.EqualTo(AlphaTestVariant));
 			Assert.That(DiffCodes(baseline, changed), Is.EqualTo(new[] { RenderCoreFindingCodes.Decode, RenderCoreFindingCodes.Libraries }));
@@ -590,14 +590,14 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			MirrorGenerationResult result = Generate(changed, baseline);
 
-			// Тег RenderType материала rendercore пишет именем члена, клиент — именем ModRenderCoreRenderType: число то же, тег другой.
+			// rendercore writes the material RenderType tag by member name, the client by ModRenderCoreRenderType name: same number, different tag.
 			Assert.That(BlockingCodes(result.findings), Is.EqualTo(new[] { MirrorFindingCodes.RenderTypeNames }), Describe(result.findings));
 			Assert.That(DiffCodes(baseline, changed), Is.EqualTo(new[] { RenderCoreFindingCodes.RenderTypes }));
 		}
 
 		/// <summary>
-		/// Update Lock решает только по воротам генератора, Check — по сравнению снимков и воротам. Breaking сравнения должен блокировать и
-		/// ворота, иначе Update записал бы снимок, который Check, Validation и проверка сборки считают Breaking; Stale — лечится обновлением.
+		/// Update Lock decides only by the generator gates, Check by snapshot comparison and gates. A Breaking comparison must also block
+		/// the gates, otherwise Update would write a snapshot that Check, Validation and the build check consider Breaking; Stale is fixed by updating.
 		/// </summary>
 		[TestCase("\t#define INPUT_NEED_NORMAL\n", "\t#define INPUT_NEED_NORMAL\n\t#define INPUT_NEED_COLOR\n", RenderCoreFindingTier.Stale)]
 		[TestCase("#pragma multi_compile_local MAT_DEFAULT MAT_ROUGHNESS_ALPHATEST MAT_EMISSION\n",
@@ -634,8 +634,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		}
 
 		/// <summary>
-		/// Аннотации фикстуры: ключи раскладки и каналы записаны руками (их и проверяют сценарии), отпечатки декодирования, конфигураций
-		/// проходов выреза и setup — из исходного состояния фикстуры.
+		/// Fixture annotations: layout keys and channels are written by hand (that is what the scenarios check); decode, cutout pass config
+		/// and setup fingerprints come from the initial fixture state.
 		/// </summary>
 		private static MirrorAnnotationSet CreateFixtureAnnotations(RenderCoreLock baseline)
 		{
@@ -696,14 +696,14 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			return candidate.decodeHash;
 		}
 
-		/// <summary>Коды находок Breaking/Error (без повторов, по возрастанию).</summary>
+		/// <summary>Breaking/Error finding codes (distinct, ascending).</summary>
 		private static string[] BlockingCodes(IEnumerable<RenderCoreFinding> findings)
 		{
 			return findings.Where(finding => finding.tier >= RenderCoreFindingTier.Breaking).Select(finding => finding.code).Distinct()
 				.OrderBy(code => code, StringComparer.Ordinal).ToArray();
 		}
 
-		/// <summary>Коды сравнения снимков уровня Stale и выше (без повторов, по возрастанию).</summary>
+		/// <summary>Snapshot comparison codes of Stale tier and above (distinct, ascending).</summary>
 		private static string[] DiffCodes(RenderCoreLock baseline, Dictionary<string, string> changed)
 		{
 			return RenderCoreLockDiff.Compare(baseline, Extract(changed), relevant: null).Where(finding => finding.tier >= RenderCoreFindingTier.Stale)

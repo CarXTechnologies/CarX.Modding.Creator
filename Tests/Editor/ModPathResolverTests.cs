@@ -4,7 +4,7 @@ using Plugins.CarX.Modding.Creator.Runtime;
 
 namespace Plugins.CarX.Modding.Creator.Tests
 {
-	/// <summary>Пути из данных мода не должны выходить за каталог мода.</summary>
+	/// <summary>Paths from mod data must not escape the mod directory.</summary>
 	public class ModPathResolverTests
 	{
 		private static readonly string s_root = Path.Combine(Path.GetTempPath(), "carx_mod_root");
@@ -32,8 +32,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.IsNull(fullPath);
 		}
 
-		// DefaultFileProvider вызывает TryResolveInside напрямую: его собственные проверки (UNC, "..", префикс корня)
-		// не должны полагаться на отсечение абсолютных путей в TryResolveRelative.
+		// DefaultFileProvider calls TryResolveInside directly: its own checks (UNC, "..", root prefix)
+		// must not rely on TryResolveRelative rejecting absolute paths.
 		[TestCase("../secret.txt")]
 		[TestCase("textures/../../secret.txt")]
 		[TestCase("textures/../../x")]

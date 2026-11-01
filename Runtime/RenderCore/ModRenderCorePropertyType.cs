@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Тип свойства варианта rendercore. Числа совпадают с UnityEngine.Rendering.ShaderPropertyType; Range и Int хранятся как Float.</summary>
+	/// <summary>rendercore variant property type. Values match UnityEngine.Rendering.ShaderPropertyType; Range and Int are stored as Float.</summary>
 	public enum ModRenderCorePropertyType
 	{
 		Color = 0,

@@ -10,7 +10,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class DefaultFileProvider : IModFileProvider
 	{
-		/// <summary>Как часто перепроверять файл архива на диске (замена/удаление мода), а не на каждый ресурс.</summary>
+		/// <summary>How often to recheck the archive file on disk (mod replaced/deleted) instead of on every resource.</summary>
 		private const long ArchiveRecheckMilliseconds = 1000;
 
 		private static readonly long s_archiveRecheckTicks = ArchiveRecheckMilliseconds * Stopwatch.Frequency / 1000;
@@ -34,7 +34,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 		public Task<byte[]> LoadAsync(string subCatalog, string format)
 		{
-			// Путь приходит из данных мода: читаем только внутри каталога мода (без "..", UNC и чужих абсолютных путей).
+			// The path comes from mod data: read only inside the mod directory (no "..", UNC or foreign absolute paths).
 			if (!ModPathResolver.TryResolveInside(m_loadDirectory, subCatalog + format, out string filePath))
 			{
 				Debug.LogError($"[DefaultFileProvider] Mod resource path '{subCatalog}{format}' is outside of the mod directory and is ignored.");
@@ -47,7 +47,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			{
 				string name = Path.GetRelativePath(m_fullLoadDirectory, filePath).Replace('\\', '/');
 
-				// С пула потоков (параллельная загрузка карты) читаем сразу, без лишнего перехода в другую задачу.
+				// On a thread pool thread (parallel map loading) read directly, without hopping to another task.
 				if (Thread.CurrentThread.IsThreadPoolThread)
 				{
 					return Task.FromResult(archive.TryRead(name, out byte[] bytes) ? bytes : Array.Empty<byte>());
@@ -132,8 +132,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		}
 
 		/// <summary>
-		/// Архив мода из кэша <see cref="ModResourceFiles"/>. Состояние файла (FileInfo) перепроверяется не чаще раза в секунду,
-		/// а не на каждый из тысяч ресурсов карты.
+		/// Archive from the <see cref="ModResourceFiles"/> cache. The file state (FileInfo) is rechecked at most once per second,
+		/// not for each of the thousands of map resources.
 		/// </summary>
 		private BinaryModArchive GetArchive()
 		{

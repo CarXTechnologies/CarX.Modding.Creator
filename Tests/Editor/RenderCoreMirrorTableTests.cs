@@ -11,14 +11,14 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Закоммиченная таблица ModRenderCoreVariantTable.g.cs против generate(закоммиченный снимок, аннотации) и замороженные правила, от которых
-	/// зависят опубликованные моды. Пакет rendercore не нужен: всё читается из снимка и таблицы SDK.
+	/// The committed ModRenderCoreVariantTable.g.cs against generate(committed snapshot, annotations), plus frozen rules that published
+	/// mods depend on. The rendercore package is not needed: everything is read from the snapshot and the SDK table.
 	/// </summary>
 	public class RenderCoreMirrorTableTests
 	{
 		/// <summary>
-		/// Реестр замороженных контрактов "вариант@ревизия → отпечаток строки контракта". Только дописывается: правка или удаление записи
-		/// аннотаций роняет тест. Новая ревизия — новая строка (её печатает падение теста), и ревьюер принимает её осознанно.
+		/// Registry of frozen contracts "variant@revision -> contract line fingerprint". Append-only: editing or removing an annotation
+		/// record fails the test. A new revision is a new line (printed by the failing test), accepted deliberately by the reviewer.
 		/// </summary>
 		private static readonly string[] s_frozenContracts =
 		{
@@ -195,7 +195,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 				ModRenderCoreRenderType renderType = (ModRenderCoreRenderType)suggestion.renderType;
 				string variant = ModRenderCoreVariants.Suggest(renderType, suggestion.hasNormal, suggestion.hasEmission, suggestion.isFoliage);
 
-				// Ключи уникальны (RCM080): каждая подсказка достижима и ведёт ровно на свой вариант.
+				// Keys are unique (RCM080): every suggestion is reachable and leads exactly to its variant.
 				Assert.That(variant, Is.EqualTo(suggestion.variant), suggestion.Key);
 				Assert.That(ModRenderCoreVariants.Offered.Any(offered => offered.name == variant && offered.renderType == renderType), Is.True, suggestion.Key);
 
@@ -215,7 +215,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 
 			foreach (MirrorSuggestion suggestion in foliage)
 			{
-				// У того же ключа есть подсказка без растительности: растительность — уточнение, а не единственный путь к варианту.
+				// The same key has a non-foliage suggestion: foliage is a refinement, not the only path to the variant.
 				Assert.That(RenderCoreMirrorAnnotations.Suggestions.Any(other => !other.isFoliage && other.renderType == suggestion.renderType &&
 					other.hasNormal == suggestion.hasNormal && other.hasEmission == suggestion.hasEmission), Is.True, suggestion.Key);
 			}
@@ -261,7 +261,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.That(ModRenderCoreVariants.Offered.Any(variant => variant.name == "MAT_INTERIOR"), Is.False);
 			Assert.That(ModRenderCoreVariants.Offered.All(ModRenderCoreVariants.HasSupportedStreams), Is.True);
 
-			// InteriorMaterialFunc цвет вершин не читает, а u_sTexture1 у Interior — атлас окон в координатах комнаты, не эмиссия в UV меша.
+			// InteriorMaterialFunc does not read vertex colors, and u_sTexture1 of Interior is a window atlas in room space, not emission in mesh UV.
 			Assert.That(interior.vertexColors, Is.EqualTo(ModRenderCoreVertexColors.None));
 			Assert.That(interior.properties.Single(property => property.name == "u_sTexture1").source, Is.EqualTo(ModRenderCoreSource.None));
 		}

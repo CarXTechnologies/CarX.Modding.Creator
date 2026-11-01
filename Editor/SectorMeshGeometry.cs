@@ -78,7 +78,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				}
 			}
 
-			/// <summary>Заполненный кусок больше не пополняется: словарь дедупликации вершин освобождается сразу, а не в конце сборки.</summary>
+			/// <summary>A filled piece no longer grows: the vertex dedup dictionary is released right away, not at the end of the build.</summary>
 			public void Seal()
 			{
 				m_lookup = null;
@@ -86,8 +86,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Меш сектора: каждый кусок — свой сабмеш (свой материал). Вершины кусков не разделяются: рантайм всё равно
-		/// дублирует вершину, общую для двух материалов, а раздельные вершины позволяют упрощать сабмеши независимо.
+		/// Each piece is its own submesh (its own material). Piece vertices are not shared: the runtime duplicates a vertex shared by two
+		/// materials anyway, and separate vertices let submeshes be simplified independently.
 		/// </summary>
 		public static Mesh Create(string name, Vector3 origin, bool collider, IReadOnlyList<Builder> parts)
 		{
@@ -239,10 +239,9 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Метки вершин на плоскостях сетки секторов (координаты меша — от угла ячейки, кратного <paramref name="size"/>).
-		/// Проверяются все кратные плоскости, а не только грани своей ячейки: мелкие куски, перенесённые в соседний сектор,
-		/// сохраняют свою границу. Ось, вдоль которой сабмеш плоский, не учитывается — иначе плоская дорога на плоскости сетки
-		/// заблокировалась бы целиком.
+		/// Marks vertices on sector grid planes (mesh coordinates start at a cell corner that is a multiple of <paramref name="size"/>).
+		/// All multiple planes are checked, not only the own cell faces: small pieces moved to a neighbouring sector keep their border.
+		/// The axis along which the submesh is flat is ignored, otherwise a flat road on a grid plane would be locked entirely.
 		/// </summary>
 		public static byte[] LockSectorBorders(Mesh mesh, float size)
 		{
@@ -282,7 +281,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return locks;
 		}
 
-		/// <summary>Меш из выбранных индексов исходного (по массиву на сабмеш); неиспользуемые вершины отбрасываются.</summary>
+		/// <summary>Mesh from the selected source indices (an array per submesh); unused vertices are dropped.</summary>
 		public static Mesh Compact(Mesh source, int[][] subMeshIndices, string name)
 		{
 			var result = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };

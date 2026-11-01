@@ -5,13 +5,13 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Подмножество YAML, которое пишет Unity для ScriptableObject: один документ ("--- !u!114 &amp;1"), блочные карты и последовательности
-	/// (в том числе "- " на уровне ключа), plain-, '…'- и "…"-скаляры со складыванием строк, пустые [] и {}. Якоря, теги, блочные скаляры
-	/// и непустые flow-коллекции становятся узлами Unsupported: ошибка RCM002 со строкой — только если поле действительно читают.
+	/// The YAML subset Unity writes for a ScriptableObject: one document ("--- !u!114 &amp;1"), block maps and sequences
+	/// (including "- " at key level), plain, '…' and "…" scalars with line folding, empty [] and {}. Anchors, tags, block scalars
+	/// and non-empty flow collections become Unsupported nodes: an RCM002 error with the line only if the field is actually read.
 	/// </summary>
 	public sealed class UnityYamlSubsetReader
 	{
-		// Однобуквенные escape'ы YAML в "…" и их значения (N, _, L, P — NEL, NBSP, LS, PS).
+		// Single-letter YAML escapes in "…" and their values (N, _, L, P — NEL, NBSP, LS, PS).
 		private const string Escapes = "0abt\tnvfre \"/\\N_LP";
 
 		private static readonly string s_unescaped = new string(new[]
@@ -49,7 +49,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					continue;
 				}
 
-				// Заголовок документа Unity "--- !u!114 &1": тег и якорь здесь служебные, их пропускаем.
+				// Unity document header "--- !u!114 &1": the tag and anchor here are service ones, skip them.
 				if (IsDocumentStart(line))
 				{
 					m_index++;
@@ -123,7 +123,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				string content = m_lines[next].Substring(lineIndent);
 
-				// "- " на уровне ключей — продолжение последовательности родителя.
+				// "- " at key level continues the parent sequence.
 				if (IsSequenceEntry(content))
 				{
 					break;
@@ -201,7 +201,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				if (IsSequenceEntry(itemContent) || FindMappingColon(itemContent) >= 0)
 				{
-					// Карта (или вложенная последовательность) начинается в строке элемента: читаем её так, будто содержимое стоит с отступом itemIndent.
+					// A map (or nested sequence) starts on the item line: read it as if the content were indented by itemIndent.
 					m_lines[next] = new string(' ', itemIndent) + itemContent;
 					m_index = next;
 					sequence.Add(ParseBlock(itemIndent));
@@ -214,7 +214,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return sequence;
 		}
 
-		/// <summary>Значение после "ключ:" (или "- "); indent — отступ ключа (тире): строки продолжения отступают дальше.</summary>
+		/// <summary>Value after "key:" (or "- "); indent is the key (dash) indent: continuation lines are indented further.</summary>
 		private UnityYamlNode ParseValue(string rest, int indent, int lineIndex)
 		{
 			int lineNumber = lineIndex + 1;
@@ -303,13 +303,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					break;
 				}
 
-				// "ключ: значение" не может продолжать plain-скаляр: это сдвинутый ключ, а не текст.
+				// "key: value" cannot continue a plain scalar: it is a misindented key, not text.
 				if (FindMappingColon(trimmed) >= 0)
 				{
 					throw Error(m_index, "unexpected indentation: key inside a multi-line value");
 				}
 
-				// Складывание: одиночный перевод строки — пробел, каждая пустая строка — '\n'.
+				// Folding: a single line break is a space, each empty line is '\n'.
 				if (pendingBreaks == 0)
 				{
 					builder.Append(' ');
@@ -522,7 +522,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return IsDocumentStart(line) || line == "...";
 		}
 
-		/// <summary>Позиция ':' ключа (за ним пробел или конец строки) или -1. Ключи в кавычках и спецсимволах не поддержаны.</summary>
+		/// <summary>Position of the key ':' (followed by a space or end of line) or -1. Quoted keys and special characters are not supported.</summary>
 		private static int FindMappingColon(string content)
 		{
 			if (content.Length == 0 || "'\"[{&*!|>%@`#".IndexOf(content[0]) >= 0)
@@ -548,7 +548,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return -1;
 		}
 
-		/// <summary>Комментарий plain-скаляра начинается с " #".</summary>
+		/// <summary>A plain scalar comment starts with " #".</summary>
 		private static string StripPlainComment(string text)
 		{
 			for (int index = 1; index < text.Length; index++)

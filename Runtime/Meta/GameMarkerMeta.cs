@@ -29,7 +29,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			this.Version = version;
 		}
 
-		// Для BinaryModData: поля, которых нет в документе, получают значения инициализаторов, а не default.
+		// For BinaryModData: fields missing from the document get their initializer values, not default.
 		private GameMarkerMeta()
 		{
 		}

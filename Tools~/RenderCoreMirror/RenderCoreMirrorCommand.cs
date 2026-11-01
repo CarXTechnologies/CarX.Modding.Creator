@@ -2,7 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
-	/// <summary>Команда CLI: строка справки и обработчик, возвращающий код выхода.</summary>
+	/// <summary>CLI command: help line and a handler returning the exit code.</summary>
 	internal sealed class RenderCoreMirrorCommand
 	{
 		public readonly string usage;

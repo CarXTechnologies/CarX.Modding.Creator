@@ -6,8 +6,8 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
-	/// Команды генератора: generate (таблица из закоммиченного снимка), update (снимок из rendercore + таблица), legacy-diff (поштучное
-	/// сравнение таблицы из dll с generate(снимок, аннотации)). Аннотации — скомпилированные RenderCoreMirrorAnnotations этой сборки.
+	/// Generator commands: generate (table from the committed snapshot), update (snapshot from rendercore + table), legacy-diff (item-by-item
+	/// comparison of the table from the dll with generate(snapshot, annotations)). Annotations are the compiled RenderCoreMirrorAnnotations of this assembly.
 	/// </summary>
 	internal static class GenerationCommands
 	{
@@ -22,8 +22,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		}
 
 		/// <summary>
-		/// generate(закоммиченный снимок, аннотации) → Runtime/RenderCore/ModRenderCoreVariantTable.g.cs. С --check ничего не пишет: 0 — таблица
-		/// актуальна, 2 — устарела. Breaking/Error — таблица не пишется, код 3/4.
+		/// generate(committed snapshot, annotations) → Runtime/RenderCore/ModRenderCoreVariantTable.g.cs. With --check nothing is written: 0 — the table
+		/// is up to date, 2 — outdated. Breaking/Error — the table is not written, exit code 3/4.
 		/// </summary>
 		private static int Generate(RenderCoreMirrorArguments arguments)
 		{
@@ -50,8 +50,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		}
 
 		/// <summary>
-		/// Снимок из rendercore и таблица из него. Отличия от прежнего снимка печатаются для справки; пишет, только если ворота генератора
-		/// (против аннотаций) пройдены.
+		/// Snapshot from rendercore and its table. Differences from the previous snapshot are printed for reference; writes only if the generator
+		/// gates (against annotations) pass.
 		/// </summary>
 		private static int Update(RenderCoreMirrorArguments arguments)
 		{
@@ -85,8 +85,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 		}
 
 		/// <summary>
-		/// Разовое доказательство миграции: таблица ModRenderCoreVariants из собранной dll (по reflection, без Unity) против
-		/// generate(закоммиченный снимок, аннотации), поле за полем. Печатает отличия; код 0, если сравнение выполнено.
+		/// One-off migration proof: the ModRenderCoreVariants table from the built dll (via reflection, without Unity) against
+		/// generate(committed snapshot, annotations), field by field. Prints differences; exit code 0 if the comparison ran.
 		/// </summary>
 		private static int LegacyDiff(RenderCoreMirrorArguments arguments)
 		{

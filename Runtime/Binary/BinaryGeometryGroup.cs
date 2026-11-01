@@ -2,7 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Группа геометрии: сама геометрия не зависит от привязки материалов, имён объектов, трансформов и теней.</summary>
+	/// <summary>The geometry itself does not depend on material binding, object names, transforms or shadows.</summary>
 	[Serializable]
 	public sealed class BinaryGeometryGroup
 	{

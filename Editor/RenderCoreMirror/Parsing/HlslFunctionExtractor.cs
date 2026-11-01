@@ -3,17 +3,17 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Декодирование варианта: Func-файл (Functions/&lt;X&gt;MaterialFunc.hlsl), выбранный StandardMaterialFunctions.hlsl, пропущенный через
-	/// препроцессор с define'ами варианта. Остаются активные строки: правки в мёртвых ветках #ifdef отпечаток не меняют, а ветки на keyword'ах
-	/// времени выполнения и платформе (SHADING_*, SHADER_API_* …) остаются целиком, с директивами. #define/#include/#pragma остаются.
+	/// Variant decoding: the Func file (Functions/&lt;X&gt;MaterialFunc.hlsl) selected by StandardMaterialFunctions.hlsl, run through the
+	/// preprocessor with the variant defines. Active lines remain: edits in dead #ifdef branches do not change the hash, while branches on
+	/// runtime keywords and platform (SHADING_*, SHADER_API_* …) remain in full, with directives. #define/#include/#pragma remain.
 	/// </summary>
 	public static class HlslFunctionExtractor
 	{
 		public const string FunctionsFileName = "StandardMaterialFunctions.hlsl";
 
 		/// <summary>
-		/// Продолжает препроцессор после Definitions: проходит StandardMaterialFunctions.hlsl и возвращает активные строки Func и его include'ов
-		/// внутри папки Standard. funcPaths — Func первого уровня, functionFiles — все пройденные.
+		/// Continues the preprocessor after Definitions: walks StandardMaterialFunctions.hlsl and returns the active lines of Func and its includes
+		/// inside the Standard folder. funcPaths — top-level Func files, functionFiles — all visited.
 		/// </summary>
 		public static List<string> Extract(RenderCoreFileLocator locator, string functionsPath, string standardDirectory, HlslConditionEvaluator evaluator,
 			List<string> funcPaths, List<string> functionFiles)
@@ -26,13 +26,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return lines;
 		}
 
-		/// <summary>Активные строки текста при заданных define'ах без захода в include'ы: то же, что хэшируется в decode.</summary>
+		/// <summary>Active text lines with the given defines without following includes: the same thing that is hashed in decode.</summary>
 		public static List<string> Preprocess(string text, IEnumerable<KeyValuePair<string, string>> defines, string path)
 		{
 			return Preprocess(text, defines, runtimeKeywords: null, path);
 		}
 
-		/// <summary>То же с keyword'ами времени выполнения: условия на них и на SHADER_API_*/UNITY_* неизвестны, их ветки остаются целиком.</summary>
+		/// <summary>Same with runtime keywords: conditions on them and on SHADER_API_*/UNITY_* are unknown, their branches remain in full.</summary>
 		public static List<string> Preprocess(string text, IEnumerable<KeyValuePair<string, string>> defines, IEnumerable<string> runtimeKeywords, string path)
 		{
 			var evaluator = new HlslConditionEvaluator();

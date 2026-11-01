@@ -8,11 +8,10 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Временные изменения настроек импорта исходных ассетов на время экспорта.
-	/// Экспорту нужны несжатые читаемые текстуры (иначе в мод попадут артефакты сжатия) и Read/Write у мешей,
-	/// но проект после экспорта должен остаться прежним: исходные значения запоминаются и возвращаются в <see cref="RestoreAll"/>.
-	/// Исходные значения дублируются в файл в Library: если экспорт оборвался до восстановления (перезагрузка домена,
-	/// закрытие редактора), их подхватывает и возвращает следующий экспорт.
+	/// Temporary changes to source asset import settings during export. Export needs uncompressed readable textures (otherwise compression
+	/// artifacts get into the mod) and Read/Write on meshes, but the project must stay unchanged afterwards: original values are stored and
+	/// restored in <see cref="RestoreAll"/>. They are also written to a file in Library: if export was interrupted before restoring
+	/// (domain reload, editor closed), the next export picks them up and restores them.
 	/// </summary>
 	public static class ExportImporterSettings
 	{
@@ -23,8 +22,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		private static bool s_loaded;
 
 		/// <summary>
-		/// Делает текстуру читаемой и несжатой, снимая на время экспорта override формата активной платформы.
-		/// Возвращает true, если импортёр пришлось поменять.
+		/// Removes the active platform format override for the duration of export. Returns true if the importer had to change.
 		/// </summary>
 		public static bool MakeTextureReadable(string path)
 		{
@@ -35,7 +33,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 			EnsureLoaded();
 
-			// С override формата для активной платформы textureCompression не действует, и текстура осталась бы сжатой.
+			// With a format override for the active platform textureCompression has no effect, and the texture would stay compressed.
 			string platform = GetActivePlatformName();
 			TextureImporterPlatformSettings platformSettings = importer.GetPlatformTextureSettings(platform);
 			bool platformOverridden = platformSettings.overridden;
@@ -72,7 +70,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		/// <summary>Включает Read/Write у модели. Возвращает true, если импортёр пришлось поменять.</summary>
+		/// <summary>Returns true if the importer had to change.</summary>
 		public static bool MakeModelReadable(string path)
 		{
 			if (AssetImporter.GetAtPath(path) is not ModelImporter importer || importer.isReadable)
@@ -98,10 +96,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		/// <summary>
-		/// Возвращает исходные настройки импорта всех изменённых экспортом ассетов,
-		/// включая оставшиеся от оборвавшегося прошлого экспорта.
-		/// </summary>
+		/// <summary>Also restores assets left over from an interrupted previous export.</summary>
 		public static void RestoreAll()
 		{
 			EnsureLoaded();
@@ -166,7 +161,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return NamedBuildTarget.FromBuildTargetGroup(group).TargetName;
 		}
 
-		// Статические словари пустеют при перезагрузке домена; файл в Library переживает и её, и перезапуск редактора.
+		// Static dictionaries are cleared on domain reload; the file in Library survives it and an editor restart.
 		private static void EnsureLoaded()
 		{
 			if (s_loaded)

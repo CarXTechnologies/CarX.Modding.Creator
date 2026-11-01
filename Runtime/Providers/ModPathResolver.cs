@@ -4,15 +4,15 @@ using System.IO;
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Единая точка разрешения путей из данных мода: путь должен остаться внутри каталога мода.
-	/// UNC-пути, сегменты ".." и выход за пределы каталога запрещены (иначе мод читает чужие файлы,
-	/// а обращение к UNC на Windows отдаёт NTLM-хеш постороннему SMB-серверу).
+	/// Single point for resolving paths from mod data: the path must stay inside the mod directory.
+	/// UNC paths, ".." segments and escaping the directory are forbidden (otherwise a mod reads foreign files,
+	/// and a UNC access on Windows leaks the NTLM hash to a foreign SMB server).
 	/// </summary>
 	public static class ModPathResolver
 	{
 		/// <summary>
-		/// Разрешает путь относительно каталога мода. Абсолютный путь допускается, только если он уже лежит внутри
-		/// каталога (так выглядят пути из сканирования каталога мода).
+		/// Resolves a path relative to the mod directory. An absolute path is allowed only if it is already inside
+		/// the directory (paths from scanning the mod directory look like that).
 		/// </summary>
 		public static bool TryResolveInside(string rootDirectory, string path, out string fullPath)
 		{
@@ -61,9 +61,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return true;
 		}
 
-		/// <summary>
-		/// Разрешает строго относительный путь из данных мода (mtllib, ссылки на ресурсы): абсолютные пути запрещены.
-		/// </summary>
+		/// <summary>Resolves a strictly relative path from mod data (mtllib, resource references): absolute paths are forbidden.</summary>
 		public static bool TryResolveRelative(string rootDirectory, string relativePath, out string fullPath)
 		{
 			fullPath = null;

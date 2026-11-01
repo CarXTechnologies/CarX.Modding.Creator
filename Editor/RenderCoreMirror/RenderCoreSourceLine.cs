@@ -1,6 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Логическая строка исходника (продолжения через '\' уже склеены) и номер её первой физической строки.</summary>
+	/// <summary>Logical source line ('\' continuations already joined) and the number of its first physical line.</summary>
 	public readonly struct RenderCoreSourceLine
 	{
 		public readonly int number;

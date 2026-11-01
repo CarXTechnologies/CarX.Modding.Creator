@@ -2,7 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Вершинные потоки, которые нужны варианту rendercore (INPUT_NEED_* в его Defs). Значения дописываются только в конец.</summary>
+	/// <summary>Vertex streams a rendercore variant needs (INPUT_NEED_* in its Defs). Values are only appended.</summary>
 	[Flags]
 	public enum ModRenderCoreVertexStreams
 	{

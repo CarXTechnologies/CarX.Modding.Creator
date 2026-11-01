@@ -5,17 +5,17 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Вычисляет StandardMaterialDefinitions.hlsl и StandardMaterialFunctions.hlsl для варианта, заходя только в include'ы внутри папки
-	/// Standard (Definitions/*, Functions/*). Библиотеки rendercore и других пакетов не читаются, но include библиотеки в активной ветке
-	/// Definitions записывается (libraries) и входит в отпечаток декодирования.
+	/// Evaluates StandardMaterialDefinitions.hlsl and StandardMaterialFunctions.hlsl for a variant, following only includes inside the
+	/// Standard folder (Definitions/*, Functions/*). rendercore and other package libraries are not read, but a library include in an active
+	/// Definitions branch is recorded (libraries) and is part of the decode hash.
 	///
-	/// Два прохода:
-	/// - Forward (Evaluate): определены keyword варианта, его additionalKeywords, объявленные в Forward, и SHADERPASS_FORWARD.
-	/// - проходы выреза альфа-теста (EvaluatePass, DepthOnly/ShadowCaster): программа прохода из Standard.shader вычисляется сама, с теми
-	///   keyword'ами материала, которые проход объявляет (обычно общий ALPHATEST), и прочими keyword'ами прохода в положении «выключено»;
-	///   Definitions/Functions подключаются там, где их включает программа. Именно эти проходы дают вырез: Forward рисует с ZTest Equal.
-	/// В Definitions/Functions keyword'ы прохода, которые решает не вариант (пресет качества, SSAO, DOTS …), и макросы платформы —
-	/// «неизвестно»: их ветки остаются в отпечатке целиком (HlslConditionEvaluator).
+	/// Two passes:
+	/// - Forward (Evaluate): the variant keyword, its additionalKeywords declared in Forward, and SHADERPASS_FORWARD are defined.
+	/// - alpha-test clip passes (EvaluatePass, DepthOnly/ShadowCaster): the pass program from Standard.shader is evaluated itself, with the
+	///   material keywords the pass declares (usually the shared ALPHATEST) and the other pass keywords "off";
+	///   Definitions/Functions are included where the program includes them. These passes produce the clip: Forward draws with ZTest Equal.
+	/// In Definitions/Functions, pass keywords not decided by the variant (quality preset, SSAO, DOTS …) and platform macros are
+	/// "unknown": their branches stay in the hash in full (HlslConditionEvaluator).
 	/// </summary>
 	public sealed class MaterialDefinitionsParser
 	{
@@ -25,10 +25,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public const string PackedMeshPrefix = "PACKED_MESH";
 		public const string StreamPrefix = "INPUT_NEED_";
 
-		/// <summary>Суффикс имени, определённого только в ветке с неизвестным условием (MATERIALFEATURE_X? — правила его не знают).</summary>
+		/// <summary>Suffix of a name defined only in a branch with an unknown condition (MATERIALFEATURE_X? — the rules do not know it).</summary>
 		public const string MaybeSuffix = "?";
 
-		/// <summary>Строка отпечатка декодирования для include'а библиотеки в Definitions.</summary>
+		/// <summary>Decode hash line for a library include in Definitions.</summary>
 		public const string LibraryLinePrefix = "definitions-include ";
 
 		private const string PragmaPrefix = "#pragma";
@@ -42,7 +42,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		private readonly string m_functionsPath;
 		private readonly string m_standardDirectory;
 
-		/// <summary>selectors — имена, которые выбирают вариант (члены enum MaterialVariant и ALPHATEST): их решает само вычисление.</summary>
+		/// <summary>selectors are the names that select the variant (MaterialVariant enum members and ALPHATEST): the evaluation decides them itself.</summary>
 		public MaterialDefinitionsParser(RenderCoreFileLocator locator, RenderCoreShaderInfo shader, string shaderPath, IEnumerable<string> selectors)
 		{
 			m_locator = locator;
@@ -58,10 +58,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 		public string FunctionsPath => m_functionsPath;
 
-		/// <summary>Папка, внутрь которой препроцессор заходит по #include.</summary>
+		/// <summary>Folder the preprocessor follows #include into.</summary>
 		public string StandardDirectory => m_standardDirectory;
 
-		/// <summary>Вариант так, как его компилирует Forward.</summary>
+		/// <summary>The variant as Forward compiles it.</summary>
 		public RenderCoreVariantDefinitions Evaluate(string variant, IReadOnlyList<string> additionalKeywords)
 		{
 			m_shader.TryGetPass(RenderCoreLock.ForwardPass, out RenderCoreShaderPass forward);
@@ -94,9 +94,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Конфигурация прохода выреза для варианта: keyword'ы материала (keyword варианта и additionalKeywords), которые проход объявляет;
-		/// вычисляется программа прохода. Отпечаток программы — её активные строки без #pragma, где ветки на keyword'ах прохода и платформе
-		/// оставлены целиком: так видна правка программы в любой конфигурации, а правка чужой (например, car) ветки — нет.
+		/// Clip pass config for a variant: material keywords (variant keyword and additionalKeywords) the pass declares; the pass program
+		/// is evaluated. The program hash is its active lines without #pragma, with branches on pass keywords and platform kept in full:
+		/// this shows a program edit in any config, but not an edit of someone else's (e.g. car) branch.
 		/// </summary>
 		public RenderCorePassDefinitions EvaluatePass(RenderCoreShaderPass pass, string variant, IReadOnlyList<string> additionalKeywords)
 		{
@@ -111,8 +111,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				evaluator.Define(keyword, value: "");
 			}
 
-			// Программа прохода — в конфигурации по умолчанию (keyword'ы прохода выключены, платформа без SHADER_API_*); материалы — с
-			// неизвестными keyword'ами времени выполнения.
+			// The pass program uses the default config (pass keywords off, platform without SHADER_API_*); materials use
+			// unknown runtime keywords.
 			evaluator.SetUndecidable(runtimeKeywords: null, platform: false);
 			var collector = new Collector();
 			var inputs = new HashSet<string>(enabled, StringComparer.Ordinal);
@@ -124,14 +124,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (!collector.HasDefines)
 			{
-				// Программа не включает Definitions: define'ы — только её собственные.
+				// The program does not include Definitions: only its own defines.
 				collector.TakeDefines(evaluator, inputs);
 			}
 
 			return new RenderCorePassDefinitions(pass.name, key, collector.Build(key), HashProgram(pass, enabled, runtime));
 		}
 
-		/// <summary>keyword'ы материала, которые объявляет проход: keyword варианта и additionalKeywords; ordinal, без повторов.</summary>
+		/// <summary>Material keywords the pass declares: variant keyword and additionalKeywords; ordinal, no duplicates.</summary>
 		public static List<string> GetPassKeywords(string variant, IEnumerable<string> additionalKeywords, Func<string, bool> declares)
 		{
 			var enabled = new SortedSet<string>(StringComparer.Ordinal);
@@ -153,9 +153,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Обработчик #include: файл внутри standardDirectory проходится тем же препроцессором (topLevel получает путь, если не null; files —
-		/// все пройденные пути; output — активные строки). Include другого пакета или библиотеки rendercore внутрь не читается; если передан
-		/// libraries, его имя записывается туда (в ветке с неизвестным условием — с MaybeSuffix). Ненайденный относительный include — RCM001.
+		/// #include handler: a file inside standardDirectory goes through the same preprocessor (topLevel receives the path if not null; files —
+		/// all visited paths; output — active lines). An include of another package or a rendercore library is not read; if libraries
+		/// is given, its name is recorded there (with MaybeSuffix in a branch with an unknown condition). An unresolved relative include is RCM001.
 		/// </summary>
 		public static void FollowInclude(RenderCoreFileLocator locator, string standardDirectory, HlslConditionEvaluator evaluator, string includingPath,
 			string include, int line, int depth, List<string> topLevel, List<string> files, List<string> libraries, List<string> output)
@@ -170,7 +170,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 					throw new RenderCoreMirrorException(RenderCoreFindingCodes.Locate, includingPath, line, $"#include \"{include}\" not found");
 				}
 
-				// Файл другого пакета или ненайденная библиотека: имя пути как написано.
+				// A file of another package or an unresolved library: path as written.
 				AddLibrary(libraries, normalized.StartsWith(RenderCoreFileLocator.PackagePrefix, StringComparison.Ordinal)
 					? RenderCoreFileLocator.GetFileName(normalized)
 					: normalized, evaluator);
@@ -179,7 +179,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			if (!RenderCoreFileLocator.IsUnder(resolved, standardDirectory))
 			{
-				// Библиотека этого пакета: по имени файла, чтобы перенос файла не считался изменением.
+				// A library of this package: by file name, so that moving the file is not a change.
 				AddLibrary(libraries, RenderCoreFileLocator.GetFileName(resolved), evaluator);
 				return;
 			}
@@ -208,7 +208,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			string resolved = m_locator.ResolveInclude(m_shaderPath, include, line);
 			bool definitions = resolved == m_definitionsPath;
 
-			// Прочие include'ы программы (вход вершин, библиотека прохода) зеркало не читает: их правки видны в отпечатке программы.
+			// The mirror does not read other program includes (vertex input, pass library): their edits show in the program hash.
 			if (!definitions && resolved != m_functionsPath)
 			{
 				return;
@@ -220,7 +220,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			{
 				if (definitions)
 				{
-					// Как у Forward: define'ы — состояние сразу после Definitions (вместе с define'ами программы перед ними).
+					// As for Forward: defines are the state right after Definitions (together with program defines before them).
 					ProcessDefinitions(evaluator, collector);
 					collector.TakeDefines(evaluator, inputs);
 				}
@@ -263,11 +263,11 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			foreach (RenderCoreShaderProgram program in pass.programs)
 			{
-				// HLSLINCLUDE общий для всех проходов: его define'ы видны в вычислении, а в отпечаток идёт только программа прохода.
+				// HLSLINCLUDE is shared by all passes: its defines are visible to the evaluation, but only the pass program goes into the hash.
 				evaluator.Process(program.text, m_shaderPath, include: null, program.isInclude ? null : lines);
 			}
 
-			// Объявления keyword'ов сравниваются записями pass; список car-keyword'ов прохода меняется часто и вырез не трогает.
+			// Keyword declarations are compared via pass records; the pass car-keyword list changes often and does not affect the clip.
 			lines.RemoveAll(line => line.StartsWith(PragmaPrefix, StringComparison.Ordinal));
 			return RenderCoreText.Hash(lines);
 		}
@@ -287,7 +287,6 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			}
 		}
 
-		/// <summary>Что собирается по ходу вычисления одной конфигурации.</summary>
 		private sealed class Collector
 		{
 			public readonly List<string> defsPaths = new List<string>();
@@ -303,7 +302,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 			public bool HasDefines { get; private set; }
 
-			/// <summary>Define'ы после Definitions (inputs — входные keyword'ы и define прохода — не пишутся).</summary>
+			/// <summary>Defines after Definitions (inputs — input keywords and the pass define — are not written).</summary>
 			public void TakeDefines(HlslConditionEvaluator evaluator, ICollection<string> inputs)
 			{
 				m_features.Clear();

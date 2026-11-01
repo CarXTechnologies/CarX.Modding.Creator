@@ -3,9 +3,9 @@ using System;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Как проход шейдера объявляет keyword. kind — имя директивы #pragma как в шейдере (multi_compile, multi_compile_local,
-	/// multi_compile_local_fragment, shader_feature_local, dynamic_branch, …), AbsentKind, если не объявлен, или с префиксом
-	/// ConditionalPrefix, если #pragma стоит внутри #if (объявление зависит от платформы — проверка по префиксу multi_compile не пройдёт).
+	/// How a shader pass declares a keyword. kind is the #pragma directive name as in the shader (multi_compile, multi_compile_local,
+	/// multi_compile_local_fragment, shader_feature_local, dynamic_branch, …), AbsentKind if not declared, or prefixed with
+	/// ConditionalPrefix if the #pragma is inside #if (declaration depends on the platform, so the multi_compile prefix check fails).
 	/// </summary>
 	public sealed class RenderCoreLockPassKeyword
 	{
@@ -23,10 +23,10 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			this.kind = kind;
 		}
 
-		/// <summary>Безусловный multi_compile* (любой суффикс _local/_vertex/_fragment): вариант точно скомпилирован.</summary>
+		/// <summary>Unconditional multi_compile* (any _local/_vertex/_fragment suffix): the variant is definitely compiled.</summary>
 		public bool IsMultiCompile => kind.StartsWith("multi_compile", StringComparison.Ordinal);
 
-		/// <summary>Безусловный shader_feature*: вариант может быть вырезан, если ни один материал сборки его не использует.</summary>
+		/// <summary>Unconditional shader_feature*: the variant may be stripped if no material in the build uses it.</summary>
 		public bool IsShaderFeature => kind.StartsWith("shader_feature", StringComparison.Ordinal);
 
 		public bool IsAbsent => kind == AbsentKind;

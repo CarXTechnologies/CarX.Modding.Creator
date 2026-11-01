@@ -28,7 +28,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		public static byte[] Encode(Texture2D source, bool linear, BinaryTextureEncoding encoding)
 		{
-			// Пересоздаём как RGBA32: LoadImage мог перевести исходник в RGB24.
+			// Recreate as RGBA32: LoadImage may have converted the source to RGB24.
 			BinaryTexture.PayloadSize(source.width, source.height, mips: 1, encoding);
 			var texture = new Texture2D(source.width, source.height, TextureFormat.RGBA32, mipChain: true, linear);
 
@@ -37,7 +37,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 				texture.SetPixels32(source.GetPixels32());
 				texture.Apply(updateMipmaps: true, makeNoLongerReadable: false);
 
-				// Без масштабирования и паддинга: мелкие и не кратные блоку текстуры сохраняют точный размер.
+				// No scaling or padding: small and non-block-multiple textures keep their exact size.
 				if (encoding == BinaryTextureEncoding.Bc7 && texture.width % 4 == 0 && texture.height % 4 == 0)
 				{
 					EditorUtility.CompressTexture(texture, TextureFormat.BC7, TextureCompressionQuality.Best);

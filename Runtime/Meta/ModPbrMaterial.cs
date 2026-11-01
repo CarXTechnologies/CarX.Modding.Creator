@@ -11,7 +11,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public int vertexBlend;
 		public bool doubleSided;
 		public float cutoff;
-		// Нет в старых документах — Opaque. Alpha Remapping слоёв запечён в альфу diffuse (или в color.a слоя без карты).
+		// Opaque when absent in old documents. Layer Alpha Remapping is baked into the diffuse alpha (or the layer color.a without a map).
 		public ModPbrSurfaceType surface;
 	}
 	[Serializable] public sealed class ModPbrLayer

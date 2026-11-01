@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Свойство варианта в сгенерированной таблице: то, что станет ModRenderCoreVariantProperty.</summary>
+	/// <summary>Variant property in the generated table: becomes ModRenderCoreVariantProperty.</summary>
 	public sealed class MirrorProperty
 	{
 		public readonly string name;
@@ -12,13 +12,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public readonly MirrorSource source;
 		public readonly int layer;
 
-		/// <summary>Для текстур всегда (1, 1, 1, 1), как у помощников Texture/Packed.</summary>
+		/// <summary>Always (1, 1, 1, 1) for textures, like the Texture/Packed helpers.</summary>
 		public readonly MirrorVector defaultValue;
 
-		/// <summary>Подписи компонент Vector или null.</summary>
+		/// <summary>Vector component labels or null.</summary>
 		public readonly IReadOnlyList<string> vectorLabels;
 
-		/// <summary>Раскладка packed map (только source Surface) или null.</summary>
+		/// <summary>Packed map layout (Surface source only) or null.</summary>
 		public readonly IReadOnlyList<MirrorChannel> channels;
 
 		public MirrorProperty(string name, string label, string tooltip, MirrorPropertyType type, MirrorSource source, int layer, MirrorVector defaultValue,

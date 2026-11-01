@@ -3,8 +3,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 	public static class ModdingVersion
 	{
 		private const string Uploader = "3.0";
-		// Поднимается только при несовместимом изменении данных: старые клиенты отклоняют моды с незнакомой версией
-		// (IsSupportedFormat, ProviderCollection). Добавление поля в DTO совместимо и версию не меняет — его покрывает BinaryModData v2.
+		// Bump only on an incompatible data change: old clients reject mods with an unknown version (IsSupportedFormat,
+		// ProviderCollection). Adding a DTO field is compatible and does not change the version; BinaryModData v2 covers it.
 		private const string FormatVersion = "1.0";
 		private const string DefaultFormatVersion = "1.0";
 
@@ -14,8 +14,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public static string GetDefaultFullVersionFormat() => $"v{DefaultFormatVersion}";
 
 		/// <summary>
-		/// Поддерживает ли клиент версию формата данных мода. Пустая версия — данные без отметки версии,
-		/// они читаются как формат по умолчанию. Мета-документы несут <see cref="GetFullVersionFormat"/>, а не <see cref="GetFullVersion"/>.
+		/// Whether the client supports the mod data format version. An empty version means unversioned data, read as the
+		/// default format. Meta documents carry <see cref="GetFullVersionFormat"/>, not <see cref="GetFullVersion"/>.
 		/// </summary>
 		public static bool IsSupportedFormat(string version)
 		{

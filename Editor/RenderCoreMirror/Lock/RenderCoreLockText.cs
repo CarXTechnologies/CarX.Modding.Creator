@@ -7,17 +7,16 @@ using System.Text;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Текст RenderCoreLock.txt: UTF-8, LF, поля через TAB; в значениях экранируются \\ \t \n \r. Списки: элементы через '|' (тексты, области)
-	/// или ',' (keyword'ы, define'ы); разделитель внутри элемента — '\|' / '\,', пустой элемент — '\e'. Строки '#' — комментарии.
-	/// Записи идут по видам в порядке RecordKinds, внутри вида — по ключу (ordinal); свойства — в порядке asset.
-	/// Записи provenance не входят в сравнение и LockContentHash. Строк кода rendercore (decodeline/setupline) новый снимок не пишет —
-	/// только отпечатки; если они есть в старом снимке, при чтении сверяются с отпечатками.
+	/// RenderCoreLock.txt text: UTF-8, LF, TAB-separated fields; values escape \\ \t \n \r. Lists: items separated by '|' (texts, scopes)
+	/// or ',' (keywords, defines); separator inside an item — '\|' / '\,', empty item — '\e'. Lines starting with '#' are comments.
+	/// Records go by kind in RecordKinds order, within a kind by key (ordinal); properties in asset order.
+	/// Provenance records are excluded from comparison and LockContentHash. A new snapshot does not write rendercore code lines
+	/// (decodeline/setupline), only hashes; if an old snapshot has them, they are checked against the hashes on read.
 	/// </summary>
 	public static class RenderCoreLockText
 	{
 		public const string FileName = "RenderCoreLock.txt";
 
-		/// <summary>Порядок видов записей в файле.</summary>
 		public static IReadOnlyList<string> RecordKinds { get; } = new[]
 		{
 			"format", "provenance", "scope", "file", "enum", "rendertype", "variant", "prop", "shaderprop", "defines", "streams", "decode", "decodeline", "pass",
@@ -28,8 +27,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 		private static readonly string[] s_header =
 		{
-			"# Снимок rendercore для зеркала вариантов Standard-шейдера. Сгенерирован, руками не править.",
-			"# Обновить: ModSystem/Render Core/Update Lock From Project Render Core или Tools~/RenderCoreMirror (extract)."
+			"# rendercore snapshot for the Standard shader variant mirror. Generated, do not edit by hand.",
+			"# Update: ModSystem/Render Core/Update Lock From Project Render Core or Tools~/RenderCoreMirror (extract)."
 		};
 
 		public static string Write(RenderCoreLock lockData)
@@ -49,13 +48,13 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return builder.ToString();
 		}
 
-		/// <summary>LockContentHash: 12 hex SHA-256 по всем записям, кроме provenance.</summary>
+		/// <summary>LockContentHash: 12 hex of SHA-256 over all records except provenance.</summary>
 		public static string ContentHash(RenderCoreLock lockData)
 		{
 			return RenderCoreText.Hash(Lines(lockData, includeProvenance: false));
 		}
 
-		/// <summary>Строки записей в каноническом порядке (без заголовка).</summary>
+		/// <summary>Records in canonical order (without the header).</summary>
 		public static IEnumerable<string> Lines(RenderCoreLock lockData, bool includeProvenance)
 		{
 			yield return Record("format", lockData.format.ToString(CultureInfo.InvariantCulture));
@@ -125,8 +124,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 				yield return Record("decode", Escape(variant.name), Field("func", variant.func), Field("hash", variant.decodeHash));
 			}
 
-			// Строки декодирования и тела SetupMaterialVariant в текст не пишутся: SDK публичный, а это код rendercore.
-			// В снимке остаются только их отпечатки; сами строки есть у живого извлечения из пакета игры.
+			// Decode lines and the SetupMaterialVariant body are not written: the SDK is public and this is rendercore code.
+			// The snapshot keeps only their hashes; the lines themselves come from a live extraction of the game package.
 
 			foreach (RenderCoreLockPassKeyword passKeyword in lockData.passKeywords.OrderBy(entry => entry.pass, StringComparer.Ordinal)
 				.ThenBy(entry => entry.keyword, StringComparer.Ordinal))
@@ -233,7 +232,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return builder.ToString();
 		}
 
-		/// <summary>Разбор списка; separator '\0' — одно значение без разбиения. Пустая строка — пустой список.</summary>
+		/// <summary>separator '\0' means a single value without splitting. An empty string is an empty list.</summary>
 		public static List<string> SplitList(string value, char separator, string path, int line)
 		{
 			var items = new List<string>();
@@ -300,7 +299,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return items;
 		}
 
-		/// <summary>Поля уже закодированы (Escape, Field, JoinList).</summary>
+		/// <summary>Fields are already encoded (Escape, Field, JoinList).</summary>
 		private static string Record(string kind, params string[] fields)
 		{
 			var builder = new StringBuilder(kind);
@@ -323,7 +322,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return value.ToString(CultureInfo.InvariantCulture);
 		}
 
-		/// <summary>Собирает модель из записей; порядок записей в файле не важен.</summary>
+		/// <summary>Builds the model from records; record order in the file does not matter.</summary>
 		private sealed class Reader
 		{
 			private readonly string m_path;
@@ -507,14 +506,14 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 
 				foreach (KeyValuePair<string, IReadOnlyList<string>> entry in decodeLines)
 				{
-					// Пустые — снимок без строк кода (см. Write): сверять нечего.
+					// Empty for a snapshot without code lines (see Write): nothing to check.
 					if (entry.Value.Count != 0 && RenderCoreText.Hash(entry.Value) != entry.Key)
 					{
 						throw Error($"decodeline lines {entry.Key} do not match the hash: the lock was edited by hand");
 					}
 				}
 
-				// Старые снимки могли хранить строки кода; новые — только отпечатки (см. Write).
+				// Old snapshots could store code lines; new ones store only hashes (see Write).
 				List<string> setupLines = m_setupLines.Count == 0 ? new List<string>() : Sequential(m_setupLines, "setupline");
 
 				if (setupLines.Count != 0 && RenderCoreText.Hash(setupLines) != m_setupHash)

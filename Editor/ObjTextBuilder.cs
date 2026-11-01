@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Текстовый Wavefront OBJ для группы мешей с общим .mtl.</summary>
+	/// <summary>Text Wavefront OBJ for a group of meshes with a shared .mtl.</summary>
 	internal static class ObjTextBuilder
 	{
 		public static string Build(List<ExportMeshEntry> meshes, string groupName)

@@ -2,23 +2,23 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 {
-	/// <summary>Отчёт о ходе загрузки мода: этап, общая доля выполнения и байты текущего этапа.</summary>
+	/// <summary>Mod upload progress: stage, overall fraction and bytes of the current stage.</summary>
 	/// <remarks>
-	/// <see cref="Fraction"/> описывает всю операцию, а не текущий этап, и в пределах одной операции не убывает,
-	/// поэтому его можно сразу выводить в полосу прогресса. Единицу площадка сообщает только после успешного ответа.
-	/// Байты относятся к текущему этапу и равны нулю, когда площадка их не сообщает (Steam, mod.io без CARX PATCH 2).
+	/// <see cref="Fraction"/> covers the whole operation, not the current stage, and never decreases within one operation,
+	/// so it can go straight to a progress bar. The platform reports 1 only after a successful response.
+	/// Bytes refer to the current stage and are zero when the platform does not report them (Steam, mod.io without CARX PATCH 2).
 	/// </remarks>
 	public readonly struct ModUploadProgress
 	{
 		public ModUploadStage Stage { get; }
 
-		/// <summary>Общая доля выполнения всей операции, от 0 до 1.</summary>
+		/// <summary>Overall fraction of the whole operation, 0 to 1.</summary>
 		public float Fraction { get; }
 
-		/// <summary>Сколько байт текущего этапа обработано; 0, если неизвестно.</summary>
+		/// <summary>Bytes processed in the current stage; 0 if unknown.</summary>
 		public long DoneBytes { get; }
 
-		/// <summary>Сколько байт всего на текущем этапе; 0, если неизвестно.</summary>
+		/// <summary>Total bytes of the current stage; 0 if unknown.</summary>
 		public long TotalBytes { get; }
 
 		public ModUploadProgress(ModUploadStage stage, float fraction, long doneBytes, long totalBytes)
@@ -36,7 +36,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
 				: $"{Stage} {Fraction:P0}";
 		}
 
-		/// <summary>Приводит долю к 0..1; NaN считается нулём, чтобы полоса не получила мусор от площадки.</summary>
+		/// <summary>NaN is treated as zero so the bar does not get garbage from the platform.</summary>
 		private static float ClampFraction(float fraction)
 		{
 			if (!(fraction > 0f))

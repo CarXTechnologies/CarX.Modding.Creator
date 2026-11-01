@@ -10,13 +10,13 @@ using UnityEngine;
 namespace Plugins.CarX.Modding.Creator.Tests
 {
 	/// <summary>
-	/// Совместимость формата BinaryModData: замороженные эталонные документы версий 1 и 2 (байты в тесте),
-	/// плюс полные DTO версии 1, собранные копией прежнего кода записи (<see cref="LegacyBinaryModDataWriter"/>).
+	/// BinaryModData format compatibility: frozen reference documents of versions 1 and 2 (bytes in the test),
+	/// plus full version 1 DTOs written by a copy of the previous writer (<see cref="LegacyBinaryModDataWriter"/>).
 	/// </summary>
 	public class BinaryModDataCompatibilityTests
 	{
-		// Замороженные документы SchemaOld.EvolvingDto { count = 3, name = "road" }. Байты не менять:
-		// версия 1 — формат уже опубликованных .cxmod, версия 2 — текущий формат записи.
+		// Frozen SchemaOld.EvolvingDto { count = 3, name = "road" } documents. Do not change the bytes:
+		// version 1 is the format of already published .cxmod files, version 2 is the current write format.
 		private const string FrozenVersion1 = "Q1hCRAEAAAD+////CwAAAEV2b2x2aW5nRHRvAQIAAAD+////BQAAAGNvdW50AwAAAP7///8EAAAAbmFtZf7///8EAAAAcm9hZA==";
 		private const string FrozenVersion2 = "Q1hCRAIAAAAEAAAACwAAAEV2b2x2aW5nRHRvBQAAAGNvdW50BAAAAG5hbWUEAAAAcm9hZAAAAAABAgAAAAEAAAAEAAAAAwAAAAIAAAAEAAAAAwAAAA==";
 
@@ -52,7 +52,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		{
 			byte[] bytes = BinaryModData.Write(new SchemaOld.EvolvingDto { name = "road", count = 3 });
 
-			// Изменился формат записи — поднять BinaryModData.CurrentVersion и добавить новый замороженный документ.
+			// The write format changed: bump BinaryModData.CurrentVersion and add a new frozen document.
 			CollectionAssert.AreEqual(Convert.FromBase64String(FrozenVersion2), bytes);
 		}
 
@@ -182,8 +182,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		{
 			byte[] bytes = BinaryModData.Write(new SchemaOld.EvolvingDto { name = "x", count = 1 });
 
-			// Последнее поле (name) — ссылка на строку (4 байта); длина значения записана перед ним.
-			// Длина меньше фактической проходит проверку счётчика и ловится только сверкой прочитанного размера поля.
+			// The last field (name) is a string reference (4 bytes); the value length is written before it.
+			// A length shorter than the actual one passes the count check and is caught only by comparing the read field size.
 			int lengthOffset = bytes.Length - 8;
 			byte[] wrongLength = BitConverter.GetBytes(2);
 			Array.Copy(wrongLength, 0, bytes, lengthOffset, wrongLength.Length);
@@ -195,8 +195,8 @@ namespace Plugins.CarX.Modding.Creator.Tests
 		[Test]
 		public void EverySchemaClassHasParameterlessConstructor()
 		{
-			// Без конструктора без параметров BinaryModData создаёт объект в обход инициализаторов,
-			// и поле, добавленное в DTO позже, у старых модов окажется null.
+			// Without a parameterless constructor BinaryModData creates the object bypassing initializers,
+			// and a field added to the DTO later would be null for old mods.
 			Assembly runtime = typeof(ModMeta).Assembly;
 			IEnumerable<Type> roots = runtime.GetTypes()
 				.Where(type => type.IsClass && !type.IsAbstract && typeof(IModResources).IsAssignableFrom(type))

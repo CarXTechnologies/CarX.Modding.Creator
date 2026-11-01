@@ -3,9 +3,9 @@ using System.Collections.Generic;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// materialVariantData из MaterialEditorSettings.asset (ScriptableSingleton rendercore). Файл читается как текст: экземпляр
-	/// MaterialEditorSettings.instance после git pull может быть устаревшим. Неизвестные поля пропускаются; поддержаны оба вида подписей:
-	/// старый (text/tooltip прямо в propertyData) и новый (label { text, tooltip }, vectorLabels).
+	/// materialVariantData from MaterialEditorSettings.asset (rendercore ScriptableSingleton). The file is read as text: the
+	/// MaterialEditorSettings.instance may be stale after git pull. Unknown fields are skipped; both label formats are supported:
+	/// old (text/tooltip directly in propertyData) and new (label { text, tooltip }, vectorLabels).
 	/// </summary>
 	public static class MaterialEditorSettingsParser
 	{

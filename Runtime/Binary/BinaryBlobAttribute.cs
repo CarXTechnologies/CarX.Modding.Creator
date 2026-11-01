@@ -2,9 +2,7 @@ using System;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>
-	/// Строковое поле с base64-данными для JSON; в бинарном документе вместо него пишутся сырые байты поля <see cref="bytesField"/>.
-	/// </summary>
+	/// <summary>Base64 string field for JSON; the binary document stores the raw bytes of <see cref="bytesField"/> instead.</summary>
 	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class BinaryBlobAttribute : Attribute
 	{

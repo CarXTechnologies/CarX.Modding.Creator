@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Свойство Standard-шейдера rendercore, которое материал мода может задать в своём варианте.</summary>
+	/// <summary>rendercore Standard shader property a mod material can set in its variant.</summary>
 	public sealed class ModRenderCoreVariantProperty
 	{
 		private const string NormalMapPrefix = "u_sNormalMap";
@@ -14,16 +14,16 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		public readonly ModRenderCorePropertyType type;
 		public readonly ModRenderCoreSource source;
 
-		/// <summary>Слой HDRP Layered Lit (или слой MAT_LAYERS4), из которого Export from material берёт текстуры.</summary>
+		/// <summary>HDRP Layered Lit layer (or MAT_LAYERS4 layer) Export from material takes textures from.</summary>
 		public readonly int layer;
 
-		/// <summary>Значение по умолчанию для Color/Vector/Float (Float — в x).</summary>
+		/// <summary>Default value for Color/Vector/Float (Float in x).</summary>
 		public readonly Vector4 defaultValue;
 
-		/// <summary>Подписи компонент Vector (x, y, z, w) или null.</summary>
+		/// <summary>Vector component labels (x, y, z, w) or null.</summary>
 		public readonly IReadOnlyList<string> vectorLabels;
 
-		/// <summary>Раскладка каналов R, G, B, A packed map или null для других свойств.</summary>
+		/// <summary>Packed map R, G, B, A channel layout, or null for other properties.</summary>
 		public readonly IReadOnlyList<ModRenderCoreChannel> channels;
 
 		public ModRenderCoreVariantProperty(string name, string label, string tooltip, ModRenderCorePropertyType type, ModRenderCoreSource source, int layer,
@@ -40,7 +40,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			this.channels = channels;
 		}
 
-		/// <summary>Карта нормалей: при экспорте распаковывается в RGB так же, как map_Bump.</summary>
+		/// <summary>Normal map: unpacked to RGB on export the same way as map_Bump.</summary>
 		public bool IsNormalMap => type == ModRenderCorePropertyType.Texture && name.StartsWith(NormalMapPrefix);
 	}
 }

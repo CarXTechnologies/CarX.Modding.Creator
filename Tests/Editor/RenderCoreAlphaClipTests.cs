@@ -5,17 +5,17 @@ using UnityEngine.Rendering;
 
 namespace Plugins.CarX.Modding.Creator.Tests
 {
-	/// <summary>Перенос порога Alpha Clipping HDRP в полосу дизеринга альфа-теста rendercore (RenderCoreAlphaClip) и его копия в ConvertingEx.hlsl.</summary>
+	/// <summary>Mapping of the HDRP Alpha Clipping threshold to the rendercore alpha test dither band (RenderCoreAlphaClip) and its copy in ConvertingEx.hlsl.</summary>
 	public class RenderCoreAlphaClipTests
 	{
 		private const float Tolerance = 1e-4f;
 		private const float BandEnd = RenderCoreAlphaClip.BandStart + RenderCoreAlphaClip.BandWidth;
 
-		/// <summary>Проходы Hidden/ConvertingEx: альфа (прозрачный map_d) и альфа-тест (map_d с порогом).</summary>
+		/// <summary>Hidden/ConvertingEx passes: alpha (transparent map_d) and alpha test (map_d with a threshold).</summary>
 		private const int AlphaPass = 1;
 		private const int AlphaTestPass = 4;
 
-		/// <summary>Шаг байта 8-битной текстуры плюс запас на точность GPU.</summary>
+		/// <summary>One byte step of an 8-bit texture plus a margin for GPU precision.</summary>
 		private const float ByteTolerance = 1.01f;
 
 		[TestCase(0.5f)]
@@ -64,7 +64,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			}
 		}
 
-		/// <summary>Листва ели TestMap: Alpha Remapping min 0.3 и порог 0.6 — прозрачное в HDRP отсекается, непрозрачное остаётся целиком.</summary>
+		/// <summary>TestMap spruce foliage: Alpha Remapping min 0.3 and threshold 0.6; what HDRP treats as transparent is clipped, opaque stays whole.</summary>
 		[Test]
 		public void RemappedTransparentTexelsAreClipped()
 		{
@@ -85,7 +85,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.AreEqual(RenderCoreAlphaClip.DefaultCutoff, RenderCoreAlphaClip.GetCutoff(material: null));
 		}
 
-		/// <summary>Порог у края: пустые texel'и HDRP отсекаются полностью, непрозрачные остаются полностью; порог 0 и 1 — жёсткий шаг.</summary>
+		/// <summary>Threshold at the edge: empty HDRP texels are fully clipped, opaque ones fully kept; thresholds 0 and 1 are a hard step.</summary>
 		[TestCase(0f)]
 		[TestCase(0.01f)]
 		[TestCase(0.03f)]
@@ -102,7 +102,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			Assert.AreEqual(1f, RenderCoreAlphaClip.Coverage(RenderCoreAlphaClip.ToRenderCore(hdrpAlpha: 1, cutoff)), Tolerance);
 		}
 
-		/// <summary>Проход альфа-теста ConvertingEx (map_d запасного MTL-материала) повторяет ToRenderCore, проход альфы порог не трогает.</summary>
+		/// <summary>The ConvertingEx alpha test pass (map_d of the fallback MTL material) matches ToRenderCore; the alpha pass ignores the threshold.</summary>
 		[Test]
 		public void ConvertingShaderPassesMatchMapping()
 		{
@@ -126,7 +126,7 @@ namespace Plugins.CarX.Modding.Creator.Tests
 			}
 		}
 
-		/// <summary>Проход ConvertingEx над текстурой 256×1 с альфой 0..255.</summary>
+		/// <summary>ConvertingEx pass over a 256x1 texture with alpha 0..255.</summary>
 		private static Color32[] BlitAlphaRamp(int pass, Vector4 alphaRemap)
 		{
 			var source = new Texture2D(256, 1, TextureFormat.RGBA32, mipChain: false, linear: true);

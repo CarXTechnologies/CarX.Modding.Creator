@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-// DTO для тестов должны лежать в пространстве имён формата: BinaryModData читает только его типы.
+// Test DTOs must live in the format namespace: BinaryModData reads only its types.
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Та же DTO после обновления игры: добавлены поля с инициализаторами.</summary>
+	/// <summary>The same DTO after a game update: fields with initializers added.</summary>
 	internal static class SchemaNew
 	{
 		[Serializable]

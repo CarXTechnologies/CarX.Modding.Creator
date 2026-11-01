@@ -8,7 +8,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	public class TexturePngProvider : Provider<Texture2D>
 	{
-		/// <summary>Максимальная сторона PNG/JPEG из мода: больше — отклоняется до декодирования. Общая с .cxtex.</summary>
+		/// <summary>Maximum side of a mod PNG/JPEG; larger images are rejected before decoding. Shared with .cxtex.</summary>
 		public const int MaxImageDimension = BinaryTexture.MaxDimension;
 
 		public override bool IsThread() => false;
@@ -23,8 +23,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		}
 
 		/// <summary>
-		/// Загрузка текстуры сразу в нужном цветовом пространстве и без CPU-копии
-		/// (раньше sRGB-текстура для linear-слота пересоздавалась через GetPixels32 и оставалась читаемой).
+		/// Loads the texture directly in the required color space and without a CPU copy
+		/// (previously an sRGB texture for a linear slot was recreated via GetPixels32 and stayed readable).
 		/// </summary>
 		public Task<Texture2D> LoadTextureAsync(string catalog, bool linear)
 		{
@@ -32,8 +32,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		}
 
 		/// <summary>
-		/// То же с отменой: проверяется до чтения каждого формата и перед декодированием на главном потоке.
-		/// Уже начатое чтение из архива доходит до конца — <see cref="IModFileProvider.LoadAsync"/> токен не принимает.
+		/// Same with cancellation: checked before reading each format and before decoding on the main thread.
+		/// A read from the archive that already started runs to completion because <see cref="IModFileProvider.LoadAsync"/> takes no token.
 		/// </summary>
 		public async Task<Texture2D> LoadTextureAsync(string catalog, bool linear, CancellationToken cancellationToken)
 		{
@@ -59,8 +59,8 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			if (BinaryTexture.IsBinary(bytes))
 			{
-				// Цветовое пространство бинарной текстуры задаёт SDK при сборке. Сторону больше MaxImageDimension Load отклоняет
-				// по заголовку (BinaryTexture.Inspect) до создания текстуры — как PNG/JPEG ниже.
+				// The SDK sets the color space of a binary texture at build time. Load rejects sides above MaxImageDimension
+				// by header (BinaryTexture.Inspect) before creating the texture, same as PNG/JPEG below.
 				return BinaryTexture.Load(bytes);
 			}
 

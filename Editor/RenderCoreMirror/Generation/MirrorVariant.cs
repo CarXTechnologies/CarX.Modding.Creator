@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Вариант в сгенерированной таблице: то, что станет ModRenderCoreVariant в ModRenderCoreVariantTable.g.cs.</summary>
+	/// <summary>Variant in the generated table: becomes ModRenderCoreVariant in ModRenderCoreVariantTable.g.cs.</summary>
 	public sealed class MirrorVariant
 	{
 		public readonly string name;
@@ -13,7 +13,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		public readonly MirrorVertexColors vertexColors;
 		public readonly MirrorVertexStreams requiredStreams;
 
-		/// <summary>null — вариант доступен.</summary>
+		/// <summary>null — the variant is available.</summary>
 		public readonly string unavailableReason;
 
 		public readonly int revision;

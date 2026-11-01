@@ -1,9 +1,6 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>
-	/// CRC32 (полином 0xEDB88320) для контроля целостности блоков геометрии и ресурсов архива.
-	/// Slicing-by-8: по 8 байт за шаг, результат совпадает с побайтовым вариантом.
-	/// </summary>
+	/// <summary>CRC32 (polynomial 0xEDB88320), slicing-by-8; the result matches the byte-wise variant.</summary>
 	internal static class BinaryCrc32
 	{
 		private const int TableCount = 8;
@@ -59,7 +56,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 				tables[i] = crc;
 			}
 
-			// Таблица k: CRC байта, за которым следуют k нулевых байт.
+			// Table k: CRC of a byte followed by k zero bytes.
 			for (int table = 1; table < TableCount; table++)
 			{
 				for (int i = 0; i < TableSize; i++)

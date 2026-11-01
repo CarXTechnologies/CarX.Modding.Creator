@@ -5,29 +5,29 @@ using System.Linq;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Аннотации как вход генератора. Закоммиченный набор — RenderCoreMirrorAnnotations.Create(); тесты собирают свои наборы (фикстуры,
-	/// сценарии «правка каналов без поднятия ревизии» и т.п.) через конструктор и With*.
+	/// Annotations as generator input. The committed set is RenderCoreMirrorAnnotations.Create(); tests build their own sets (fixtures,
+	/// "channels changed without a revision bump" scenarios, etc.) via the constructor and With*.
 	/// </summary>
 	public sealed class MirrorAnnotationSet
 	{
 		public readonly RenderCoreScope scope;
 
-		/// <summary>Потоки, которые несут меши модов; вариант, которому нужно больше, обязан быть недоступным (с причиной).</summary>
+		/// <summary>Streams carried by mod meshes; a variant that needs more must be unavailable (with a reason).</summary>
 		public readonly MirrorVertexStreams supportedStreams;
 
-		/// <summary>Отпечаток тела EditorUtils.SetupMaterialVariant, с которым сверён MaterialMappingPBR.ApplyRenderCoreVariant клиента.</summary>
+		/// <summary>Fingerprint of the EditorUtils.SetupMaterialVariant body the client's MaterialMappingPBR.ApplyRenderCoreVariant was checked against.</summary>
 		public readonly string reviewedSetupHash;
 
-		/// <summary>Предлагаемые варианты в порядке таблицы.</summary>
+		/// <summary>Offered variants in table order.</summary>
 		public readonly IReadOnlyList<MirrorVariantAnnotation> variants;
 
-		/// <summary>Замороженные контракты (вариант, ревизия); только дописываются.</summary>
+		/// <summary>Frozen (variant, revision) contracts; append only.</summary>
 		public readonly IReadOnlyList<MirrorBakedContract> contracts;
 
-		/// <summary>Подсказки Export from material; ключ (RenderType, нормаль, эмиссия, растительность) уникален (RCM080).</summary>
+		/// <summary>Export from material suggestions; the key (RenderType, normal, emission, foliage) is unique (RCM080).</summary>
 		public readonly IReadOnlyList<MirrorSuggestion> suggestions;
 
-		/// <summary>Проверенные конфигурации проходов выреза альфа-теста (DepthOnly/ShadowCaster).</summary>
+		/// <summary>Reviewed alpha-test cutout pass configs (DepthOnly/ShadowCaster).</summary>
 		public readonly IReadOnlyList<MirrorPassReview> passReviews;
 
 		public MirrorAnnotationSet(RenderCoreScope scope, MirrorVertexStreams supportedStreams, string reviewedSetupHash,
@@ -43,7 +43,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			this.passReviews = passReviews ?? Array.Empty<MirrorPassReview>();
 		}
 
-		/// <summary>Имена предлагаемых вариантов: «значимые» для сравнения снимков (RenderCoreLockDiff.Compare).</summary>
+		/// <summary>Offered variant names: the "significant" ones for snapshot comparison (RenderCoreLockDiff.Compare).</summary>
 		public HashSet<string> GetVariantNames()
 		{
 			return new HashSet<string>(variants.Select(variant => variant.name), StringComparer.Ordinal);
@@ -79,7 +79,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return false;
 		}
 
-		/// <summary>Набор, где аннотация с тем же именем заменена (или дописана в конец, если её не было).</summary>
+		/// <summary>A set where the annotation with the same name is replaced (or appended if it was missing).</summary>
 		public MirrorAnnotationSet WithVariant(MirrorVariantAnnotation variant)
 		{
 			var result = new List<MirrorVariantAnnotation>(variants);

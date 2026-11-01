@@ -1,18 +1,18 @@
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Уровень находки зеркала. Порядок значимый: больше — серьёзнее.</summary>
+	/// <summary>Order matters: higher is more severe.</summary>
 	public enum RenderCoreFindingTier
 	{
-		/// <summary>Текст, car-only и прочее, что не влияет на запечённые моды: проверки не падают.</summary>
+		/// <summary>Text, car-only and anything else that does not affect baked mods: checks do not fail.</summary>
 		Info = 0,
 
-		/// <summary>Механическое изменение (id, очередь, keyword'ы, свойства): лечится обновлением снимка и перегенерацией.</summary>
+		/// <summary>Mechanical change (id, queue, keywords, properties): fixed by updating the snapshot and regenerating.</summary>
 		Stale = 1,
 
-		/// <summary>Меняет смысл запечённого контента (раскладка, декодирование, цветовое пространство, setup): нужен человек.</summary>
+		/// <summary>Changes the meaning of baked content (layout, decoding, color space, setup): needs a human.</summary>
 		Breaking = 2,
 
-		/// <summary>Не удалось найти или разобрать вход.</summary>
+		/// <summary>An input could not be found or parsed.</summary>
 		Error = 3
 	}
 }

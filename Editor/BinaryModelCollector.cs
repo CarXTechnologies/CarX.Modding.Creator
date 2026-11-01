@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Editor
 {
-	/// <summary>Сборка бинарной модели (<see cref="BinaryModModel"/>) для группы мешей с общим набором материалов.</summary>
+	/// <summary>Builds a binary model (<see cref="BinaryModModel"/>) for a group of meshes with a shared material set.</summary>
 	internal static class BinaryModelCollector
 	{
 		public static BinaryModModel Collect(string group, List<ExportMeshEntry> meshes)

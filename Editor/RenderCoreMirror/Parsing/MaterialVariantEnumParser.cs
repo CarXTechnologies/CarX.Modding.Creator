@@ -6,10 +6,10 @@ using System.Text.RegularExpressions;
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
-	/// Члены enum из MaterialVariantData.cs в порядке объявления: MaterialVariant (варианты) и RenderType (тег RenderType материала
-	/// SetupMaterialVariant пишет именем члена). Значение — целый литерал (десятичный или 0x) либо неявное (предыдущее + 1); выражения вроде
-	/// A | B не поддержаны — RCM002. Тело читается сканером: запятые и скобки внутри атрибутов ([InspectorName("A, B")], [Obsolete("x", true)])
-	/// и строковых литералов члены не режут и тело не закрывают.
+	/// Enum members from MaterialVariantData.cs in declaration order: MaterialVariant (variants) and RenderType (SetupMaterialVariant writes
+	/// the material RenderType tag by member name). The value is an integer literal (decimal or 0x) or implicit (previous + 1); expressions like
+	/// A | B are not supported (RCM002). The body is read by a scanner: commas and brackets inside attributes ([InspectorName("A, B")],
+	/// [Obsolete("x", true)]) and string literals neither split members nor close the body.
 	/// </summary>
 	public static class MaterialVariantEnumParser
 	{
@@ -82,8 +82,8 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 		}
 
 		/// <summary>
-		/// Члены тела enum (строка первого непробельного символа → текст): ',' режет только вне строк, символьных литералов и скобок [] / ();
-		/// тело заканчивается на '}' вне них.
+		/// Enum body members (line of the first non-space character → text): ',' splits only outside strings, char literals and [] / () brackets;
+		/// the body ends at '}' outside them.
 		/// </summary>
 		private static List<KeyValuePair<int, string>> SplitMembers(string code, int open, string path, string enumName)
 		{
@@ -174,7 +174,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			return parsed;
 		}
 
-		/// <summary>[InspectorName("…")], [Obsolete("…", true)] и подобные атрибуты перед членом: ']' внутри строк и вложенные [] не обрывают атрибут.</summary>
+		/// <summary>[InspectorName("…")], [Obsolete("…", true)] and similar attributes before a member: ']' inside strings and nested [] do not end the attribute.</summary>
 		private static string StripAttributes(string member, string path, int line)
 		{
 			string trimmed = member.TrimStart();

@@ -2,23 +2,23 @@ using System.IO;
 
 namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 {
-	/// <summary>Где лежат файлы зеркала внутри CarX.Modding.Creator и как называется пакет rendercore; одно место для меню, проверки сборки и CLI.</summary>
+	/// <summary>Mirror file locations inside CarX.Modding.Creator and the rendercore package name; one place for the menu, build check and CLI.</summary>
 	public static class RenderCoreMirrorPaths
 	{
 		public const string RenderCorePackageName = "com.carxtech.rendercore";
 
-		/// <summary>Сборка ядра зеркала: снимок лежит рядом с её asmdef.</summary>
+		/// <summary>Mirror core assembly: the snapshot lies next to its asmdef.</summary>
 		public const string MirrorAssemblyName = "CarX.Modding.Creator.RenderCoreMirror";
 
-		/// <summary>GUID закоммиченного .meta таблицы ModRenderCoreVariantTable.g.cs (меню находит файл по нему, где бы ни лежал SDK).</summary>
+		/// <summary>GUID of the committed ModRenderCoreVariantTable.g.cs .meta (the menu finds the file by it wherever the SDK lives).</summary>
 		public const string GeneratedTableGuid = "ddcee119b26f4c5a8e15e4394d91c76d";
 
-		/// <summary>Пути от корня CarX.Modding.Creator (для CLI --sdk).</summary>
+		/// <summary>Paths from the CarX.Modding.Creator root (for CLI --sdk).</summary>
 		public const string LockRelativePath = "Editor/RenderCoreMirror/RenderCoreLock.txt";
 
 		public const string GeneratedTableRelativePath = "Runtime/RenderCore/ModRenderCoreVariantTable.g.cs";
 
-		/// <summary>"1" — проверка сборки RenderCoreMirrorBuildGuard пропускается (аварийный выход).</summary>
+		/// <summary>"1" skips the RenderCoreMirrorBuildGuard build check (emergency exit).</summary>
 		public const string SkipCheckVariable = "CARX_MODDING_SKIP_RENDERCORE_MIRROR_CHECK";
 
 		public static string GetLockPath(string sdkRoot)

@@ -4,25 +4,25 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Исходный материал рендерера и вариант rendercore со свойствами, которым он заменяется в игре.</summary>
+	/// <summary>Source renderer material and the rendercore variant with properties that replaces it in the game.</summary>
 	[Serializable]
 	public sealed class RenderCoreMaterialOverride
 	{
 		public Material source;
 
-		/// <summary>Имя варианта из <see cref="ModRenderCoreVariants"/>.</summary>
+		/// <summary>Variant name from <see cref="ModRenderCoreVariants"/>.</summary>
 		public string variant;
 
 		/// <summary>
-		/// Ревизия варианта, для которой Export from material запёк значения (раскладку packed map и прочий контракт). 0 — не записана
-		/// (маркеры до появления поля) и считается ревизией 1. Экспорт пишет в документ её, а не текущую ревизию таблицы: после повышения
-		/// ревизии клиент берёт запасной материал, пока автор не повторит Export from material, и никогда не читает старую раскладку как новую.
+		/// Variant revision Export from material baked the values for (packed map layout and the rest of the contract). 0 — not recorded
+		/// (markers older than the field) and treated as revision 1. Export writes this revision to the document, not the current table revision:
+		/// after a revision bump the client uses the fallback material until the author repeats Export from material, and never reads the old layout as the new one.
 		/// </summary>
 		public int revision;
 
 		public List<RenderCoreMaterialValue> values = new();
 
-		/// <summary>Ревизия запечённых значений с учётом того, что 0 означает 1.</summary>
+		/// <summary>Revision of the baked values, treating 0 as 1.</summary>
 		public int BakedRevision => Math.Max(1, revision);
 
 		public RenderCoreMaterialValue Find(string propertyName)
@@ -38,7 +38,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			return null;
 		}
 
-		/// <summary>Значение свойства; создаётся со значением по умолчанию варианта, если его ещё нет.</summary>
+		/// <summary>Property value; created with the variant default if missing.</summary>
 		public RenderCoreMaterialValue GetOrAdd(ModRenderCoreVariantProperty property)
 		{
 			RenderCoreMaterialValue value = Find(property.name);

@@ -11,9 +11,8 @@ using Object = UnityEngine.Object;
 namespace Plugins.CarX.Modding.Creator.Editor
 {
 	/// <summary>
-	/// Стабильные идентификаторы объектов экспорта. Из них строятся имена файлов и объектов мода,
-	/// поэтому они не должны зависеть от сессии редактора (InstanceID/GetHashCode меняются между запусками):
-	/// ассет — GUID + localFileId, сгенерированный меш — хэш содержимого.
+	/// Stable ids of export objects. Mod file and object names are built from them, so they must not depend on the editor session
+	/// (InstanceID/GetHashCode change between runs): an asset uses GUID + localFileId, a generated mesh uses a content hash.
 	/// </summary>
 	public static class MeshExportUtility
 	{
@@ -41,7 +40,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return ColliderPrefix + GetMeshObjectId(mesh);
 		}
 
-		/// <summary>Идентификатор набора материалов или null, если ни одного материала нет.</summary>
+		/// <summary>Null if there are no materials.</summary>
 		public static string GetMaterialGroupId(Material[] materials)
 		{
 			if (materials == null || materials.Length == 0)
@@ -62,24 +61,23 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// Идентификатор группы материалов меша: общей библиотеки, если она задана (<see cref="SetMaterialLibrary"/>),
-		/// иначе — набора материалов его сабмешей.
+		/// The shared library if set (<see cref="SetMaterialLibrary"/>), otherwise the material set of the mesh submeshes.
 		/// </summary>
 		public static string GetMaterialGroupId(Mesh mesh, Material[] materials)
 		{
 			return GetMaterialGroupId(GetMaterialLibrary(mesh, materials));
 		}
 
-		/// <summary>Материалы для .mtl группы меша: общая библиотека или собственный набор материалов.</summary>
+		/// <summary>Materials for the mesh group .mtl: the shared library or the mesh's own material set.</summary>
 		public static Material[] GetMaterialLibrary(Mesh mesh, Material[] materials)
 		{
 			return mesh != null && s_materialLibraries.TryGetValue(mesh, out Material[] library) ? library : materials;
 		}
 
 		/// <summary>
-		/// Привязывает сгенерированный меш к общей библиотеке материалов: меши с разными наборами материалов
-		/// попадают в одну группу (один файл геометрии и один .mtl), сабмеши ссылаются на материалы библиотеки по имени.
-		/// Живёт до <see cref="RemoveMaterialLibrary"/> — не сбрасывается в <see cref="ClearCache"/>.
+		/// Binds a generated mesh to a shared material library: meshes with different material sets land in one group (one geometry file and
+		/// one .mtl), submeshes reference library materials by name. Lives until <see cref="RemoveMaterialLibrary"/>, not reset in
+		/// <see cref="ClearCache"/>.
 		/// </summary>
 		public static void SetMaterialLibrary(Mesh mesh, Material[] library)
 		{
@@ -92,8 +90,8 @@ namespace Plugins.CarX.Modding.Creator.Editor
 		}
 
 		/// <summary>
-		/// GUID + localFileId ассета; у прокси-материала маркера Material — id исходного материала с хэшем переопределения.
-		/// Для объекта без ассета — InstanceID (стабилен только в пределах сессии).
+		/// GUID + localFileId of the asset; for a Material marker proxy, the source material id with the override hash.
+		/// For an object without an asset, InstanceID (stable only within a session).
 		/// </summary>
 		public static string GetStableObjectId(Object obj)
 		{
@@ -110,13 +108,13 @@ namespace Plugins.CarX.Modding.Creator.Editor
 			return TryGetAssetId(obj, out string assetId) ? assetId : obj.GetInstanceID().ToString(CultureInfo.InvariantCulture);
 		}
 
-		/// <summary>128-битный хэш строки в hex.</summary>
+		/// <summary>128-bit hash of a string in hex.</summary>
 		public static string GetTextHash(string text)
 		{
 			return ComputeHash(Encoding.UTF8.GetBytes(text));
 		}
 
-		/// <summary>Сбрасывает кэш хэшей мешей. Вызывается в конце экспорта.</summary>
+		/// <summary>Called at the end of export.</summary>
 		public static void ClearCache()
 		{
 			s_meshIds.Clear();
@@ -178,7 +176,7 @@ namespace Plugins.CarX.Modding.Creator.Editor
 
 		private static string ToHex(byte[] hash)
 		{
-			// 128 бит: коллизия разных мешей/наборов материалов практически исключена (в отличие от 32-битного хэша).
+			// 128 bits: a collision of different meshes/material sets is practically impossible (unlike a 32-bit hash).
 			var builder = new StringBuilder(HashBytes * 2);
 
 			for (int i = 0; i < HashBytes; i++)

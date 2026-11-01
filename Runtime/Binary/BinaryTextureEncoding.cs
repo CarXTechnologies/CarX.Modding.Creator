@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
-	/// <summary>Переносимые данные мипов, а не платформенный GPU-ресурс и не сериализованный объект Unity.</summary>
+	/// <summary>Portable mip data, not a platform GPU resource or a serialized Unity object.</summary>
 	public enum BinaryTextureEncoding
 	{
 		[InspectorName("RGBA32 (lossless)")]

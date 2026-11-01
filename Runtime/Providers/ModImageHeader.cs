@@ -1,8 +1,8 @@
 namespace Plugins.CarX.Modding.Creator.Runtime
 {
 	/// <summary>
-	/// Чтение размеров PNG/JPEG из заголовка без декодирования: огромное изображение из мода отклоняется
-	/// до того, как LoadImage выделит под него память.
+	/// Reads PNG/JPEG dimensions from the header without decoding, so a huge mod image is rejected
+	/// before LoadImage allocates memory for it.
 	/// </summary>
 	public static class ModImageHeader
 	{
@@ -54,7 +54,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			width = 0;
 			height = 0;
 
-			// Первый чанк PNG всегда IHDR: ширина и высота — big endian сразу после типа чанка.
+			// The first PNG chunk is always IHDR: width and height are big endian right after the chunk type.
 			if (bytes.Length < PngHeaderSize || bytes[12] != 'I' || bytes[13] != 'H' || bytes[14] != 'D' || bytes[15] != 'R')
 			{
 				return false;
@@ -78,7 +78,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					return false;
 				}
 
-				// ITU T.81 B.1.1.2: перед кодом маркера допускается любое число байтов-заполнителей 0xFF.
+				// ITU T.81 B.1.1.2: any number of 0xFF fill bytes may precede a marker code.
 				while (position + 9 < bytes.Length && bytes[position + 1] == 0xFF)
 				{
 					position++;
@@ -86,13 +86,13 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 
 				byte marker = bytes[position + 1];
 
-				// EOI и SOS: заголовки кончились, а кадр (SOF) так и не встретился.
+				// EOI or SOS: headers are over and no frame (SOF) was found.
 				if (marker == 0xD9 || marker == 0xDA)
 				{
 					return false;
 				}
 
-				// Маркеры без длины сегмента.
+				// Markers without a segment length.
 				if (marker == 0xD8 || marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7))
 				{
 					position += 2;
@@ -106,7 +106,7 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 					return false;
 				}
 
-				// SOF0..SOF15, кроме DHT (C4), JPG (C8) и DAC (CC).
+				// SOF0..SOF15 except DHT (C4), JPG (C8) and DAC (CC).
 				bool isStartOfFrame = marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC;
 
 				if (isStartOfFrame)
