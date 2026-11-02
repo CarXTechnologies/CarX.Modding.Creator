@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Parsed Standard.shader: Properties block and passes.</summary>
 	public sealed class RenderCoreShaderInfo

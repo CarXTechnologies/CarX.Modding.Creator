@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Reads version 1 <see cref="BinaryModData"/> documents (already published mods). Strings are inlined and fields have

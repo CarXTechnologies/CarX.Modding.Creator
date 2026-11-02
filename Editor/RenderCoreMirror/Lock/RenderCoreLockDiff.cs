@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Compares the committed snapshot with the live one and sorts differences by tier (provenance is not compared):

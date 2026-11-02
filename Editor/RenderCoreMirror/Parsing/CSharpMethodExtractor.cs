@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Normalized body of a C# method (EditorUtils.SetupMaterialVariant): no comments, whitespace collapsed, empty lines dropped.

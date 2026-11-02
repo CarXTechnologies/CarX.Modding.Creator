@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
+using CarX.Modding.Creator.Publishing;
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor.Publishing
+namespace CarX.Modding.Creator.Editor.Publishing
 {
 	/// <summary>
 	/// Owns the live publisher for an editor tool: which vendor is selected, keeping its SDK pumped, and remembering

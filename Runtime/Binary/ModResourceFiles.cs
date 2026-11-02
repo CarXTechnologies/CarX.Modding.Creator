@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Reads a mod resource from a <see cref="BinaryModArchive"/> (if one exists up the directory tree) or from disk.

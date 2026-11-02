@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// The ONLY manual input of the rendercore mirror: decisions of the mods team. Table Runtime/RenderCore/ModRenderCoreVariantTable.g.cs =

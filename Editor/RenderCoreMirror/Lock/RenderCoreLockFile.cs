@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Snapshot input file: role and path from the package root. Paths are reference only (Info); files are found by name.</summary>
 	public sealed class RenderCoreLockFile

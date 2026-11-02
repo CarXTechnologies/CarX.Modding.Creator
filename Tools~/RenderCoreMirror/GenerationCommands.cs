@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
 	/// Generator commands: generate (table from the committed snapshot), update (snapshot from rendercore + table), legacy-diff (item-by-item

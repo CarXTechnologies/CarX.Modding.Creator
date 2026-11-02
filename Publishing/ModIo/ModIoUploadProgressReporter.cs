@@ -2,9 +2,8 @@ using System;
 #if CARX_MODDING_MODIO_UPLOAD_PROGRESS
 using Modio.Mods.Builder;
 #endif
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
+namespace CarX.Modding.Creator.Publishing.ModIo
 {
 	/// <summary>Maps the mod.io plugin modfile upload progress to the overall operation progress.</summary>
 	/// <remarks>

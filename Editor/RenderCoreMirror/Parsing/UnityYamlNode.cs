@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Node of the Unity YAML subset. Accessing it as the wrong kind is RCM002 with the node file and line.</summary>
 	public sealed class UnityYamlNode

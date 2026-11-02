@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Text;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// .cxmesh format version 2: each mesh is a separate block (deflate when it helps, CRC32 of the raw bytes),

@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Code of the <c>ds</c> directive in a mod .mtl. No directive or 0: single-sided; 1: Mirror; 2: None; 3: Flip.

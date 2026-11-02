@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Mirror file locations inside CarX.Modding.Creator and the rendercore package name; one place for the menu, build check and CLI.</summary>
 	public static class RenderCoreMirrorPaths

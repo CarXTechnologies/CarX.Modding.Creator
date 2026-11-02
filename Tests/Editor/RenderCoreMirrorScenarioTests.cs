@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CarX.Modding.Creator.Editor;
+using CarX.Modding.Creator.RenderCoreMirror;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Editor;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// rendercore and annotation change scenarios against the generator gates: each checks the exact set of RCM codes that block the table.

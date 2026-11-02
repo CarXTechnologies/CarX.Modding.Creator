@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Generator gate codes (RCM010–RCM099): snapshot vs annotations. Any Breaking or Error finding blocks generation and the table

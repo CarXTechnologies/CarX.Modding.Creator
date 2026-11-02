@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Mirror of the mod.io SDK log level. Declared here rather than reused because this assembly is compiled with

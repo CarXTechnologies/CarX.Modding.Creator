@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// Temporary changes to source asset import settings during export. Export needs uncompressed readable textures (otherwise compression

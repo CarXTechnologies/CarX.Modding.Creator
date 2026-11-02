@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
 	/// Reads the ModRenderCoreVariants table from the built CarX.Modding.Creator.dll via reflection (separate AssemblyLoadContext, UnityEngine from
@@ -15,7 +15,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 	/// </summary>
 	internal static class LegacyTableReader
 	{
-		private const string TableType = "Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants";
+		private const string TableType = "CarX.Modding.Creator.Runtime.ModRenderCoreVariants";
+		// Namespace of the table in dlls built before the namespaces were aligned with the module folders.
+		private const string LegacyTableType = "Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants";
 
 		public static SortedDictionary<string, string> Read(string dllPath, IReadOnlyList<string> probeDirectories)
 		{
@@ -29,7 +31,7 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
 			try
 			{
 				Assembly assembly = context.LoadFromAssemblyPath(fullPath);
-				Type table = assembly.GetType(TableType, throwOnError: true);
+				Type table = assembly.GetType(TableType, throwOnError: false) ?? assembly.GetType(LegacyTableType, throwOnError: true);
 				IEnumerable variants = (table.GetProperty("All", BindingFlags.Public | BindingFlags.Static)?.GetValue(obj: null) ??
 					table.GetField("s_variants", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(obj: null)) as IEnumerable;
 

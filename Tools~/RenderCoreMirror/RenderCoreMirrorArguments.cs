@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>Command options: "--name value" (a name may repeat) and "--name" flags without a value.</summary>
 	internal sealed class RenderCoreMirrorArguments

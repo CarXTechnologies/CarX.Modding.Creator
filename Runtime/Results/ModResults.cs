@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 #endif
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public class ModResults
 	{

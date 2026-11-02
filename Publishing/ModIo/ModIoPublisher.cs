@@ -8,9 +8,8 @@ using Modio;
 using Modio.Mods;
 using Modio.Mods.Builder;
 using Modio.Users;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
+namespace CarX.Modding.Creator.Publishing.ModIo
 {
 	/// <summary>mod.io delivery, driven through the official mod.io Unity plugin.</summary>
 	[ModPublisher(ModIoConfig.VendorId, "mod.io", order: 1)]

@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public class MetaProvider<T> : Provider<IModResources> where T : IModResources
 	{

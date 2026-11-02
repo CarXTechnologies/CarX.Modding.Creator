@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
+using CarX.Modding.Creator.RenderCoreMirror;
 using UnityEditor;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// rendercore mirror menu. Regenerate Table — table from the committed snapshot and annotations (works in MapUploader too); Update Lock —

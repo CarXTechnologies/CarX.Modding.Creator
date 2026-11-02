@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// generate(snapshot, annotations): builds ModRenderCoreVariantTable.g.cs data and checks the gates. Rendercore owns the id, queue,

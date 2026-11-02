@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Mod binary geometry codec (.cxmesh). Always writes version 2 (<see cref="BinaryModModelCodecV2"/>),

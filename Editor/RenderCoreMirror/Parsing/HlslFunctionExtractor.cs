@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Variant decoding: the Func file (Functions/&lt;X&gt;MaterialFunc.hlsl) selected by StandardMaterialFunctions.hlsl, run through the

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Portable mip data, not a platform GPU resource or a serialized Unity object.</summary>
 	public enum BinaryTextureEncoding

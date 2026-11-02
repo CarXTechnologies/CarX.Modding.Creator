@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Variant property from MaterialEditorSettings.asset (propertyData) in asset order.</summary>
 	public sealed class RenderCoreLockProperty

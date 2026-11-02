@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Mirror candidate: an enum member outside the excluded scope that has an entry in MaterialEditorSettings.asset (first by id wins,

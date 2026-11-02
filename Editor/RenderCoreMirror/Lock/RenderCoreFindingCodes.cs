@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Core finding codes. Ranges: RCM001–RCM009 — extraction and snapshot reading (Error); RCM010–RCM099 — generator gates against annotations

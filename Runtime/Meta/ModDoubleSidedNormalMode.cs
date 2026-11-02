@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Back face normal of a double-sided material, like HDRP Double-Sided Normal Mode.

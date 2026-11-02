@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>rendercore package in a folder: Packages/com.carxtech.rendercore of the game project or a test fixture.</summary>
 	public sealed class DirectoryRenderCoreSourceProvider : IRenderCoreSourceProvider

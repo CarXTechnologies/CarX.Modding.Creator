@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Finds every <see cref="IModPublisher"/> that got compiled into the project and instantiates them on demand.

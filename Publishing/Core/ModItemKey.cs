@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Vendor agnostic identity of a published mod entry.

@@ -1,6 +1,6 @@
 {
     "name": "CarX.Modding.Creator.Publishing.ModIo",
-    "rootNamespace": "Plugins.CarX.Modding.Creator.Publishing.ModIo",
+    "rootNamespace": "CarX.Modding.Creator.Publishing.ModIo",
     "references": [
         "CarX.Modding.Creator",
         "CarX.Modding.Creator.Publishing",

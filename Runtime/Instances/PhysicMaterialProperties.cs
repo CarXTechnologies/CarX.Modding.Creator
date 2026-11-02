@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	// Road values were serialized when this type lived in Assembly-CSharp without a namespace (map scenes and
 	// GameMarkerTemplateConfig assets keep that type name in their SerializeReference data); MovedFrom lets Unity read them.

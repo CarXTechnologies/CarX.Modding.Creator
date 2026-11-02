@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Snapshot comparison or check finding: RCMxxx code (RenderCoreFindingCodes), tier, subject (variant, property, pass) and text.</summary>
 	public sealed class RenderCoreFinding

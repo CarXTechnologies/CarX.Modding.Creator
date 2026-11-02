@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Writes Runtime/RenderCore/ModRenderCoreVariantTable.g.cs: data only (CreateVariants, CreateSuggestions, LockContentHash) via the
@@ -36,9 +36,9 @@ namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
 			Line(builder, "// </auto-generated>");
 			Line(builder, "using System;");
 			Line(builder, "using UnityEngine;");
-			Line(builder, "using static Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants;");
+			Line(builder, "using static CarX.Modding.Creator.Runtime.ModRenderCoreVariants;");
 			Line(builder, "");
-			Line(builder, "namespace Plugins.CarX.Modding.Creator.Runtime");
+			Line(builder, "namespace CarX.Modding.Creator.Runtime");
 			Line(builder, "{");
 			Line(builder, "\t/// <summary>rendercore mirror data for <see cref=\"ModRenderCoreVariants\"/>.</summary>");
 			Line(builder, "\tinternal static class ModRenderCoreVariantTable");

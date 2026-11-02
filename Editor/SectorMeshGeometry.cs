@@ -4,7 +4,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	public static class SectorMeshGeometry
 	{

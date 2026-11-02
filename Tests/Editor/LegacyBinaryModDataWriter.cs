@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// Copy of the BinaryModData version 1 writer (CarX.Modding.Creator@d8f3233) that built already published .cxmod files.

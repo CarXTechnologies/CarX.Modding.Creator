@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	public static class RigidbodyExporter
 	{

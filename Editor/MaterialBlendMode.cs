@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	public enum MaterialBlendMode
 	{

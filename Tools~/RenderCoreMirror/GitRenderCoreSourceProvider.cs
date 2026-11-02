@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
 	/// rendercore package from a git repository commit (git ls-tree -r and git show): no working copy is needed or touched. Overrides replace

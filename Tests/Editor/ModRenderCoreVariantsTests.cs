@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>rendercore variant table for the Material marker and the .rc.json document.</summary>
 	public class ModRenderCoreVariantsTests

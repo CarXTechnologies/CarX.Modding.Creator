@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CarX.Modding.Creator.RenderCoreMirror;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// rendercore mirror core parsers on short fragments and snapshot comparison on a small in-memory package.

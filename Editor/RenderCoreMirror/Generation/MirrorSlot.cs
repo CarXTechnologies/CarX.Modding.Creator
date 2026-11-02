@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Property role by slot rule: expected type, Export from material source, layer and default value.</summary>
 	public sealed class MirrorSlot

@@ -1,7 +1,7 @@
+using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Runtime;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>Which format versions in meta documents the client accepts.</summary>
 	public class ModdingVersionTests

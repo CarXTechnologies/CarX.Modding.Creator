@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
+using CarX.Modding.Creator.RenderCoreMirror;
 using UnityEditor;
 using UnityEditor.Compilation;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// rendercore mirror files in the Unity project: the snapshot lies next to the core assembly asmdef, the table is found by its .meta GUID

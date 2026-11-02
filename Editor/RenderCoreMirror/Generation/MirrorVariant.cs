@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Variant in the generated table: becomes ModRenderCoreVariant in ModRenderCoreVariantTable.g.cs.</summary>
 	public sealed class MirrorVariant

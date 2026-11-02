@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>rendercore variant render type (material RenderType tag). Values match RenderCore.Editor.RenderType.</summary>
 	public enum ModRenderCoreRenderType

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Remaining <see cref="BinaryModModelReadLimits"/> while reading one model. Checks happen before allocation:

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Steam Workshop credentials and payload limits.

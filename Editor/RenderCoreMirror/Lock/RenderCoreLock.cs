@@ -27,7 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Normalized snapshot of rendercore Standard shader variants. Immutable; built by RenderCoreExtractor or RenderCoreLockText.Read.</summary>
 	public sealed class RenderCoreLock

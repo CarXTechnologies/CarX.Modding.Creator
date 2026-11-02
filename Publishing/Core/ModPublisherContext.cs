@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Game specific data every publisher needs but no publisher owns.

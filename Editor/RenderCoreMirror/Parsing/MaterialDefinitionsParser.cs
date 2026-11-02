@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Evaluates StandardMaterialDefinitions.hlsl and StandardMaterialFunctions.hlsl for a variant, following only includes inside the

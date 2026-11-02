@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>How a rendercore variant uses vertex colors (by MATERIALFEATURE_* and the variant Defs file). Values are only appended.</summary>
 	public enum ModRenderCoreVertexColors

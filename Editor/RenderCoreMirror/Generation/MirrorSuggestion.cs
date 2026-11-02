@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Which variant Export from material offers for an HDRP material; goes into the table as ModRenderCoreSuggestion. Key is

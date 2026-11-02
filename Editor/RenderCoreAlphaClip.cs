@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// Maps the HDRP Alpha Clipping cutoff to the rendercore alpha test. Rendercore clips only in the DepthOnly prepass and with dithering:

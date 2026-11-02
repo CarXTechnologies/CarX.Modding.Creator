@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// How a shader pass declares a keyword. kind is the #pragma directive name as in the shader (multi_compile, multi_compile_local,

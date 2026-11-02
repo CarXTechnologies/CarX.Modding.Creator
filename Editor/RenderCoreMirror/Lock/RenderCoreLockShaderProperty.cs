@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Property from the Standard shader Properties block: only for names listed by at least one candidate.</summary>
 	public sealed class RenderCoreLockShaderProperty

@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Clip pass (DepthOnly/ShadowCaster) config for a set of material keywords: Definitions and Func evaluated the way this pass

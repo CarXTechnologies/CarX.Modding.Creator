@@ -1,7 +1,6 @@
 using System;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.Steam
+namespace CarX.Modding.Creator.Publishing.Steam
 {
 	/// <summary>Maps the Facepunch <c>Editor.SubmitAsync</c> progress to the overall operation progress.</summary>
 	/// <remarks>

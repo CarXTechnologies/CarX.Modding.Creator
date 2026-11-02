@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>Writes a Material marker override to a <see cref="ModRenderCoreMaterial"/> document (.rc.json) with textures next to it.</summary>
 	internal static class RenderCoreMaterialWriter

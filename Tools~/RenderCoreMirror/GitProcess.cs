@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>Runs git -C &lt;repo&gt; … with raw stdout (git show returns file bytes as is).</summary>
 	internal static class GitProcess

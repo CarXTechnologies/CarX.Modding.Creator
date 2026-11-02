@@ -1,9 +1,9 @@
+using CarX.Modding.Creator.Editor;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>Mapping of the HDRP Alpha Clipping threshold to the rendercore alpha test dither band (RenderCoreAlphaClip) and its copy in ConvertingEx.hlsl.</summary>
 	public class RenderCoreAlphaClipTests

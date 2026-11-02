@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	[Serializable] public sealed class ModPbrMaterial
 	{

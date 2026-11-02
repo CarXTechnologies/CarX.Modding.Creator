@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>Sits between the platform SDK and the progress receiver: keeps the overall fraction from decreasing and throttles reports.</summary>
 	/// <remarks>

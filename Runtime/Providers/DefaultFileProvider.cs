@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public class DefaultFileProvider : IModFileProvider
 	{

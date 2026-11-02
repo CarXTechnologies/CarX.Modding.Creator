@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Vertex streams a rendercore variant needs (INPUT_NEED_* in its Defs). Values are only appended.</summary>
 	[Flags]

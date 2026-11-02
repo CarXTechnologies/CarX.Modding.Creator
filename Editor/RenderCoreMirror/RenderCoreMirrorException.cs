@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Error-tier failure: rendercore file not found or ambiguous, syntax outside the supported subset, corrupt snapshot.

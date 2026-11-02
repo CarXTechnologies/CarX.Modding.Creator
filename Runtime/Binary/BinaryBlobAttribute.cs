@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Base64 string field for JSON; the binary document stores the raw bytes of <see cref="bytesField"/> instead.</summary>
 	[AttributeUsage(AttributeTargets.Field)]

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using CarX.Modding.Creator.Editor;
+using CarX.Modding.Creator.RenderCoreMirror;
+using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Editor;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
-using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// The committed ModRenderCoreVariantTable.g.cs against generate(committed snapshot, annotations), plus frozen rules that published

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CarX.Modding.Creator.Editor;
+using CarX.Modding.Creator.RenderCoreMirror;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Editor;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
 using UnityEditor;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// Validation (game BuildFlow): the live rendercore package against the committed mirror snapshot. Check only: writes nothing and does not

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>
 	/// BinaryModData format compatibility: frozen reference documents of versions 1 and 2 (bytes in the test),

@@ -5,9 +5,9 @@
 // </auto-generated>
 using System;
 using UnityEngine;
-using static Plugins.CarX.Modding.Creator.Runtime.ModRenderCoreVariants;
+using static CarX.Modding.Creator.Runtime.ModRenderCoreVariants;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>rendercore mirror data for <see cref="ModRenderCoreVariants"/>.</summary>
 	internal static class ModRenderCoreVariantTable

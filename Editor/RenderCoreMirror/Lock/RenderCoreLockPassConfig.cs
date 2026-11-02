@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Config of an alpha-test clip pass (DepthOnly/ShadowCaster) for a set of material keywords (usually the shared ALPHATEST): what this

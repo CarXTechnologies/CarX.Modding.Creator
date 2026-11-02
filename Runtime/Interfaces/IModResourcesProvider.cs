@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public interface IModResourcesProvider
 	{

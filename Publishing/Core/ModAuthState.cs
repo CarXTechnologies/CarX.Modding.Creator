@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	public enum ModAuthStatus
 	{

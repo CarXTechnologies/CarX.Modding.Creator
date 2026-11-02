@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Base for the per vendor credential assets (Steam app id, mod.io game id and api key).

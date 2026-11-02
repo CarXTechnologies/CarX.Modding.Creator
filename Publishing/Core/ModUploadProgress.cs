@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>Mod upload progress: stage, overall fraction and bytes of the current stage.</summary>
 	/// <remarks>

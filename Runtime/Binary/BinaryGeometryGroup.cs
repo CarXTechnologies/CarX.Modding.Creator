@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>The geometry itself does not depend on material binding, object names, transforms or shadows.</summary>
 	[Serializable]

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>Builds a binary model (<see cref="BinaryModModel"/>) for a group of meshes with a shared material set.</summary>
 	internal static class BinaryModelCollector

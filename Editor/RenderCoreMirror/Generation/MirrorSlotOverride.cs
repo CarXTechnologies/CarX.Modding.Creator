@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Manual decision for a variant property the slot rules (MirrorSlotRules) do not cover or cover wrongly: where Export from material

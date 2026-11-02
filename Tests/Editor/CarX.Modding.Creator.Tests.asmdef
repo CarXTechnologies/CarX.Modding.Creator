@@ -1,6 +1,6 @@
 {
     "name": "CarX.Modding.Creator.Tests",
-    "rootNamespace": "Plugins.CarX.Modding.Creator.Tests",
+    "rootNamespace": "CarX.Modding.Creator.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

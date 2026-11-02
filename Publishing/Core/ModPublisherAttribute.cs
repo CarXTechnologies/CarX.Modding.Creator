@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Marks an <see cref="IModPublisher"/> implementation so that <see cref="ModPublisherRegistry"/> can find it.

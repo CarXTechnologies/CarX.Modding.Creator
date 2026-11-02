@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>rendercore Standard shader property a mod material can set in its variant.</summary>
 	public sealed class ModRenderCoreVariantProperty

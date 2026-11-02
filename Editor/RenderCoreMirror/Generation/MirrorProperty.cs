@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Variant property in the generated table: becomes ModRenderCoreVariantProperty.</summary>
 	public sealed class MirrorProperty

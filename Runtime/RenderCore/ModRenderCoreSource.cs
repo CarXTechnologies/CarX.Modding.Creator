@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Where Export from material takes a rendercore variant property value from in an HDRP Lit / Layered Lit material.</summary>
 	public enum ModRenderCoreSource

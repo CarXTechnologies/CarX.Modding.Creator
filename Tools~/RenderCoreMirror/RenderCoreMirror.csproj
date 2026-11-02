@@ -7,7 +7,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>RenderCoreMirror</AssemblyName>
-    <RootNamespace>Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool</RootNamespace>
+    <RootNamespace>CarX.Modding.Creator.RenderCoreMirror.Tool</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>

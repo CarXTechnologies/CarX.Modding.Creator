@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Mod binary texture (.cxtex): CXTX header and a ready mip chain in RGBA32 or BC7.</summary>
 	public static class BinaryTexture

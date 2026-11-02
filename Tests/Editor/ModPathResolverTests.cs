@@ -1,8 +1,8 @@
 using System.IO;
+using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Runtime;
 
-namespace Plugins.CarX.Modding.Creator.Tests
+namespace CarX.Modding.Creator.Tests
 {
 	/// <summary>Paths from mod data must not escape the mod directory.</summary>
 	public class ModPathResolverTests

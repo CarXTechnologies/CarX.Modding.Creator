@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public interface IModCollectionProvider
 	{

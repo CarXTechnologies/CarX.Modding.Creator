@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Content of a rendercore variant packed map channel (by the variant's MATERIALFEATURE_* and shader decoding).</summary>
 	public enum ModRenderCoreChannel

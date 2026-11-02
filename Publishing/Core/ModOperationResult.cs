@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// Outcome of a publisher call. Vendor SDKs report failures in wildly different shapes (Steam returns a

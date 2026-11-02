@@ -4,9 +4,8 @@ using Modio.API.Interfaces;
 using Modio.Authentication;
 using Modio.Unity;
 using Modio.Users;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
+namespace CarX.Modding.Creator.Publishing.ModIo
 {
 	/// <summary>
 	/// Stands the mod.io SDK up inside the editor.

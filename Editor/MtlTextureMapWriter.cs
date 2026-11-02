@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// .mtl texture maps. The path is checked against the packed texture cache before any GPU conversion; temporary textures (Blit,

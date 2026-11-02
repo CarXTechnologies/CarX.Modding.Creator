@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// rendercore Standard shader variant (MAT_* keyword): a mirror of RenderCore.Editor.MaterialVariantData without depending on the rendercore

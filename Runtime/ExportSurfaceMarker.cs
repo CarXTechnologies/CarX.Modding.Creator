@@ -1,7 +1,7 @@
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	// Exists only in the temporary export scene; forwards the source surface definition.
 	public sealed class ExportSurfaceMarker : MonoBehaviour, IMarkerDataSource

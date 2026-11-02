@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Shader pass: name (Name "…"), keyword declarations (#pragma, including shader and SubShader HLSLINCLUDE), keyword groups by

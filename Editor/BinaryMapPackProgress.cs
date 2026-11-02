@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// Binary map packing progress for <see cref="BinaryMapPacker"/>: turns stages, documents and re-encoded textures into an overall

@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
+using CarX.Modding.Creator.Publishing;
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor.Publishing
+namespace CarX.Modding.Creator.Editor.Publishing
 {
 	/// <summary>
 	/// Drives a vendor sign in through editor modal dialogs.

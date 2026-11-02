@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// RenderCoreLock.txt text: UTF-8, LF, TAB-separated fields; values escape \\ \t \n \r. Lists: items separated by '|' (texts, scopes)

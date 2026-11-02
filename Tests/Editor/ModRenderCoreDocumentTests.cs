@@ -1,10 +1,10 @@
 using System;
+using CarX.Modding.Creator.Tests;
 using NUnit.Framework;
-using Plugins.CarX.Modding.Creator.Tests;
 using UnityEngine;
 
 // The fixture lives in the format namespace: BinaryModData reads only its types, and the nested BeforeRevision DTOs must be there.
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Optional rendercore variant revision fields: ModRenderCoreMaterial.variantRevision, BinaryMaterial.renderCoreRevision

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Property default value (x, y, z, w) without UnityEngine; written to the table as new Vector4(...).</summary>
 	public readonly struct MirrorVector : IEquatable<MirrorVector>

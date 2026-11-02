@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 // Test DTOs must live in the format namespace: BinaryModData reads only its types.
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>The same DTO after a game update: fields with initializers added.</summary>
 	internal static class SchemaNew

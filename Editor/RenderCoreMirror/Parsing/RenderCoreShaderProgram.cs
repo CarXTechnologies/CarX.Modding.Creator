@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// HLSL program of a Standard.shader pass (HLSLPROGRAM or shader/SubShader HLSLINCLUDE) without comments. The text is padded with empty

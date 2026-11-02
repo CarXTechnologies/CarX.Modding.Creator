@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>
 	/// One game a vendor can publish to, as offered to the user in the game picker.

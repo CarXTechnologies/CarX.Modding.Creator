@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Variant offered by Export from material for the HDRP material settings.</summary>
 	public sealed class ModRenderCoreSuggestion

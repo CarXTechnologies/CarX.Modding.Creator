@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Mirror of rendercore Standard shader variants for the Material marker (Binary only). The data is in ModRenderCoreVariantTable.g.cs, generated

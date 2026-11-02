@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>
 	/// rendercore mirror CLI (see README.md next to it). Core commands are extract and check. Generator commands (generate, update, legacy-diff)

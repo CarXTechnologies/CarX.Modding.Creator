@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Human-reviewed alpha-test cutout pass config: what DepthOnly/ShadowCaster compile for a material keyword set (usually the shared

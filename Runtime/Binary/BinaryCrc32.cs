@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>CRC32 (polynomial 0xEDB88320), slicing-by-8; the result matches the byte-wise variant.</summary>
 	internal static class BinaryCrc32

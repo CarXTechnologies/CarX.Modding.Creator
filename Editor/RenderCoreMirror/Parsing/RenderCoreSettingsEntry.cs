@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>materialVariantData entry from MaterialEditorSettings.asset.</summary>
 	public sealed class RenderCoreSettingsEntry

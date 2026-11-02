@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>A mesh waiting to be written to a material group file.</summary>
 	internal readonly struct ExportMeshEntry

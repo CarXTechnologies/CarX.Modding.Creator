@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror.Tool
+namespace CarX.Modding.Creator.RenderCoreMirror.Tool
 {
 	/// <summary>CLI command: help line and a handler returning the exit code.</summary>
 	internal sealed class RenderCoreMirrorCommand

@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime.Publishing
+namespace CarX.Modding.Creator.Publishing
 {
 	/// <summary>Mod upload stage, see <see cref="ModUploadProgress"/>.</summary>
 	/// <remarks>

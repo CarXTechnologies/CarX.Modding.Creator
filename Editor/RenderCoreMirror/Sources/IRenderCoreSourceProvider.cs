@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Source of com.carxtech.rendercore package files: a folder (game menu, tests) or a git commit (CLI, without checking out the Dr3PC2 working copy).

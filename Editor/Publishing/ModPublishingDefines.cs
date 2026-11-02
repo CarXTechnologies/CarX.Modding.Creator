@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor.Publishing
+namespace CarX.Modding.Creator.Editor.Publishing
 {
 	/// <summary>
 	/// Keeps the vendor scripting defines in step with the SDKs that are actually present in the project.
@@ -131,7 +131,7 @@ namespace Plugins.CarX.Modding.Creator.Editor.Publishing
 			}
 
 			PlayerSettings.SetScriptingDefineSymbols(buildTarget, defines.ToArray());
-			Runtime.Publishing.ModPublisherRegistry.Invalidate();
+			Creator.Publishing.ModPublisherRegistry.Invalidate();
 		}
 	}
 }

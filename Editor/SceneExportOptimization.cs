@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// Builds scene statics into sectors before export. Render: one mesh per cell (and compatible renderer settings) with a submesh per

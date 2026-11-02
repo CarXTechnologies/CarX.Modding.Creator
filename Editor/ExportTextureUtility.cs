@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Plugins.CarX.Modding.Creator.Runtime;
+using CarX.Modding.Creator.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// Export texture helpers: readable uncompressed source, GPU conversion passes and packing under a given name. The caller destroys all

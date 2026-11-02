@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 using Steamworks;
 using Steamworks.Ugc;
 using Item = Steamworks.Ugc.Item;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.Steam
+namespace CarX.Modding.Creator.Publishing.Steam
 {
 	/// <summary>Steam Workshop delivery, driven through Facepunch.Steamworks.</summary>
 	[ModPublisher(SteamWorkshopConfig.VendorId, "Steam Workshop", order: 0)]

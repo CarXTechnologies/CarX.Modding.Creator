@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Small HLSL preprocessor for the mirror: #define/#undef, #if/#ifdef/#ifndef/#elif/#else/#endif with defined(), !, &amp;&amp;, ||, parentheses,

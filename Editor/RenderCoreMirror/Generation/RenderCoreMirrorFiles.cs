@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Reads and writes mirror files: UTF-8 without BOM, LF only; the file is left untouched if the text is the same (no extra imports or diffs).</summary>
 	public static class RenderCoreMirrorFiles

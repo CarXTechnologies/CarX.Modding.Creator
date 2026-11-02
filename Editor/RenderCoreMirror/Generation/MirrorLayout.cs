@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>What the layout rules derive from the snapshot for one candidate (MirrorLayoutRules.Derive).</summary>
 	public sealed class MirrorLayout

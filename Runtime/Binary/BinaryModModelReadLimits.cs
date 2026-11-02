@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Cumulative .cxmesh read limits for the whole model: a small mod file must not inflate to gigabytes on decompression.

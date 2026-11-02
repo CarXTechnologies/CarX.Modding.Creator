@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Copy of Runtime ModRenderCoreVertexStreams for the core without UnityEngine: names and values match (checked by the table test).</summary>
 	[Flags]

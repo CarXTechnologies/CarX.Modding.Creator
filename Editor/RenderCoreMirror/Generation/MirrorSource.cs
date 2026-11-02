@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Copy of Runtime ModRenderCoreSource for the core without UnityEngine: names and values match (checked by the table test).</summary>
 	public enum MirrorSource

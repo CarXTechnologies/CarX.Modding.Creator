@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Single point for resolving paths from mod data: the path must stay inside the mod directory.

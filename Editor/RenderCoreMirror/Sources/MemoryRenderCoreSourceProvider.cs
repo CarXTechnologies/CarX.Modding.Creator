@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>In-memory rendercore package: path → text. For tests and scenarios (replacing one file without a package copy on disk).</summary>
 	public sealed class MemoryRenderCoreSourceProvider : IRenderCoreSourceProvider

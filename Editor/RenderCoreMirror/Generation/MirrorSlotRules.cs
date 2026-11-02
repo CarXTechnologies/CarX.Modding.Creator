@@ -1,6 +1,6 @@
 using System;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>
 	/// Slot rules: role of a variant property by its name, Defs family and MATERIALFEATURE_EMISSION. A name outside the rules or a wrong type

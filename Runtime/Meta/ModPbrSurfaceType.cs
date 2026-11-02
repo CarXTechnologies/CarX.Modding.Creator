@@ -1,4 +1,4 @@
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>
 	/// Layered PBR (.pbr.json) material surface, like Surface Type / Blending Mode of HDRP Layered Lit.

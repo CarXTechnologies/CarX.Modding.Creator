@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Plugins.CarX.Modding.Creator.RenderCoreMirror;
+using CarX.Modding.Creator.RenderCoreMirror;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>
 	/// rendercore mirror check before a game build: live package against the committed snapshot, generator gates and table freshness

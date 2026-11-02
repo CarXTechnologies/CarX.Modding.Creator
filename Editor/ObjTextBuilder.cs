@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	/// <summary>Text Wavefront OBJ for a group of meshes with a shared .mtl.</summary>
 	internal static class ObjTextBuilder

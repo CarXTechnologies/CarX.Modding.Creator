@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	/// <summary>Property in a <see cref="ModRenderCoreMaterial"/> document.</summary>
 	[Serializable]

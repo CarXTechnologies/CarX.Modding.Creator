@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.RenderCoreMirror
+namespace CarX.Modding.Creator.RenderCoreMirror
 {
 	/// <summary>Result of generate(snapshot, annotations): gate findings and, if none is Breaking/Error, the table data.</summary>
 	public sealed class MirrorGenerationResult
