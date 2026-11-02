@@ -4,9 +4,8 @@ using System.Threading.Tasks;
 using Modio;
 using Modio.Authentication;
 using Modio.Users;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
+namespace CarX.Modding.Creator.Publishing.ModIo
 {
 	/// <summary>
 	/// mod.io sign in over the email one time code flow.

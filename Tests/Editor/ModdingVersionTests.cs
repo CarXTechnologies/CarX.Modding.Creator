@@ -1,0 +1,27 @@
+using CarX.Modding.Creator.Runtime;
+using NUnit.Framework;
+
+namespace CarX.Modding.Creator.Tests
+{
+	/// <summary>Which format versions in meta documents the client accepts.</summary>
+	public class ModdingVersionTests
+	{
+		[Test]
+		public void AcceptsCurrentDefaultAndMissingFormatVersion()
+		{
+			Assert.IsTrue(ModdingVersion.IsSupportedFormat(ModdingVersion.GetFullVersionFormat()));
+			Assert.IsTrue(ModdingVersion.IsSupportedFormat(ModdingVersion.GetDefaultFullVersionFormat()));
+			Assert.IsTrue(ModdingVersion.IsSupportedFormat("v1.0"));
+			Assert.IsTrue(ModdingVersion.IsSupportedFormat(version: null));
+			Assert.IsTrue(ModdingVersion.IsSupportedFormat(string.Empty));
+		}
+
+		[TestCase("v2.0")]
+		[TestCase("1.0")]
+		[TestCase("unknown")]
+		public void RejectsUnknownFormatVersion(string version)
+		{
+			Assert.IsFalse(ModdingVersion.IsSupportedFormat(version));
+		}
+	}
+}

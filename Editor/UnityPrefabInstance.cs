@@ -1,10 +1,10 @@
 ﻿using UnityEditor;
+using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Plugins.CarX.Modding.Creator.Runtime;
 
-namespace Plugins.CarX.Modding.Creator.Editor
+namespace CarX.Modding.Creator.Editor
 {
 	public struct LODInfo
 	{

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public class LightsMetaProvider<T> : MetaProvider<T> where T : IModResources
 	{

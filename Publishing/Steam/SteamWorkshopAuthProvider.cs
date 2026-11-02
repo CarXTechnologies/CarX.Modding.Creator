@@ -1,10 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 using Steamworks;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.Steam
+namespace CarX.Modding.Creator.Publishing.Steam
 {
 	/// <summary>
 	/// Reports the Steam session the running Steam client already owns.

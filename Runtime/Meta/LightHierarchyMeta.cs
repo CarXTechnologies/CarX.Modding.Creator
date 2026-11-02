@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	[Serializable]
 	public class LightHierarchyMeta : IModResources, IModResourcesVersion
@@ -27,6 +27,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			this.lights = lights;
 			this.Id = id;
 			this.Version = version;
+		}
+
+		// For BinaryModData: fields missing from the document get their initializer values, not default.
+		private LightHierarchyMeta()
+		{
 		}
 	}
 }
