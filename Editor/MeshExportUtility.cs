@@ -134,7 +134,7 @@ namespace CarX.Modding.Creator.Editor
 
 		private static string ComputeContentHash(Mesh mesh)
 		{
-			using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+			using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 			AppendStruct(hash, mesh.vertexCount);
 			AppendStruct(hash, mesh.subMeshCount);
 			AppendArray(hash, mesh.vertices);
@@ -154,7 +154,7 @@ namespace CarX.Modding.Creator.Editor
 
 		private static string ComputeHash(byte[] bytes)
 		{
-			using var sha = SHA256.Create();
+			using SHA256 sha = SHA256.Create();
 			return ToHex(sha.ComputeHash(bytes));
 		}
 

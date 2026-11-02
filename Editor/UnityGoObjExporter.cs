@@ -77,7 +77,7 @@ namespace CarX.Modding.Creator.Editor
 			try
 			{
 				List<ExportGroup> groups = GroupPendingObjects();
-				var yieldTimer = Stopwatch.StartNew();
+				Stopwatch yieldTimer = Stopwatch.StartNew();
 
 				for (int i = 0; i < groups.Count; i++)
 				{

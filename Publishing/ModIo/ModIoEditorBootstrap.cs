@@ -120,7 +120,7 @@ namespace CarX.Modding.Creator.Publishing.ModIo
 				await ModioClient.Shutdown();
 			}
 
-			var movedEndpoint = s_activeServerUrl != null && s_activeServerUrl != config.ServerUrl;
+			bool movedEndpoint = s_activeServerUrl != null && s_activeServerUrl != config.ServerUrl;
 
 			var settings = Bind(config);
 			var error = await ModioClient.Init(settings);
