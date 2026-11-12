@@ -327,7 +327,8 @@ namespace CarX.Modding.Creator.Editor
 			return (a, b, c);
 		}
 
-		private static float GetBaseHeight(List<MiniatureLayer> layers)
+		// The lowest road point, or the lowest point at all when there are no roads
+		internal static float GetBaseHeight(List<MiniatureLayer> layers)
 		{
 			float ground = float.MaxValue;
 			float any = float.MaxValue;

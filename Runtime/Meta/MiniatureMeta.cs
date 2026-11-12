@@ -9,7 +9,7 @@ namespace CarX.Modding.Creator.Runtime
 	{
 		// Roads, pads and other large flat drivable surfaces
 		Ground,
-		// Boxes in place of the map objects (buildings, barriers, stands...): 8 corners per box, one box after another
+		// Boxes in place of the map objects (buildings, barriers, stands...); the game colors each connected piece by its top
 		Objects,
 		// Coarse terrain under the roads, drawn as a dark backdrop
 		Terrain,
