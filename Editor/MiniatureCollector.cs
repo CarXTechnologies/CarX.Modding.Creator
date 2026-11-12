@@ -6,7 +6,8 @@ using UnityEngine;
 namespace CarX.Modding.Creator.Editor
 {
 	// Generates the world map miniature in the style of the stock track miniatures: roads and pads (large flat meshes)
-	// become the simplified ground, every other object a box of its bounds, terrain is left out
+	// become the simplified ground, every other object a box of its bounds, terrain is left out.
+	// Road or terrain is decided per ground triangle by isRoad (the exporter samples the minimap image there)
 	public static class MiniatureCollector
 	{
 		public const int MaxGroundTriangles = 120_000;
@@ -15,8 +16,6 @@ namespace CarX.Modding.Creator.Editor
 		// A mesh is ground when it is wide and low: at least this wide, and lower than this part of its width
 		private const float GroundMinWidth = 15f;
 		private const float GroundMaxHeightRatio = 0.25f;
-		// A ground mesh covering this part of the map area or more is terrain, not a road or a pad
-		private const float TerrainAreaFraction = 0.25f;
 		// Smaller objects (signs, cones, lamps) are left out
 		private const float MinObjectSize = 0.5f;
 		// Faces looking down are never seen from the world map camera
@@ -43,7 +42,8 @@ namespace CarX.Modding.Creator.Editor
 		}
 
 		/// <returns>The document, or null when the map has no geometry for a miniature</returns>
-		public static MiniatureMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded)
+		public static MiniatureMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded,
+			Func<Vector3, bool> isRoad = null)
 		{
 			var candidates = new List<(MeshRenderer renderer, Mesh mesh)>();
 			var bounds = new Bounds();
@@ -89,7 +89,6 @@ namespace CarX.Modding.Creator.Editor
 				return null;
 			}
 
-			float mapArea = Mathf.Max(bounds.size.x * bounds.size.z, 1f);
 			var ground = new Layer();
 			var objects = new Layer();
 			int objectCount = 0;
@@ -102,17 +101,7 @@ namespace CarX.Modding.Creator.Editor
 
 				if (width >= GroundMinWidth && rendererBounds.size.y <= width * GroundMaxHeightRatio)
 				{
-					// Terrain is left out, as on the stock miniatures: the world map background shows through around the roads
-					float area = GetTopArea(mesh, localToWorld);
-
-					if (area < mapArea * TerrainAreaFraction)
-					{
-						AddGroundMesh(mesh, localToWorld, ground);
-					}
-					else
-					{
-						Debug.Log($"[Miniature] '{renderer.name}' covers {area / mapArea:P0} of the map and is left out as terrain.", renderer);
-					}
+					AddGroundMesh(mesh, localToWorld, ground, isRoad);
 				}
 				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
 				{
@@ -176,25 +165,14 @@ namespace CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		// Area of the faces looking up, projected on the ground plane
-		private static float GetTopArea(Mesh mesh, Matrix4x4 localToWorld)
+		// Terrain triangles are left out, as on the stock miniatures: the world map background shows through around the roads
+		// Large terrain triangles often have a grey spot under the middle: all corners must be road too
+		private static bool IsRoadTriangle(Vector3 a, Vector3 b, Vector3 c, Func<Vector3, bool> isRoad)
 		{
-			Vector3[] vertices = mesh.vertices;
-			int[] triangles = mesh.triangles;
-			float area = 0f;
-
-			for (int i = 0; i + 2 < triangles.Length; i += 3)
-			{
-				Vector3 a = localToWorld.MultiplyPoint3x4(vertices[triangles[i]]);
-				Vector3 b = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 1]]);
-				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
-				area += Mathf.Max(0f, Vector3.Cross(b - a, c - a).y) * 0.5f;
-			}
-
-			return area;
+			return isRoad((a + b + c) / 3f) && isRoad(a) && isRoad(b) && isRoad(c);
 		}
 
-		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer layer)
+		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer layer, Func<Vector3, bool> isRoad)
 		{
 			Vector3[] vertices = mesh.vertices;
 			int[] triangles = mesh.triangles;
@@ -206,7 +184,7 @@ namespace CarX.Modding.Creator.Editor
 				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
 				Vector3 normal = Vector3.Cross(b - a, c - a);
 
-				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY)
+				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY || (isRoad != null && !IsRoadTriangle(a, b, c, isRoad)))
 				{
 					continue;
 				}

@@ -9,7 +9,7 @@ namespace CarX.Modding.Creator.Runtime
 	{
 		// Simplified terrain, roads and other large flat surfaces
 		Ground,
-		// Boxes in place of the map objects (buildings, barriers, stands...)
+		// Boxes in place of the map objects (buildings, barriers, stands...): 8 corners per box, one box after another
 		Objects,
 	}
 

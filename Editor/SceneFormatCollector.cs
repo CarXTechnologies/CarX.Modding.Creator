@@ -15,6 +15,9 @@ namespace CarX.Modding.Creator.Editor
 
 		/// <summary>Export the generated 3D miniature for the world map instead of showing the minimap image there.</summary>
 		public bool IsMiniatureEnabled { get; set; }
+
+		/// <summary>Whether the ground at a world point is a road or a pad (drawn in the miniature), not terrain. Null keeps all ground.</summary>
+		public Func<Vector3, bool> MiniatureRoadFilter { get; set; }
 		private readonly string m_sceneName;
 		private readonly string m_tagGarbage;
 		private List<Transform> m_animationRoots;
@@ -76,7 +79,7 @@ namespace CarX.Modding.Creator.Editor
 				modResults.Add(clipZones);
 			}
 
-			MiniatureMeta miniature = IsMiniatureEnabled ? MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage) : null;
+			MiniatureMeta miniature = IsMiniatureEnabled ? MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage, MiniatureRoadFilter) : null;
 
 			if (miniature != null)
 			{
