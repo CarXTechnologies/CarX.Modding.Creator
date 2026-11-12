@@ -14,19 +14,26 @@ namespace CarX.Modding.Creator.Editor
 		public const int MaxGroundTriangles = 120_000;
 		public const int MaxObjects = 20_000;
 		private const int MaxPieceVertices = 200_000;
+		private const int MaxMergedPieces = 20_000;
 
 		// A mesh is ground when it is at least this wide and this part of its surface looks up (terrain slopes included);
 		// buildings and stands have walls
 		private const float GroundMinWidth = 15f;
 		private const float GroundMinTopAreaShare = 0.7f;
 		private const float TopNormalY = 0.3f;
-		// Smaller objects (signs, cones, lamps) are left out
+		// Smaller objects are left out: of the ones marked Miniature/Object, and of the unmarked ones, where barriers, cones,
+		// signs and lamps would only clutter the miniature
 		private const float MinObjectSize = 0.5f;
+		private const float MinUnmarkedObjectSize = 5f;
 		// Faces looking down are never seen from the world map camera
 		private const float MinNormalY = -0.6f;
 		private const int AlphaTestQueue = 2450;
 		private const int MaxSimplifyPasses = 8;
 		private const float GroundCellFraction = 1f / 600f;
+		// A road must stay wider than a cell, or it falls apart: on a map of several kilometers the fraction alone is too coarse
+		private const float MaxGroundCellSize = 1.5f;
+		// A coarser terrain rises over the roads on slopes
+		private const float MaxTerrainCellSize = 6f;
 		private const float TerrainCellFraction = 1f / 150f;
 		private const float MinCellSize = 0.25f;
 
@@ -121,23 +128,16 @@ namespace CarX.Modding.Creator.Editor
 				{
 					AddGroundMesh(mesh, localToWorld, renderer.sharedMaterials, colorSampler, ground, terrain);
 				}
-				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
+				else if (marked == MiniatureMarker.Object)
+				{
+					// The author named it an object: its touching pieces are one box, however detailed the mesh is
+					AddBoxes(MergeTouching(GetPieceBounds(mesh)), MinObjectSize, localToWorld, objects, ref objectCount);
+				}
+				else
 				{
 					// One box per separate piece: a mesh merged from many objects (cars, buildings) would otherwise become one box
 					// over all of them
-					foreach (Bounds piece in GetPieceBounds(mesh))
-					{
-						if (objectCount >= MaxObjects)
-						{
-							break;
-						}
-
-						if (localToWorld.MultiplyVector(piece.size).magnitude >= MinObjectSize)
-						{
-							AddBox(piece, localToWorld, objects);
-							objectCount++;
-						}
-					}
+					AddBoxes(GetPieceBounds(mesh), MinUnmarkedObjectSize, localToWorld, objects, ref objectCount);
 				}
 			}
 
@@ -156,12 +156,12 @@ namespace CarX.Modding.Creator.Editor
 
 			if (ground.triangles.Count > 0)
 			{
-				result.Add(SimplifyGround(ground, mapSize * GroundCellFraction, MiniatureLayerKind.Ground));
+				result.Add(SimplifyGround(ground, Mathf.Min(mapSize * GroundCellFraction, MaxGroundCellSize), MiniatureLayerKind.Ground));
 			}
 
 			if (terrain.triangles.Count > 0)
 			{
-				result.Add(SimplifyGround(terrain, mapSize * TerrainCellFraction, MiniatureLayerKind.Terrain));
+				result.Add(SimplifyGround(terrain, Mathf.Min(mapSize * TerrainCellFraction, MaxTerrainCellSize), MiniatureLayerKind.Terrain));
 			}
 
 			if (objects.triangles.Count > 0)
@@ -362,6 +362,73 @@ namespace CarX.Modding.Creator.Editor
 
 			result.AddRange(pieces.Values);
 			return result;
+		}
+
+		// Pieces whose bounds touch become one piece: a tribune of seats and beams is one object, while the buildings of a mesh
+		// merged from many stay apart
+		private static List<Bounds> MergeTouching(List<Bounds> pieces)
+		{
+			if (pieces.Count < 2 || pieces.Count > MaxMergedPieces)
+			{
+				return pieces;
+			}
+
+			pieces.Sort((a, b) => a.min.x.CompareTo(b.min.x));
+			var parents = new int[pieces.Count];
+
+			for (int i = 0; i < parents.Length; i++)
+			{
+				parents[i] = i;
+			}
+
+			for (int i = 0; i < pieces.Count; i++)
+			{
+				float maxX = pieces[i].max.x;
+
+				for (int j = i + 1; j < pieces.Count && pieces[j].min.x <= maxX; j++)
+				{
+					if (pieces[i].Intersects(pieces[j]))
+					{
+						Union(parents, i, j);
+					}
+				}
+			}
+
+			var merged = new Dictionary<int, Bounds>();
+
+			for (int i = 0; i < pieces.Count; i++)
+			{
+				int root = Find(parents, i);
+
+				if (merged.TryGetValue(root, out Bounds bounds))
+				{
+					bounds.Encapsulate(pieces[i]);
+					merged[root] = bounds;
+				}
+				else
+				{
+					merged.Add(root, pieces[i]);
+				}
+			}
+
+			return new List<Bounds>(merged.Values);
+		}
+
+		private static void AddBoxes(List<Bounds> pieces, float minSize, Matrix4x4 localToWorld, Layer objects, ref int objectCount)
+		{
+			foreach (Bounds piece in pieces)
+			{
+				if (objectCount >= MaxObjects)
+				{
+					return;
+				}
+
+				if (localToWorld.MultiplyVector(piece.size).magnitude >= minSize)
+				{
+					AddBox(piece, localToWorld, objects);
+					objectCount++;
+				}
+			}
 		}
 
 		private static int Find(int[] parents, int index)
