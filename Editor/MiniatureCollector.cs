@@ -13,6 +13,7 @@ namespace CarX.Modding.Creator.Editor
 	{
 		public const int MaxGroundTriangles = 120_000;
 		public const int MaxObjects = 20_000;
+		private const int MaxPieceVertices = 200_000;
 
 		// A mesh is ground when it is at least this wide and this part of its surface looks up (terrain slopes included);
 		// buildings and stands have walls
@@ -122,8 +123,21 @@ namespace CarX.Modding.Creator.Editor
 				}
 				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
 				{
-					AddBox(mesh.bounds, localToWorld, objects);
-					objectCount++;
+					// One box per separate piece: a mesh merged from many objects (cars, buildings) would otherwise become one box
+					// over all of them
+					foreach (Bounds piece in GetPieceBounds(mesh))
+					{
+						if (objectCount >= MaxObjects)
+						{
+							break;
+						}
+
+						if (localToWorld.MultiplyVector(piece.size).magnitude >= MinObjectSize)
+						{
+							AddBox(piece, localToWorld, objects);
+							objectCount++;
+						}
+					}
 				}
 			}
 
@@ -227,7 +241,8 @@ namespace CarX.Modding.Creator.Editor
 
 				total += area;
 
-				if (cross.y / area >= TopNormalY)
+				// Exports often flip the normals of flat meshes: only the slope matters, not the side
+				if (Mathf.Abs(cross.y) / area >= TopNormalY)
 				{
 					top += area;
 				}
@@ -263,9 +278,15 @@ namespace CarX.Modding.Creator.Editor
 				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
 				Vector3 normal = Vector3.Cross(b - a, c - a);
 
-				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY)
+				if (normal.sqrMagnitude < 1e-10f)
 				{
 					continue;
+				}
+
+				// A ground face turned down is a flipped normal: turn it up, the world map camera looks from above
+				if (normal.y < 0f)
+				{
+					(b, c) = (c, b);
 				}
 
 				int start = layer.vertices.Count;
@@ -279,6 +300,86 @@ namespace CarX.Modding.Creator.Editor
 		}
 
 		// The box of the mesh bounds, turned with the object
+		// Local bounds of the separate pieces of a mesh: triangles sharing a vertex position are one piece.
+		// Too detailed meshes stay one piece, splitting them costs more than it gives
+		private static List<Bounds> GetPieceBounds(Mesh mesh)
+		{
+			var result = new List<Bounds>();
+			Vector3[] vertices = mesh.vertices;
+			int[] triangles = mesh.triangles;
+
+			if (vertices.Length == 0 || triangles.Length == 0 || vertices.Length > MaxPieceVertices)
+			{
+				result.Add(mesh.bounds);
+				return result;
+			}
+
+			// Vertices split by normals or UV seams share a position: weld them so a piece is not cut along its seams
+			var welded = new int[vertices.Length];
+			var byPosition = new Dictionary<Vector3, int>();
+
+			for (int i = 0; i < vertices.Length; i++)
+			{
+				if (!byPosition.TryGetValue(vertices[i], out int first))
+				{
+					first = i;
+					byPosition.Add(vertices[i], i);
+				}
+
+				welded[i] = first;
+			}
+
+			var parents = new int[vertices.Length];
+
+			for (int i = 0; i < parents.Length; i++)
+			{
+				parents[i] = i;
+			}
+
+			for (int i = 0; i + 2 < triangles.Length; i += 3)
+			{
+				Union(parents, welded[triangles[i]], welded[triangles[i + 1]]);
+				Union(parents, welded[triangles[i]], welded[triangles[i + 2]]);
+			}
+
+			var pieces = new Dictionary<int, Bounds>();
+
+			foreach (int index in triangles)
+			{
+				int root = Find(parents, welded[index]);
+				Vector3 vertex = vertices[index];
+
+				if (pieces.TryGetValue(root, out Bounds bounds))
+				{
+					bounds.Encapsulate(vertex);
+					pieces[root] = bounds;
+				}
+				else
+				{
+					pieces.Add(root, new Bounds(vertex, Vector3.zero));
+				}
+			}
+
+			result.AddRange(pieces.Values);
+			return result;
+		}
+
+		private static int Find(int[] parents, int index)
+		{
+			while (parents[index] != index)
+			{
+				parents[index] = parents[parents[index]];
+				index = parents[index];
+			}
+
+			return index;
+		}
+
+		private static void Union(int[] parents, int a, int b)
+		{
+			parents[Find(parents, a)] = Find(parents, b);
+		}
+
 		private static void AddBox(Bounds localBounds, Matrix4x4 localToWorld, Layer layer)
 		{
 			int start = layer.vertices.Count;
