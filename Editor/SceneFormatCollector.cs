@@ -16,9 +16,6 @@ namespace CarX.Modding.Creator.Editor
 		/// <summary>Export the generated 3D miniature for the world map instead of showing the minimap image there.</summary>
 		public bool IsMiniatureEnabled { get; set; }
 
-		/// <summary>Whether the ground at a world point is a road or a pad (drawn in the miniature), not terrain. Null keeps all ground.</summary>
-		public Func<Vector3, bool> MiniatureRoadFilter { get; set; }
-
 		/// <summary>The miniature mesh kept by the author (generated earlier or their own); null generates the miniature at export.</summary>
 		public Mesh MiniatureMesh { get; set; }
 		private readonly string m_sceneName;
@@ -84,7 +81,7 @@ namespace CarX.Modding.Creator.Editor
 
 			MiniatureMeta miniature = !IsMiniatureEnabled ? null
 				: MiniatureMesh != null ? MiniatureMeshUtility.FromMesh(m_sceneName, version, MiniatureMesh)
-				: MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage, MiniatureRoadFilter);
+				: MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage);
 
 			if (miniature != null)
 			{

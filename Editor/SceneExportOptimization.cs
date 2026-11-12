@@ -128,10 +128,11 @@ namespace CarX.Modding.Creator.Editor
 
 			// Road and Material do not prevent merging: the surface is part of the sector key, an overridden material is a separate submesh
 			// (a variant with layer vertex colors is also a separate key, see AddMesh).
+			// Miniature does not either: the miniature is built from the scene before the optimization.
 			for (Transform t = transform; t != null; t = t.parent)
 			{
 				if (t.CompareTag("Garbage") || t.GetComponents<Component>().Any(c => c is IMarkerDataSource marker && marker.MarkerHead != "Road" &&
-					marker.MarkerHead != RenderCoreMaterialMarkerSettings.MarkerHead))
+					marker.MarkerHead != RenderCoreMaterialMarkerSettings.MarkerHead && marker.MarkerHead != MiniatureMarker.Head))
 				{
 					return false;
 				}

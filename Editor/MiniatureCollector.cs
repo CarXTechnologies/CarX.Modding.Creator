@@ -5,17 +5,20 @@ using UnityEngine;
 
 namespace CarX.Modding.Creator.Editor
 {
-	// Generates the world map miniature in the style of the stock track miniatures: roads and pads (large flat meshes)
-	// become the simplified ground, every other object a box of its bounds, terrain is left out.
-	// Road or terrain is decided per ground triangle by isRoad (the exporter samples the minimap image there)
+	// Generates the world map miniature in the style of the stock track miniatures. The Miniature game marker on an object or its
+	// parent says what it is (road, terrain, object box or hidden). Without a marker: large meshes made mostly of faces looking up
+	// are ground, their submeshes with grey materials (asphalt, concrete) roads and pads, the others a coarse terrain backdrop;
+	// every other object becomes a box of its bounds
 	public static class MiniatureCollector
 	{
 		public const int MaxGroundTriangles = 120_000;
 		public const int MaxObjects = 20_000;
 
-		// A mesh is ground when it is wide and low: at least this wide, and lower than this part of its width
+		// A mesh is ground when it is at least this wide and this part of its surface looks up (terrain slopes included);
+		// buildings and stands have walls
 		private const float GroundMinWidth = 15f;
-		private const float GroundMaxHeightRatio = 0.25f;
+		private const float GroundMinTopAreaShare = 0.7f;
+		private const float TopNormalY = 0.3f;
 		// Smaller objects (signs, cones, lamps) are left out
 		private const float MinObjectSize = 0.5f;
 		// Faces looking down are never seen from the world map camera
@@ -43,8 +46,7 @@ namespace CarX.Modding.Creator.Editor
 		}
 
 		/// <returns>The document, or null when the map has no geometry for a miniature</returns>
-		public static MiniatureMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded,
-			Func<Vector3, bool> isRoad = null)
+		public static MiniatureMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded)
 		{
 			var candidates = new List<(MeshRenderer renderer, Mesh mesh)>();
 			var bounds = new Bounds();
@@ -95,15 +97,28 @@ namespace CarX.Modding.Creator.Editor
 			var objects = new Layer();
 			int objectCount = 0;
 
+			using var colorSampler = new MaterialColorSampler();
+
 			foreach ((MeshRenderer renderer, Mesh mesh) in candidates)
 			{
 				Bounds rendererBounds = renderer.bounds;
 				float width = Mathf.Max(rendererBounds.size.x, rendererBounds.size.z);
 				Matrix4x4 localToWorld = renderer.transform.localToWorldMatrix;
 
-				if (width >= GroundMinWidth && rendererBounds.size.y <= width * GroundMaxHeightRatio)
+				string marked = GetMarkedKind(renderer.transform);
+
+				if (marked == MiniatureMarker.Hidden)
 				{
-					AddGroundMesh(mesh, localToWorld, ground, terrain, isRoad);
+					continue;
+				}
+
+				if (marked == MiniatureMarker.Road || marked == MiniatureMarker.Terrain)
+				{
+					AddGroundMesh(mesh, localToWorld, marked == MiniatureMarker.Road ? ground : terrain);
+				}
+				else if (marked == null && width >= GroundMinWidth && GetTopAreaShare(mesh, localToWorld) >= GroundMinTopAreaShare)
+				{
+					AddGroundMesh(mesh, localToWorld, renderer.sharedMaterials, colorSampler, ground, terrain);
 				}
 				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
 				{
@@ -172,18 +187,75 @@ namespace CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		// Large terrain triangles often have a grey spot under the middle: all corners must be road too
-		private static bool IsRoadTriangle(Vector3 a, Vector3 b, Vector3 c, Func<Vector3, bool> isRoad)
+		// The param of the nearest Miniature marker on the object or its parents, or null
+		private static string GetMarkedKind(Transform transform)
 		{
-			return isRoad((a + b + c) / 3f) && isRoad(a) && isRoad(b) && isRoad(c);
+			for (Transform t = transform; t != null; t = t.parent)
+			{
+				foreach (IMarkerDataSource marker in t.GetComponents<IMarkerDataSource>())
+				{
+					if (marker.MarkerHead == MiniatureMarker.Head)
+					{
+						return marker.MarkerParam;
+					}
+				}
+			}
+
+			return null;
 		}
 
-		// Road triangles go to the ground layer, terrain triangles to the terrain backdrop
-		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer ground, Layer terrain, Func<Vector3, bool> isRoad)
+		// Part of the mesh surface area made of faces looking up
+		private static float GetTopAreaShare(Mesh mesh, Matrix4x4 localToWorld)
 		{
 			Vector3[] vertices = mesh.vertices;
 			int[] triangles = mesh.triangles;
+			float top = 0f;
+			float total = 0f;
 
+			for (int i = 0; i + 2 < triangles.Length; i += 3)
+			{
+				Vector3 a = localToWorld.MultiplyPoint3x4(vertices[triangles[i]]);
+				Vector3 b = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 1]]);
+				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
+				Vector3 cross = Vector3.Cross(b - a, c - a);
+				float area = cross.magnitude;
+
+				if (area < 1e-6f)
+				{
+					continue;
+				}
+
+				total += area;
+
+				if (cross.y / area >= TopNormalY)
+				{
+					top += area;
+				}
+			}
+
+			return total > 0f ? top / total : 0f;
+		}
+
+		// Submeshes with road materials go to the ground layer, the others to the terrain backdrop
+		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Material[] materials, MaterialColorSampler colorSampler,
+			Layer ground, Layer terrain)
+		{
+			Vector3[] vertices = mesh.vertices;
+
+			for (int submesh = 0; submesh < mesh.subMeshCount; submesh++)
+			{
+				Material material = materials.Length > 0 ? materials[Mathf.Min(submesh, materials.Length - 1)] : null;
+				AddTriangles(vertices, mesh.GetTriangles(submesh), localToWorld, colorSampler.IsRoad(material) ? ground : terrain);
+			}
+		}
+
+		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer layer)
+		{
+			AddTriangles(mesh.vertices, mesh.triangles, localToWorld, layer);
+		}
+
+		private static void AddTriangles(Vector3[] vertices, int[] triangles, Matrix4x4 localToWorld, Layer layer)
+		{
 			for (int i = 0; i + 2 < triangles.Length; i += 3)
 			{
 				Vector3 a = localToWorld.MultiplyPoint3x4(vertices[triangles[i]]);
@@ -195,8 +267,6 @@ namespace CarX.Modding.Creator.Editor
 				{
 					continue;
 				}
-
-				Layer layer = isRoad == null || IsRoadTriangle(a, b, c, isRoad) ? ground : terrain;
 
 				int start = layer.vertices.Count;
 				layer.vertices.Add(a);
