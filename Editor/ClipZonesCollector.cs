@@ -1,51 +1,54 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CarX.Modding.Creator.Runtime;
 using UnityEngine;
 
 namespace CarX.Modding.Creator.Editor
 {
-	// Collects ModClipZone and ModClipChain components of the exported map into the clipping zones document
+	// Collects the ClipZone game markers of the exported map into the clipping zones document
 	public static class ClipZonesCollector
 	{
 		public const int MaxZones = 256;
 		public const int MaxPointsPerZone = 64;
 		private const float MinZoneLength = 0.5f;
 
+		private readonly struct ZoneMarker
+		{
+			public readonly Component component;
+			public readonly ClipZoneMarkerSettings settings;
+
+			public ZoneMarker(Component component, ClipZoneMarkerSettings settings)
+			{
+				this.component = component;
+				this.settings = settings;
+			}
+		}
+
 		/// <returns>The document, or null when the map has no valid zones</returns>
 		public static ClipZonesMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded)
 		{
-			var zoneIndexes = new Dictionary<ModClipZone, int>();
 			var zones = new List<ClipZoneInstance>();
+			var exported = new List<ZoneMarker>();
 			var points = new List<Vector3>();
 
-			foreach (ModClipZone zone in GetComponents<ModClipZone>(roots, isExcluded))
+			foreach (ZoneMarker marker in GetMarkers(roots, isExcluded))
 			{
 				if (zones.Count >= MaxZones)
 				{
-					Debug.LogWarning($"[ClipZones] More than {MaxZones} clipping zones: '{zone.name}' and the rest are not exported.", zone);
+					Debug.LogWarning($"[ClipZones] More than {MaxZones} clipping zones: '{marker.component.name}' and the rest are not exported.", marker.component);
 					break;
 				}
 
-				zone.GetPoints(points);
+				ClipZoneMarkerSettings.GetPoints(marker.component.transform, points);
 
-				if (!TryValidate(zone, points))
+				if (!TryValidate(marker.component, points))
 				{
 					continue;
 				}
 
-				zoneIndexes.Add(zone, zones.Count);
-				zones.Add(new ClipZoneInstance
-				{
-					kind = zone.kind,
-					points = points.ToArray(),
-					halfWidth = Mathf.Clamp(zone.halfWidth, ModClipZone.MinHalfWidth, ModClipZone.MaxHalfWidth),
-					innerSide = zone.innerSide,
-					tripleKind = zone.tripleKind,
-					blocksCount = Mathf.Clamp(zone.blocksCount, ModClipZone.MinBlocks, ModClipZone.MaxBlocks),
-					blockLength = Mathf.Clamp(zone.blockLength, ModClipZone.MinBlockLength, ModClipZone.MaxBlockLength),
-					extendedAreaWidthFactor = Mathf.Clamp01(zone.extendedAreaWidthFactor),
-				});
+				zones.Add(CreateZone(marker.settings, points));
+				exported.Add(marker);
 			}
 
 			if (zones.Count == 0)
@@ -53,61 +56,72 @@ namespace CarX.Modding.Creator.Editor
 				return null;
 			}
 
-			List<ClipChainInstance> chains = CollectChains(roots, isExcluded, zoneIndexes);
+			List<ClipChainInstance> chains = CollectChains(exported);
 
 			Debug.Log($"[ClipZones] Exported {zones.Count} clipping zones in {chains.Count} chains.");
 			return new ClipZonesMeta(id, version, zones, chains);
 		}
 
-		private static List<ClipChainInstance> CollectChains(Transform[] roots, Func<Transform, bool> isExcluded, Dictionary<ModClipZone, int> zoneIndexes)
+		private static ClipZoneInstance CreateZone(ClipZoneMarkerSettings settings, List<Vector3> points)
+		{
+			var zone = new ClipZoneInstance
+			{
+				kind = settings.Kind,
+				points = points.ToArray(),
+				halfWidth = Mathf.Clamp(settings.halfWidth, ClipZoneMarkerSettings.MinHalfWidth, ClipZoneMarkerSettings.MaxHalfWidth),
+			};
+
+			if (settings is TripleClipZoneMarkerSettings triple)
+			{
+				zone.innerSide = triple.innerSide;
+				zone.tripleKind = triple.tripleKind;
+				zone.blocksCount = Mathf.Clamp(triple.blocksCount, TripleClipZoneMarkerSettings.MinBlocks, TripleClipZoneMarkerSettings.MaxBlocks);
+				zone.blockLength = Mathf.Clamp(triple.blockLength, TripleClipZoneMarkerSettings.MinBlockLength, TripleClipZoneMarkerSettings.MaxBlockLength);
+				zone.extendedAreaWidthFactor = Mathf.Clamp01(triple.extendedAreaWidthFactor);
+			}
+
+			return zone;
+		}
+
+		// Zones with the same chain name form one chain in their order; the game counts zones only within chains,
+		// so a zone without a chain name becomes a chain of its own
+		private static List<ClipChainInstance> CollectChains(List<ZoneMarker> exported)
 		{
 			var chains = new List<ClipChainInstance>();
-			var chainedZones = new HashSet<int>();
-			var chainZones = new List<int>();
+			var named = new Dictionary<string, List<int>>();
+			var namedOrder = new List<string>();
 
-			foreach (ModClipChain chain in GetComponents<ModClipChain>(roots, isExcluded))
+			for (int i = 0; i < exported.Count; i++)
 			{
-				chainZones.Clear();
+				string chain = exported[i].settings.chain?.Trim();
 
-				foreach (ModClipZone zone in chain.zones)
+				if (string.IsNullOrEmpty(chain))
 				{
-					if (zone == null)
-					{
-						continue;
-					}
-
-					if (!zoneIndexes.TryGetValue(zone, out int index))
-					{
-						Debug.LogWarning($"[ClipZones] Chain '{chain.name}' has zone '{zone.name}' that is not exported (outside the map, disabled or invalid).", chain);
-						continue;
-					}
-
-					chainZones.Add(index);
-					chainedZones.Add(index);
-				}
-
-				if (chainZones.Count == 0)
-				{
-					Debug.LogWarning($"[ClipZones] Chain '{chain.name}' has no exported zones and is skipped.", chain);
+					chains.Add(new ClipChainInstance { name = exported[i].component.name, zones = new[] { i } });
 					continue;
 				}
 
-				chains.Add(new ClipChainInstance { name = chain.name, zones = chainZones.ToArray() });
+				if (!named.TryGetValue(chain, out List<int> zones))
+				{
+					zones = new List<int>();
+					named.Add(chain, zones);
+					namedOrder.Add(chain);
+				}
+
+				zones.Add(i);
 			}
 
-			// The game counts zones only within chains: a zone in no chain becomes a chain of its own
-			foreach (KeyValuePair<ModClipZone, int> pair in zoneIndexes)
+			foreach (string chain in namedOrder)
 			{
-				if (!chainedZones.Contains(pair.Value))
-				{
-					chains.Add(new ClipChainInstance { name = pair.Key.name, zones = new[] { pair.Value } });
-				}
+				// Stable: zones with the same order keep the hierarchy order
+				int[] zones = named[chain].OrderBy(i => exported[i].settings.order).ToArray();
+				chains.Add(new ClipChainInstance { name = chain, zones = zones });
 			}
 
 			return chains;
 		}
 
-		private static bool TryValidate(ModClipZone zone, List<Vector3> points)
+		private static bool TryValidate(Component zone, List<Vector3> points)
 		{
 			if (points.Count < 2)
 			{
@@ -137,7 +151,7 @@ namespace CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		private static IEnumerable<T> GetComponents<T>(Transform[] roots, Func<Transform, bool> isExcluded) where T : Component
+		private static IEnumerable<ZoneMarker> GetMarkers(Transform[] roots, Func<Transform, bool> isExcluded)
 		{
 			foreach (Transform root in roots)
 			{
@@ -146,11 +160,12 @@ namespace CarX.Modding.Creator.Editor
 					continue;
 				}
 
-				foreach (T component in root.GetComponentsInChildren<T>(includeInactive: false))
+				foreach (MonoBehaviour component in root.GetComponentsInChildren<MonoBehaviour>(includeInactive: false))
 				{
-					if (isExcluded == null || !isExcluded(component.transform))
+					if (component is IMarkerDataSource { MarkerHead: ClipZoneMarkerSettings.MarkerHead, MarkerData: ClipZoneMarkerSettings settings } &&
+						component.enabled && (isExcluded == null || !isExcluded(component.transform)))
 					{
-						yield return component;
+						yield return new ZoneMarker(component, settings);
 					}
 				}
 			}
