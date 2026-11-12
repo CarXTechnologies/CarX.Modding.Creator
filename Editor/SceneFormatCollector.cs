@@ -12,6 +12,9 @@ namespace CarX.Modding.Creator.Editor
 	{
 		private readonly Transform[] m_roots;
 		public SceneExportOptimization Optimization { get; set; }
+
+		/// <summary>Export the generated 3D miniature for the world map instead of showing the minimap image there.</summary>
+		public bool IsMiniatureEnabled { get; set; }
 		private readonly string m_sceneName;
 		private readonly string m_tagGarbage;
 		private List<Transform> m_animationRoots;
@@ -71,6 +74,13 @@ namespace CarX.Modding.Creator.Editor
 			if (clipZones != null)
 			{
 				modResults.Add(clipZones);
+			}
+
+			MiniatureMeta miniature = IsMiniatureEnabled ? MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage) : null;
+
+			if (miniature != null)
+			{
+				modResults.Add(miniature);
 			}
 
 			return modResults;
