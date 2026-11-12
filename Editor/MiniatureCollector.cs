@@ -23,6 +23,7 @@ namespace CarX.Modding.Creator.Editor
 		private const int AlphaTestQueue = 2450;
 		private const int MaxSimplifyPasses = 8;
 		private const float GroundCellFraction = 1f / 600f;
+		private const float TerrainCellFraction = 1f / 150f;
 		private const float MinCellSize = 0.25f;
 
 		// Box faces without the bottom one, as corner indexes of GetCorners, counter-clockwise from outside
@@ -90,6 +91,7 @@ namespace CarX.Modding.Creator.Editor
 			}
 
 			var ground = new Layer();
+			var terrain = new Layer();
 			var objects = new Layer();
 			int objectCount = 0;
 
@@ -101,7 +103,7 @@ namespace CarX.Modding.Creator.Editor
 
 				if (width >= GroundMinWidth && rendererBounds.size.y <= width * GroundMaxHeightRatio)
 				{
-					AddGroundMesh(mesh, localToWorld, ground, isRoad);
+					AddGroundMesh(mesh, localToWorld, ground, terrain, isRoad);
 				}
 				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
 				{
@@ -125,7 +127,12 @@ namespace CarX.Modding.Creator.Editor
 
 			if (ground.triangles.Count > 0)
 			{
-				result.Add(SimplifyGround(ground, mapSize));
+				result.Add(SimplifyGround(ground, mapSize * GroundCellFraction, MiniatureLayerKind.Ground));
+			}
+
+			if (terrain.triangles.Count > 0)
+			{
+				result.Add(SimplifyGround(terrain, mapSize * TerrainCellFraction, MiniatureLayerKind.Terrain));
 			}
 
 			if (objects.triangles.Count > 0)
@@ -165,14 +172,14 @@ namespace CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		// Terrain triangles are left out, as on the stock miniatures: the world map background shows through around the roads
 		// Large terrain triangles often have a grey spot under the middle: all corners must be road too
 		private static bool IsRoadTriangle(Vector3 a, Vector3 b, Vector3 c, Func<Vector3, bool> isRoad)
 		{
 			return isRoad((a + b + c) / 3f) && isRoad(a) && isRoad(b) && isRoad(c);
 		}
 
-		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer layer, Func<Vector3, bool> isRoad)
+		// Road triangles go to the ground layer, terrain triangles to the terrain backdrop
+		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer ground, Layer terrain, Func<Vector3, bool> isRoad)
 		{
 			Vector3[] vertices = mesh.vertices;
 			int[] triangles = mesh.triangles;
@@ -184,10 +191,12 @@ namespace CarX.Modding.Creator.Editor
 				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
 				Vector3 normal = Vector3.Cross(b - a, c - a);
 
-				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY || (isRoad != null && !IsRoadTriangle(a, b, c, isRoad)))
+				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY)
 				{
 					continue;
 				}
+
+				Layer layer = isRoad == null || IsRoadTriangle(a, b, c, isRoad) ? ground : terrain;
 
 				int start = layer.vertices.Count;
 				layer.vertices.Add(a);
@@ -224,14 +233,14 @@ namespace CarX.Modding.Creator.Editor
 		}
 
 		// Coarser cells on each pass until the ground fits MaxGroundTriangles
-		private static MiniatureLayer SimplifyGround(Layer ground, float mapSize)
+		private static MiniatureLayer SimplifyGround(Layer ground, float cellSize, MiniatureLayerKind kind)
 		{
 			MiniatureLayer result = null;
-			float cellSize = Mathf.Max(mapSize * GroundCellFraction, MinCellSize);
+			cellSize = Mathf.Max(cellSize, MinCellSize);
 
 			for (int pass = 0; pass < MaxSimplifyPasses; pass++, cellSize *= 1.6f)
 			{
-				result = Cluster(ground, cellSize);
+				result = Cluster(ground, cellSize, kind);
 
 				if (result.triangles.Length / 3 <= MaxGroundTriangles)
 				{
@@ -244,7 +253,7 @@ namespace CarX.Modding.Creator.Editor
 		}
 
 		// Vertex clustering: vertices of one grid cell merge into their average, triangles collapsed to a line or a point are dropped
-		private static MiniatureLayer Cluster(Layer source, float cellSize)
+		private static MiniatureLayer Cluster(Layer source, float cellSize, MiniatureLayerKind kind)
 		{
 			var cells = new Dictionary<Vector3Int, int>();
 			var sums = new List<Vector3>();
@@ -306,7 +315,7 @@ namespace CarX.Modding.Creator.Editor
 				triangles[i] = index;
 			}
 
-			return new MiniatureLayer { kind = MiniatureLayerKind.Ground, vertices = vertices.ToArray(), triangles = triangles.ToArray() };
+			return new MiniatureLayer { kind = kind, vertices = vertices.ToArray(), triangles = triangles.ToArray() };
 		}
 
 		private static (int, int, int) SortedKey(int a, int b, int c)

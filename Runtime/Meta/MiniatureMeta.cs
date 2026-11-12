@@ -7,10 +7,12 @@ namespace CarX.Modding.Creator.Runtime
 	// Kind of a world map miniature layer. The game shades both in grey by height
 	public enum MiniatureLayerKind
 	{
-		// Simplified terrain, roads and other large flat surfaces
+		// Roads, pads and other large flat drivable surfaces
 		Ground,
 		// Boxes in place of the map objects (buildings, barriers, stands...): 8 corners per box, one box after another
 		Objects,
+		// Coarse terrain under the roads, drawn as a dark backdrop
+		Terrain,
 	}
 
 	[Serializable]
