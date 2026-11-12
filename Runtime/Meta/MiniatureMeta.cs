@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CarX.Modding.Creator.Runtime
 {
-	// Kind of a world map miniature layer: the game draws each kind in the color of the stock track miniatures
+	// Kind of a world map miniature layer: the game drapes the minimap image over the layers and shades the walls
 	public enum MiniatureLayerKind
 	{
 		Track,
