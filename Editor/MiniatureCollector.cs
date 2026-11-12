@@ -5,27 +5,35 @@ using UnityEngine;
 
 namespace CarX.Modding.Creator.Editor
 {
-	// Generates the world map miniature: the map triangles sorted into layers by the Road marker surface and the face slope,
-	// then simplified by vertex clustering until the miniature fits the triangle budget
+	// Generates the world map miniature in the style of the stock track miniatures: roads and pads (large flat meshes)
+	// become the simplified ground, every other object a box of its bounds, terrain is left out
 	public static class MiniatureCollector
 	{
-		public const int MaxTriangles = 150_000;
+		public const int MaxGroundTriangles = 120_000;
+		public const int MaxObjects = 20_000;
 
-		private const string RoadHead = "Road";
-		private const string KerbSurface = "kerb_racetrack";
-		// Faces steeper than this are walls; flatter faces are ground or road
-		private const float WallNormalY = 0.6f;
+		// A mesh is ground when it is wide and low: at least this wide, and lower than this part of its width
+		private const float GroundMinWidth = 15f;
+		private const float GroundMaxHeightRatio = 0.25f;
+		// A ground mesh covering this part of the map area or more is terrain, not a road or a pad
+		private const float TerrainAreaFraction = 0.25f;
+		// Smaller objects (signs, cones, lamps) are left out
+		private const float MinObjectSize = 0.5f;
+		// Faces looking down are never seen from the world map camera
+		private const float MinNormalY = -0.6f;
 		private const int AlphaTestQueue = 2450;
 		private const int MaxSimplifyPasses = 8;
+		private const float GroundCellFraction = 1f / 600f;
+		private const float MinCellSize = 0.25f;
 
-		// Cell size of each layer relative to the larger side of the map: roads keep more detail than the surroundings
-		private static readonly float[] s_cellFractions = { 1f / 1500f, 1f / 1500f, 1f / 300f, 1f / 500f };
-		private const float MinCellSize = 0.2f;
-
-		// Surfaces drawn as ground, not as track; everything else (asphalt, concrete, default...) is track
-		private static readonly HashSet<string> s_groundSurfaces = new(StringComparer.OrdinalIgnoreCase)
+		// Box faces without the bottom one, as corner indexes of GetCorners, counter-clockwise from outside
+		private static readonly int[] s_boxTriangles =
 		{
-			"dirt", "earth", "grass", "gravel", "sand", "snow", "snow_deep", "snow_gravel", "ice_snowy", "liquid_water",
+			4, 6, 7, 4, 7, 5, // top
+			0, 4, 5, 0, 5, 1, // -z
+			2, 3, 7, 2, 7, 6, // +z
+			0, 2, 6, 0, 6, 4, // -x
+			1, 5, 7, 1, 7, 3, // +x
 		};
 
 		private sealed class Layer
@@ -37,13 +45,7 @@ namespace CarX.Modding.Creator.Editor
 		/// <returns>The document, or null when the map has no geometry for a miniature</returns>
 		public static MiniatureMeta Collect(string id, string version, Transform[] roots, Func<Transform, bool> isExcluded)
 		{
-			var layers = new Layer[Enum.GetValues(typeof(MiniatureLayerKind)).Length];
-
-			for (int i = 0; i < layers.Length; i++)
-			{
-				layers[i] = new Layer();
-			}
-
+			var candidates = new List<(MeshRenderer renderer, Mesh mesh)>();
 			var bounds = new Bounds();
 			bool hasBounds = false;
 
@@ -68,18 +70,15 @@ namespace CarX.Modding.Creator.Editor
 						continue;
 					}
 
-					MiniatureLayerKind? surfaceKind = GetSurfaceKind(renderer.transform);
-					AddMesh(mesh, renderer.transform.localToWorldMatrix, surfaceKind, layers);
-
-					Bounds rendererBounds = renderer.bounds;
+					candidates.Add((renderer, mesh));
 
 					if (hasBounds)
 					{
-						bounds.Encapsulate(rendererBounds);
+						bounds.Encapsulate(renderer.bounds);
 					}
 					else
 					{
-						bounds = rendererBounds;
+						bounds = renderer.bounds;
 						hasBounds = true;
 					}
 				}
@@ -90,16 +89,63 @@ namespace CarX.Modding.Creator.Editor
 				return null;
 			}
 
-			float mapSize = Mathf.Max(bounds.size.x, bounds.size.z, 1f);
-			List<MiniatureLayer> result = Simplify(layers, mapSize);
+			float mapArea = Mathf.Max(bounds.size.x * bounds.size.z, 1f);
+			var ground = new Layer();
+			var objects = new Layer();
+			int objectCount = 0;
 
-			if (result.Count == 0)
+			foreach ((MeshRenderer renderer, Mesh mesh) in candidates)
+			{
+				Bounds rendererBounds = renderer.bounds;
+				float width = Mathf.Max(rendererBounds.size.x, rendererBounds.size.z);
+				Matrix4x4 localToWorld = renderer.transform.localToWorldMatrix;
+
+				if (width >= GroundMinWidth && rendererBounds.size.y <= width * GroundMaxHeightRatio)
+				{
+					// Terrain is left out, as on the stock miniatures: the world map background shows through around the roads
+					float area = GetTopArea(mesh, localToWorld);
+
+					if (area < mapArea * TerrainAreaFraction)
+					{
+						AddGroundMesh(mesh, localToWorld, ground);
+					}
+					else
+					{
+						Debug.Log($"[Miniature] '{renderer.name}' covers {area / mapArea:P0} of the map and is left out as terrain.", renderer);
+					}
+				}
+				else if (rendererBounds.size.magnitude >= MinObjectSize && objectCount < MaxObjects)
+				{
+					AddBox(mesh.bounds, localToWorld, objects);
+					objectCount++;
+				}
+			}
+
+			if (objectCount >= MaxObjects)
+			{
+				Debug.LogWarning($"[Miniature] More than {MaxObjects} objects: the rest are not in the miniature.");
+			}
+
+			if (ground.triangles.Count == 0 && objects.triangles.Count == 0)
 			{
 				return null;
 			}
 
+			float mapSize = Mathf.Max(bounds.size.x, bounds.size.z, 1f);
+			var result = new List<MiniatureLayer>();
+
+			if (ground.triangles.Count > 0)
+			{
+				result.Add(SimplifyGround(ground, mapSize));
+			}
+
+			if (objects.triangles.Count > 0)
+			{
+				result.Add(new MiniatureLayer { kind = MiniatureLayerKind.Objects, vertices = objects.vertices.ToArray(), triangles = objects.triangles.ToArray() });
+			}
+
 			float baseHeight = GetBaseHeight(result);
-			Debug.Log($"[Miniature] Exported {CountTriangles(result)} triangles in {result.Count} layers (map {mapSize:F0} m).");
+			Debug.Log($"[Miniature] Exported {CountTriangles(result, MiniatureLayerKind.Ground)} ground triangles and {objectCount} object boxes (map {mapSize:F0} m).");
 
 			return new MiniatureMeta(id, version, baseHeight, result);
 		}
@@ -130,33 +176,25 @@ namespace CarX.Modding.Creator.Editor
 			return true;
 		}
 
-		private static MiniatureLayerKind? GetSurfaceKind(Transform transform)
+		// Area of the faces looking up, projected on the ground plane
+		private static float GetTopArea(Mesh mesh, Matrix4x4 localToWorld)
 		{
-			for (Transform t = transform; t != null; t = t.parent)
+			Vector3[] vertices = mesh.vertices;
+			int[] triangles = mesh.triangles;
+			float area = 0f;
+
+			for (int i = 0; i + 2 < triangles.Length; i += 3)
 			{
-				foreach (IMarkerDataSource marker in t.GetComponents<IMarkerDataSource>())
-				{
-					if (marker.MarkerHead != RoadHead)
-					{
-						continue;
-					}
-
-					string param = marker.MarkerParam ?? string.Empty;
-					string surface = param.Substring(param.IndexOf('/') + 1);
-
-					if (surface.Equals(KerbSurface, StringComparison.OrdinalIgnoreCase))
-					{
-						return MiniatureLayerKind.Kerb;
-					}
-
-					return s_groundSurfaces.Contains(surface) ? MiniatureLayerKind.Ground : MiniatureLayerKind.Track;
-				}
+				Vector3 a = localToWorld.MultiplyPoint3x4(vertices[triangles[i]]);
+				Vector3 b = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 1]]);
+				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
+				area += Mathf.Max(0f, Vector3.Cross(b - a, c - a).y) * 0.5f;
 			}
 
-			return null;
+			return area;
 		}
 
-		private static void AddMesh(Mesh mesh, Matrix4x4 localToWorld, MiniatureLayerKind? surfaceKind, Layer[] layers)
+		private static void AddGroundMesh(Mesh mesh, Matrix4x4 localToWorld, Layer layer)
 		{
 			Vector3[] vertices = mesh.vertices;
 			int[] triangles = mesh.triangles;
@@ -168,24 +206,11 @@ namespace CarX.Modding.Creator.Editor
 				Vector3 c = localToWorld.MultiplyPoint3x4(vertices[triangles[i + 2]]);
 				Vector3 normal = Vector3.Cross(b - a, c - a);
 
-				if (normal.sqrMagnitude < 1e-10f)
+				if (normal.sqrMagnitude < 1e-10f || normal.normalized.y <= MinNormalY)
 				{
 					continue;
 				}
 
-				float normalY = normal.normalized.y;
-
-				// Faces looking down are never seen from the world map camera
-				if (normalY <= -WallNormalY)
-				{
-					continue;
-				}
-
-				MiniatureLayerKind kind = Mathf.Abs(normalY) < WallNormalY
-					? MiniatureLayerKind.Walls
-					: surfaceKind ?? MiniatureLayerKind.Ground;
-
-				Layer layer = layers[(int)kind];
 				int start = layer.vertices.Count;
 				layer.vertices.Add(a);
 				layer.vertices.Add(b);
@@ -196,44 +221,52 @@ namespace CarX.Modding.Creator.Editor
 			}
 		}
 
-		// Coarser cells on each pass until the miniature fits MaxTriangles
-		private static List<MiniatureLayer> Simplify(Layer[] layers, float mapSize)
+		// The box of the mesh bounds, turned with the object
+		private static void AddBox(Bounds localBounds, Matrix4x4 localToWorld, Layer layer)
 		{
-			List<MiniatureLayer> result = null;
-			float scale = 1f;
+			int start = layer.vertices.Count;
+			Vector3 min = localBounds.min;
+			Vector3 max = localBounds.max;
 
-			for (int pass = 0; pass < MaxSimplifyPasses; pass++, scale *= 1.6f)
+			for (int i = 0; i < 8; i++)
 			{
-				result = new List<MiniatureLayer>();
+				var corner = new Vector3((i & 1) == 0 ? min.x : max.x, (i & 4) == 0 ? min.y : max.y, (i & 2) == 0 ? min.z : max.z);
+				layer.vertices.Add(localToWorld.MultiplyPoint3x4(corner));
+			}
 
-				for (int kind = 0; kind < layers.Length; kind++)
-				{
-					if (layers[kind].triangles.Count == 0)
-					{
-						continue;
-					}
+			// A mirrored transform turns the faces inside out
+			bool isMirrored = localToWorld.determinant < 0f;
 
-					float cellSize = Mathf.Max(mapSize * s_cellFractions[kind] * scale, MinCellSize);
-					MiniatureLayer layer = Cluster(layers[kind], cellSize, (MiniatureLayerKind)kind);
+			for (int i = 0; i < s_boxTriangles.Length; i += 3)
+			{
+				layer.triangles.Add(start + s_boxTriangles[i]);
+				layer.triangles.Add(start + s_boxTriangles[isMirrored ? i + 2 : i + 1]);
+				layer.triangles.Add(start + s_boxTriangles[isMirrored ? i + 1 : i + 2]);
+			}
+		}
 
-					if (layer.triangles.Length > 0)
-					{
-						result.Add(layer);
-					}
-				}
+		// Coarser cells on each pass until the ground fits MaxGroundTriangles
+		private static MiniatureLayer SimplifyGround(Layer ground, float mapSize)
+		{
+			MiniatureLayer result = null;
+			float cellSize = Mathf.Max(mapSize * GroundCellFraction, MinCellSize);
 
-				if (CountTriangles(result) <= MaxTriangles)
+			for (int pass = 0; pass < MaxSimplifyPasses; pass++, cellSize *= 1.6f)
+			{
+				result = Cluster(ground, cellSize);
+
+				if (result.triangles.Length / 3 <= MaxGroundTriangles)
 				{
 					return result;
 				}
 			}
 
-			Debug.LogWarning($"[Miniature] The map is too detailed: the miniature keeps {CountTriangles(result)} triangles over the budget of {MaxTriangles}.");
+			Debug.LogWarning($"[Miniature] The ground is too detailed: it keeps {result.triangles.Length / 3} triangles over the budget of {MaxGroundTriangles}.");
 			return result;
 		}
 
 		// Vertex clustering: vertices of one grid cell merge into their average, triangles collapsed to a line or a point are dropped
-		private static MiniatureLayer Cluster(Layer source, float cellSize, MiniatureLayerKind kind)
+		private static MiniatureLayer Cluster(Layer source, float cellSize)
 		{
 			var cells = new Dictionary<Vector3Int, int>();
 			var sums = new List<Vector3>();
@@ -295,7 +328,7 @@ namespace CarX.Modding.Creator.Editor
 				triangles[i] = index;
 			}
 
-			return new MiniatureLayer { kind = kind, vertices = vertices.ToArray(), triangles = triangles.ToArray() };
+			return new MiniatureLayer { kind = MiniatureLayerKind.Ground, vertices = vertices.ToArray(), triangles = triangles.ToArray() };
 		}
 
 		private static (int, int, int) SortedKey(int a, int b, int c)
@@ -309,7 +342,7 @@ namespace CarX.Modding.Creator.Editor
 
 		private static float GetBaseHeight(List<MiniatureLayer> layers)
 		{
-			float track = float.MaxValue;
+			float ground = float.MaxValue;
 			float any = float.MaxValue;
 
 			foreach (MiniatureLayer layer in layers)
@@ -318,23 +351,26 @@ namespace CarX.Modding.Creator.Editor
 				{
 					any = Mathf.Min(any, v.y);
 
-					if (layer.kind == MiniatureLayerKind.Track)
+					if (layer.kind == MiniatureLayerKind.Ground)
 					{
-						track = Mathf.Min(track, v.y);
+						ground = Mathf.Min(ground, v.y);
 					}
 				}
 			}
 
-			return track < float.MaxValue ? track : any;
+			return ground < float.MaxValue ? ground : any;
 		}
 
-		private static int CountTriangles(List<MiniatureLayer> layers)
+		private static int CountTriangles(List<MiniatureLayer> layers, MiniatureLayerKind kind)
 		{
 			int count = 0;
 
 			foreach (MiniatureLayer layer in layers)
 			{
-				count += layer.triangles.Length / 3;
+				if (layer.kind == kind)
+				{
+					count += layer.triangles.Length / 3;
+				}
 			}
 
 			return count;

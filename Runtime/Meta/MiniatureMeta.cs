@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace CarX.Modding.Creator.Runtime
 {
-	// Kind of a world map miniature layer: the game drapes the minimap image over the layers and shades the walls
+	// Kind of a world map miniature layer. The game shades both in grey by height
 	public enum MiniatureLayerKind
 	{
-		Track,
-		Kerb,
+		// Simplified terrain, roads and other large flat surfaces
 		Ground,
-		Walls,
+		// Boxes in place of the map objects (buildings, barriers, stands...)
+		Objects,
 	}
 
 	[Serializable]
@@ -40,7 +40,7 @@ namespace CarX.Modding.Creator.Runtime
 
 		public string id;
 		public string version;
-		// Height of the lowest track point: the game puts it at the miniature base
+		// Height of the lowest ground point: the game puts it at the miniature base
 		public float baseHeight;
 		public List<MiniatureLayer> layers = new();
 
