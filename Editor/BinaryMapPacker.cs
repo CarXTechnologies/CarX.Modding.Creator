@@ -277,6 +277,7 @@ namespace CarX.Modding.Creator.Editor
 				"prefabs" => typeof(PrefabHierarchyMeta),
 				"lods" => typeof(LodHierarchyMeta),
 				"lights" => typeof(LightHierarchyMeta),
+				"clipzones" => typeof(ClipZonesMeta),
 				"markers" => typeof(GameMarkerMeta),
 				"animations" => typeof(AnimationMeta),
 				_ => null

@@ -65,6 +65,14 @@ namespace CarX.Modding.Creator.Editor
 			modResults.Add(new LodHierarchyMeta(m_sceneName, version, lodInstances));
 			modResults.Add(new GameMarkerMeta(m_sceneName, version, markerInstances));
 			modResults.Add(new LightHierarchyMeta(m_sceneName, version, CollectLightInstances()));
+
+			ClipZonesMeta clipZones = ClipZonesCollector.Collect(m_sceneName, version, m_roots, IsGarbage);
+
+			if (clipZones != null)
+			{
+				modResults.Add(clipZones);
+			}
+
 			return modResults;
 		}
 
