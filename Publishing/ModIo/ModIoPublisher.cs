@@ -8,9 +8,8 @@ using Modio;
 using Modio.Mods;
 using Modio.Mods.Builder;
 using Modio.Users;
-using Plugins.CarX.Modding.Creator.Runtime.Publishing;
 
-namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
+namespace CarX.Modding.Creator.Publishing.ModIo
 {
 	/// <summary>mod.io delivery, driven through the official mod.io Unity plugin.</summary>
 	[ModPublisher(ModIoConfig.VendorId, "mod.io", order: 1)]
@@ -147,8 +146,12 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 
 		public async Task<ModOperationResult<ModItemKey>> CreateItemAsync(
 			ModCreateRequest request,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new ModIoUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult<ModItemKey>.Fail("mod.io is not initialized.");
@@ -184,6 +187,11 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetLogo(request.PreviewPath)
 				.SetVisible(request.Visibility == ModVisibility.Public);
 
+			if (!string.IsNullOrWhiteSpace(request.Description))
+			{
+				builder = builder.SetDescription(Truncate(request.Description, Limits.MaxDescriptionLength));
+			}
+
 			builder = ApplyTags(builder, request.Tags);
 
 			// Attaching the payload here rather than in a follow up upload also sidesteps a plugin defect: it cannot
@@ -195,23 +203,52 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetVersion(request.Version)
 				.SetChangelog(request.Changelog)
 				.SetPlatform(ModfileBuilder.Platform.Windows)
+#if CARX_MODDING_MODIO_UPLOAD_PROGRESS
+				.SetUploadProgress(reporter)
+#endif
 				.FinishModfile();
 
-			var (error, mod) = await builder.Publish();
+			reporter.ReportPrepared();
+
+			Error error;
+			Mod mod;
+
+			try
+			{
+				(error, mod) = await builder.Publish();
+			}
+			catch (Exception exception) when (builder.EditTarget != null)
+			{
+				// AddMod has already created the item, and the plugin does not guard the modfile disk work (zip, File.Open): an I/O
+				// exception escapes Publish bypassing Results. An item without a modfile must not be left here either.
+				return await RemoveIncompleteModAsync(builder.EditTarget.Id, exception.Message);
+			}
 
 			if (error)
 			{
 				return ModOperationResult<ModItemKey>.Fail($"mod.io refused to create the mod: {Describe(error, builder)}");
 			}
 
+			// For a new item Publish returns Error.None as soon as AddMod succeeds; a modfile failure is visible only in
+			// Results. An item without a modfile must not be left (see above), so it is deleted.
+			if (HasFailedResults(builder))
+			{
+				return await RemoveIncompleteModAsync(mod.Id, Describe(Error.None, builder));
+			}
+
+			reporter.ReportSucceeded();
+
 			return ModOperationResult<ModItemKey>.Ok(new ModItemKey(VendorId, mod.Id.ToString()));
 		}
 
 		public async Task<ModOperationResult> UploadItemAsync(
 			ModUploadRequest request,
-			IProgress<float> progress,
+			IProgress<ModUploadProgress> progress,
 			CancellationToken cancellationToken)
 		{
+			var reporter = new ModIoUploadProgressReporter(progress);
+			reporter.ReportStarted();
+
 			if (!IsInitialized)
 			{
 				return ModOperationResult.Fail("mod.io is not initialized.");
@@ -232,9 +269,6 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 			{
 				return ModOperationResult.Fail($"Could not read mod {modId} from mod.io: {getError.GetMessage()}");
 			}
-
-			// The plugin has no progress callback for uploads, so the bar can only be moved at the boundaries.
-			progress?.Report(0f);
 
 			var builder = mod.Edit();
 
@@ -274,15 +308,25 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 				.SetChangelog(request.Changelog)
 				// Only Windows is supported by this iteration of the uploader.
 				.SetPlatform(ModfileBuilder.Platform.Windows)
+#if CARX_MODDING_MODIO_UPLOAD_PROGRESS
+				// The plugin with CARX PATCH 2 reports modfile packing and upload every frame; the reporter maps it to the overall
+				// scale. Without the patch (the game's plugin) there are no modfile reports, see ModIoUploadProgressReporter.
+				.SetUploadProgress(reporter)
+#endif
 				.FinishModfile();
+
+			reporter.ReportPrepared();
 
 			var (error, _) = await builder.Publish();
 
-			progress?.Report(1f);
+			if (error)
+			{
+				return ModOperationResult.Fail($"mod.io refused the upload of mod {modId}: {Describe(error, builder)}");
+			}
 
-			return error
-				? ModOperationResult.Fail($"mod.io refused the upload of mod {modId}: {Describe(error, builder)}")
-				: ModOperationResult.Ok($"Mod {modId} uploaded.");
+			reporter.ReportSucceeded();
+
+			return ModOperationResult.Ok($"Mod {modId} uploaded.");
 		}
 
 		public async Task<ModOperationResult> DeleteItemAsync(ModItemKey key, CancellationToken cancellationToken)
@@ -430,16 +474,50 @@ namespace Plugins.CarX.Modding.Creator.Publishing.ModIo
 		/// Builds a message out of the top level error plus whatever the builder recorded per field, because a
 		/// multi field publish reports "something failed" at the top and the useful detail only in the results list.
 		/// </summary>
+		/// <remarks>Without a top level error (the new item was created, a part of it failed) the message lists only the failed parts.</remarks>
 		private static string Describe(Error error, ModBuilder builder)
 		{
-			var failures = builder.Results
+			string[] failures = (builder.Results ?? new List<(ChangeFlags, Error)>())
 				.Where(result => result.Item2)
 				.Select(result => $"{result.Item1}: {result.Item2.GetMessage()}")
 				.ToArray();
 
-			return failures.Length == 0
-				? error.GetMessage()
-				: $"{error.GetMessage()} ({string.Join("; ", failures)})";
+			if (failures.Length == 0)
+			{
+				return error.GetMessage();
+			}
+
+			return error
+				? $"{error.GetMessage()} ({string.Join("; ", failures)})"
+				: string.Join("; ", failures);
+		}
+
+		/// <summary>Whether some part of the publish failed that <see cref="ModBuilder.Publish"/> does not report itself.</summary>
+		private static bool HasFailedResults(ModBuilder builder)
+		{
+			List<(ChangeFlags, Error)> results = builder.Results;
+
+			return results != null && results.Any(result => result.Item2);
+		}
+
+		/// <summary>
+		/// Deletes an item mod.io created without accepted content, the same way as <see cref="DeleteItemAsync"/>,
+		/// and returns the creation failure with the reason and the deletion outcome.
+		/// </summary>
+		private async Task<ModOperationResult<ModItemKey>> RemoveIncompleteModAsync(long modId, string contentError)
+		{
+			// No operation token: cancellation must not leave an item that breaks reading the user's list of works.
+			ModOperationResult cleanup = await DeleteItemAsync(
+				new ModItemKey(VendorId, modId.ToString()),
+				CancellationToken.None);
+
+			return cleanup.Success
+				? ModOperationResult<ModItemKey>.Fail(
+					$"mod.io created mod {modId} but refused its content: {contentError}. The incomplete mod was deleted.")
+				: ModOperationResult<ModItemKey>.Fail(
+					$"mod.io created mod {modId} but refused its content: {contentError}. Deleting the incomplete mod " +
+					$"failed as well ({cleanup.Message}); delete mod {modId} on mod.io, a mod without a file breaks " +
+					"reading the list of your creations.");
 		}
 	}
 }

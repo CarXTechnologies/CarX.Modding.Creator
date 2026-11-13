@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	// Serialized values are part of the map format; do not reorder.
 	public enum PrimitiveColliderType { Box = 0, Sphere = 1, Capsule = 2 }

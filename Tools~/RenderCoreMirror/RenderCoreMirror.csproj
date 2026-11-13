@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- rendercore mirror CLI. The core is the same sources Unity compiles into CarX.Modding.Creator.RenderCoreMirror (without UnityEngine). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>RenderCoreMirror</AssemblyName>
+    <RootNamespace>CarX.Modding.Creator.RenderCoreMirror.Tool</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Editor/RenderCoreMirror/**/*.cs" />
+    <Compile Include="*.cs" />
+  </ItemGroup>
+</Project>

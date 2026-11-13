@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public struct ModProvider
 	{
@@ -44,10 +44,10 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 		{
 			VersionProvider versionProvider = providers.FirstOrDefault(provider => provider.version == version);
 
-			if (versionProvider.version == string.Empty || versionProvider.providers == null)
+			if (string.IsNullOrEmpty(versionProvider.version) || versionProvider.providers == null)
 			{
-				Debug.LogError($"Version provider is not found ({version})");
-				return default(VersionProvider);
+				// A clear error instead of an ArgumentNullException further down the stack: the mod was built by a newer SDK.
+				throw new InvalidDataException($"Mod format version '{version}' is not supported by this game client. Update the game.");
 			}
 
 			return versionProvider;
