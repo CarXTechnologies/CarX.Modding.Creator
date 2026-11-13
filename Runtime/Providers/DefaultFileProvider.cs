@@ -121,6 +121,12 @@ namespace CarX.Modding.Creator.Runtime
 					.ToArray();
 			}
 
+			// As in an archive: a folder the mod does not have (clipzones/ or miniature/ of an older mod) has no files
+			if (!Directory.Exists(path))
+			{
+				return Array.Empty<string>();
+			}
+
 			string[] files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
 
 			for (int i = 0; i < files.Length; i++)

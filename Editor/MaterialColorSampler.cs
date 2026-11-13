@@ -99,8 +99,16 @@ namespace CarX.Modding.Creator.Editor
 				return average;
 			}
 
-			m_target ??= new RenderTexture(SampleSize, SampleSize, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-			m_readback ??= new Texture2D(SampleSize, SampleSize, TextureFormat.RGBA32, mipChain: false);
+			// Unity objects: a destroyed one (domain reload, unloaded assets) is not null for ??=
+			if (m_target == null)
+			{
+				m_target = new RenderTexture(SampleSize, SampleSize, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+			}
+
+			if (m_readback == null)
+			{
+				m_readback = new Texture2D(SampleSize, SampleSize, TextureFormat.RGBA32, mipChain: false);
+			}
 
 			RenderTexture previous = RenderTexture.active;
 			Graphics.Blit(texture, m_target);
