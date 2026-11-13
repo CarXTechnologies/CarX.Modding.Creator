@@ -1,8 +1,8 @@
 # rendercore snapshot for the Standard shader variant mirror. Generated, do not edit by hand.
 # Update: ModSystem/Render Core/Update Lock From Project Render Core or Tools~/RenderCoreMirror (extract).
 format	2
-provenance	package	3.1.0
-provenance	commit	dc37c839506f6da1a7d7b2170b1b70a1d8b9db43
+provenance	package	3.2.0
+provenance	commit	b9fde1a3788ba371842cf2dc1def7cb97b02379a
 provenance	tool	2
 scope	excludeName	MAT_MATTESHADOW|MAT_SKIDMARK|MAT_SLOD|MAT_UNSUPPORTED
 scope	excludePrefix	MAT_CAR_|MAT_PARTICLE
@@ -113,7 +113,7 @@ prop	MAT_ROAD_SIGN_EMISSION	4	u_fParams	type=1	label=Road Sign Emission Paramete
 prop	MAT_ROUGHNESS	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
 prop	MAT_ROUGHNESS	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao, A - unused.	vectorLabels=
 prop	MAT_ROUGHNESS_ALPHABLEND	0	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
-prop	MAT_ROUGHNESS_ALPHABLEND	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused.	vectorLabels=
+prop	MAT_ROUGHNESS_ALPHABLEND	1	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - alpha, A - unused.	vectorLabels=
 prop	MAT_ROUGHNESS_ALPHATEST	0	u_vThirdColor	type=0	label=Alpha Chanel	tooltip=The alpha channel value is responsible for the alpha parameter during rendering. This parameter is controlled only by the alpha channel value.	vectorLabels=
 prop	MAT_ROUGHNESS_ALPHATEST	1	u_sTexture	type=4	label=Diffuse Map	tooltip=Default diffuse/albedo texture.	vectorLabels=
 prop	MAT_ROUGHNESS_ALPHATEST	2	u_sPackedMap	type=4	label=Surface Map	tooltip=Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused.	vectorLabels=
@@ -308,5 +308,5 @@ pass	ShadowCaster	MAT_ROUGHNESS_NORMAL_ALPHATEST	absent
 pass	ShadowCaster	MAT_ROUGHNESS_NORMAL_EMISSION	absent
 pass	ShadowCaster	MAT_WINDOW	absent
 passconfig	DepthOnly	ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=CAR_GLOBAL_AO_INTENSITY,ClearcoatReflectionEnvFunc,ClearcoatReflectionFunc,ContactShadow,Diffusion,DiffusionEnv,DiffusionEnvFunc,DiffusionFunc,DirectionalShadow,FRAGMENT_NEED_DITHER,FragmentOutput,GetFragmentOutput,GhostMerge,Merge,PunctualShadow,ReflectionEnvFunc,ReflectionFunc,SHADERPASS_DEPTH_ONLY	streams=INPUT_NEED_TEXCOORD0	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl	func=BaseMaterialFunc	decode=994ec483c0f8	program=7951bcd3c8c4
-passconfig	ShadowCaster	ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=CAR_GLOBAL_AO_INTENSITY,ClearcoatReflectionEnvFunc,ClearcoatReflectionFunc,ContactShadow,Diffusion,DiffusionEnv,DiffusionEnvFunc,DiffusionFunc,DirectionalShadow,FRAGMENT_DISABLE_SCREEN_DITHER,GhostMerge,Merge,PunctualShadow,ReflectionEnvFunc,ReflectionFunc,SHADERPASS_DEPTH_ONLY,SHADERPASS_SHADOWCASTER	streams=INPUT_NEED_TEXCOORD0	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl	func=BaseMaterialFunc	decode=994ec483c0f8	program=db7117ac0b5b
+passconfig	ShadowCaster	ALPHATEST	defs=BaseMaterialDefs	features=MATERIALFEATURE_ALPHATEST	other=CAR_GLOBAL_AO_INTENSITY,ClearcoatReflectionEnvFunc,ClearcoatReflectionFunc,ContactShadow,Diffusion,DiffusionEnv,DiffusionEnvFunc,DiffusionFunc,DirectionalShadow,FRAGMENT_DISABLE_SCREEN_DITHER,GhostMerge,Merge,PunctualShadow,ReflectionEnvFunc,ReflectionFunc,SHADERPASS_DEPTH_ONLY,SHADERPASS_SHADOWCASTER	streams=INPUT_NEED_TEXCOORD0	libs=GhostShadingModel.hlsl,ShadingModels.hlsl,Shadow.hlsl	func=BaseMaterialFunc	decode=994ec483c0f8	program=6ff30ee842f2
 setup	hash=b342e9ce390b
