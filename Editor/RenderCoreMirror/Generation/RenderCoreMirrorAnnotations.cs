@@ -163,7 +163,7 @@ namespace CarX.Modding.Creator.RenderCoreMirror
 		public static IReadOnlyList<MirrorPassReview> AlphaTestPasses { get; } = new[]
 		{
 			PassReview("DepthOnly", keywords: "ALPHATEST", reviewedHash: "ce5a1c54d109"),
-			PassReview("ShadowCaster", keywords: "ALPHATEST", reviewedHash: "cee4cd902811")
+			PassReview("ShadowCaster", keywords: "ALPHATEST", reviewedHash: "75aff8984aae")
 		};
 
 		public static IReadOnlyList<MirrorSuggestion> Suggestions { get; } = new[]

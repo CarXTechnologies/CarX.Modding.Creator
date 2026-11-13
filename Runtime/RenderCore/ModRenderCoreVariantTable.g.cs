@@ -12,7 +12,7 @@ namespace CarX.Modding.Creator.Runtime
 	/// <summary>rendercore mirror data for <see cref="ModRenderCoreVariants"/>.</summary>
 	internal static class ModRenderCoreVariantTable
 	{
-		public const string LockContentHash = "35d6c44beb42";
+		public const string LockContentHash = "9c34f0dc7d1c";
 
 		public static ModRenderCoreVariant[] CreateVariants()
 		{
@@ -52,7 +52,7 @@ namespace CarX.Modding.Creator.Runtime
 					unavailableReason: null, revision: 1, new[]
 					{
 						Texture("u_sTexture", "Diffuse Map", "Default diffuse/albedo texture.", ModRenderCoreSource.Diffuse, layer: 0),
-						Packed("u_sPackedMap", "Surface Map", "Surface packed parameters. Surface packed parameters. R - roughness, G - unused, B - ao and alpha at the same time, A - unused.", layer: 0, ModRenderCoreChannel.Roughness, ModRenderCoreChannel.Zero, ModRenderCoreChannel.Alpha, ModRenderCoreChannel.Zero)
+						Packed("u_sPackedMap", "Surface Map", "Surface packed parameters. R - roughness, G - unused, B - alpha, A - unused.", layer: 0, ModRenderCoreChannel.Roughness, ModRenderCoreChannel.Zero, ModRenderCoreChannel.Alpha, ModRenderCoreChannel.Zero)
 					}),
 				new ModRenderCoreVariant("MAT_ROUGHNESS_ALPHATEST", id: 1027, queue: 2450, ModRenderCoreRenderType.AlphaTest, new[] { "ALPHATEST" },
 					ModRenderCoreVertexColors.None, ModRenderCoreVertexStreams.Position | ModRenderCoreVertexStreams.Normal | ModRenderCoreVertexStreams.Uv0,
