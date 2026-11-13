@@ -11,26 +11,14 @@ namespace CarX.Modding.Creator.Editor
 		public const int MaxSize = 2048;
 		private const int Supersampling = 2;
 
-		// The game colors of the miniature layers (linear there, see ModWorldMapBuilder in the game), as image colors
-		public static readonly Color GroundColor = new Color(0.19f, 0.21f, 0.225f).gamma;
-		public static readonly Color TerrainColor = new Color(0.06f, 0.066f, 0.078f).gamma;
-		private static readonly Color s_objectColor = new(0.25f, 0.25f, 0.25f);
-		private const float ObjectStepLightness = 0.04f;
-		private const int ObjectMaxSteps = 5;
-		private const float HeightStep = 4f;
+		// The miniature palette is linear, the image colors are gamma
+		private static readonly Color s_groundColor = MiniaturePalette.GroundColor.gamma;
+		private static readonly Color s_terrainColor = MiniaturePalette.TerrainColor.gamma;
 		// Seen from above, a road is never under the terrain and an object is never under a road, whatever the simplified heights
 		// say: the layers are stacked this far apart, meters
 		private const float LayerLift = 100_000f;
 		// Seams between the simplified layers narrower than twice this are painted over, buffer pixels
 		private const int SeamRadius = 8;
-
-		public static Color GetObjectColor(float heightAboveBase)
-		{
-			int step = Mathf.Clamp(Mathf.FloorToInt(heightAboveBase / HeightStep), 0, ObjectMaxSteps);
-			float lightness = step * ObjectStepLightness;
-
-			return new Color(s_objectColor.r + lightness, s_objectColor.g + lightness, s_objectColor.b + lightness).gamma;
-		}
 
 		/// <param name="boundsCenter">Minimap Bounds Center: world x and z</param>
 		/// <param name="boundsSize">Minimap Bounds Size: world x and z</param>
@@ -83,7 +71,7 @@ namespace CarX.Modding.Creator.Editor
 			}
 
 			bool hasTerrain = miniature.layers.Exists(layer => layer.kind == MiniatureLayerKind.Terrain && layer.triangles is { Length: > 0 });
-			Color32 fill = hasTerrain ? TerrainColor : GroundColor;
+			Color32 fill = hasTerrain ? s_terrainColor : s_groundColor;
 			CloseSeams(colors, bufferWidth, bufferHeight, fill);
 			FillHoles(colors, bufferWidth, bufferHeight, fill);
 
@@ -101,7 +89,7 @@ namespace CarX.Modding.Creator.Editor
 
 			if (layer.kind != MiniatureLayerKind.Objects)
 			{
-				Color32 color = layer.kind == MiniatureLayerKind.Terrain ? TerrainColor : GroundColor;
+				Color32 color = layer.kind == MiniatureLayerKind.Terrain ? s_terrainColor : s_groundColor;
 
 				for (int i = 0; i < result.Length; i++)
 				{
@@ -111,31 +99,11 @@ namespace CarX.Modding.Creator.Editor
 				return result;
 			}
 
-			var parents = new int[layer.vertices.Length];
-
-			for (int i = 0; i < parents.Length; i++)
-			{
-				parents[i] = i;
-			}
-
-			for (int i = 0; i + 2 < layer.triangles.Length; i += 3)
-			{
-				Union(parents, layer.triangles[i], layer.triangles[i + 1]);
-				Union(parents, layer.triangles[i], layer.triangles[i + 2]);
-			}
-
-			var tops = new Dictionary<int, float>();
-
-			for (int i = 0; i < parents.Length; i++)
-			{
-				int root = Find(parents, i);
-				float y = layer.vertices[i].y;
-				tops[root] = tops.TryGetValue(root, out float top) ? Mathf.Max(top, y) : y;
-			}
+			Color[] objectColors = MiniaturePalette.GetObjectColors(layer, baseHeight);
 
 			for (int i = 0; i < result.Length; i++)
 			{
-				result[i] = GetObjectColor(tops[Find(parents, i)] - baseHeight);
+				result[i] = objectColors[i].gamma;
 			}
 
 			return result;
@@ -358,22 +326,6 @@ namespace CarX.Modding.Creator.Editor
 			}
 
 			return result;
-		}
-
-		private static int Find(int[] parents, int index)
-		{
-			while (parents[index] != index)
-			{
-				parents[index] = parents[parents[index]];
-				index = parents[index];
-			}
-
-			return index;
-		}
-
-		private static void Union(int[] parents, int a, int b)
-		{
-			parents[Find(parents, a)] = Find(parents, b);
 		}
 	}
 }
