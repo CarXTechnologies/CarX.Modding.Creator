@@ -85,6 +85,7 @@ namespace CarX.Modding.Creator.Editor
 
 			if (miniature != null)
 			{
+				AddSpawnPoints(miniature, staticInstances, markerInstances);
 				modResults.Add(miniature);
 			}
 
@@ -588,6 +589,28 @@ namespace CarX.Modding.Creator.Editor
 			lodInstances = lods;
 			markerInstances = markers;
 			return staticInstances;
+		}
+
+		// The exported spawn point markers, so the preview of the map shows them without loading the map hierarchies
+		private static void AddSpawnPoints(MiniatureMeta miniature, List<StaticInstance> staticInstances, List<MarkerInstance> markerInstances)
+		{
+			foreach (MarkerInstance marker in markerInstances)
+			{
+				if (marker.head != "SpawnPoint" || marker.staticInstanceId < 0 || marker.staticInstanceId >= staticInstances.Count)
+				{
+					continue;
+				}
+
+				LToWorld localToWorld = staticInstances[marker.staticInstanceId].localToWorld;
+				string name = string.IsNullOrEmpty(marker.data) ? string.Empty : JsonUtility.FromJson<SpawnPointProperties>(marker.data).name;
+
+				miniature.spawnPoints.Add(new MiniatureSpawnPoint
+				{
+					position = localToWorld.position,
+					yaw = localToWorld.rotation.eulerAngles.y,
+					name = name,
+				});
+			}
 		}
 
 		private static float GetWorldSpaceScale(Transform transform)

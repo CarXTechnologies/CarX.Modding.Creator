@@ -24,6 +24,16 @@ namespace CarX.Modding.Creator.Runtime
 		public int[] triangles;
 	}
 
+	[Serializable]
+	public class MiniatureSpawnPoint
+	{
+		// World space, as the miniature vertices
+		public Vector3 position;
+		// Heading around the vertical axis, degrees
+		public float yaw;
+		public string name;
+	}
+
 	// Simplified map geometry for the world map miniature, generated at export from the map meshes
 	[Serializable]
 	public class MiniatureMeta : IModResources, IModResourcesVersion
@@ -45,6 +55,8 @@ namespace CarX.Modding.Creator.Runtime
 		// Height of the lowest ground point: the game puts it at the miniature base
 		public float baseHeight;
 		public List<MiniatureLayer> layers = new();
+		// Spawn points of the map, marked on the miniature when the map is previewed before a race
+		public List<MiniatureSpawnPoint> spawnPoints = new();
 
 		public MiniatureMeta(string id, string version, float baseHeight, List<MiniatureLayer> layers)
 		{
