@@ -321,7 +321,8 @@ namespace CarX.Modding.Creator.Runtime
 			byte[] stored = bytes;
 			byte compression = 0;
 
-			if (!name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".cxgeom", StringComparison.OrdinalIgnoreCase))
+			if (!name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".cxgeom", StringComparison.OrdinalIgnoreCase) &&
+				!name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
 			{
 				using var compressed = new MemoryStream();
 

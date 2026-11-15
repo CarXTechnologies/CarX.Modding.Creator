@@ -79,6 +79,19 @@ namespace CarX.Modding.Creator.Editor
 				modResults.Add(clipZones);
 			}
 
+			var soundFiles = new List<ModSoundFile>();
+			SoundsMeta sounds = SoundsCollector.Collect(m_sceneName, version, m_roots, IsGarbage, soundFiles);
+
+			if (sounds != null)
+			{
+				modResults.Add(sounds);
+
+				foreach (ModSoundFile file in soundFiles)
+				{
+					modResults.Add(file);
+				}
+			}
+
 			MiniatureMeta miniature = !IsMiniatureEnabled ? null
 				: MiniatureMesh != null ? MiniatureMeshUtility.FromMesh(m_sceneName, version, MiniatureMesh)
 				: MiniatureCollector.Collect(m_sceneName, version, m_roots, IsGarbage);

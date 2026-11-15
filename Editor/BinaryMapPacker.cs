@@ -144,6 +144,11 @@ namespace CarX.Modding.Creator.Editor
 
 					yield return new KeyValuePair<string, byte[]>(name, BinaryModData.Write(data));
 				}
+				else if (IsSoundFile(name))
+				{
+					// Audio files go into the container unchanged, as in the Wavefront tree
+					yield return new KeyValuePair<string, byte[]>(name, File.ReadAllBytes(file.Value));
+				}
 				else if (!IsImage(name))
 				{
 					// Images are written at the end, when all material and preview references are known.
@@ -256,6 +261,12 @@ namespace CarX.Modding.Creator.Editor
 			return name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase);
 		}
 
+		private static bool IsSoundFile(string name)
+		{
+			string catalog = SoundsMetaProvider<SoundsMeta>.FilesCatalog;
+			return name.StartsWith(catalog, StringComparison.Ordinal) && name.IndexOf('/', catalog.Length) < 0 && SoundsCollector.IsSupportedFile(name);
+		}
+
 		private static Type GetDataType(string name)
 		{
 			if (name.EndsWith(".pbr.json", StringComparison.OrdinalIgnoreCase))
@@ -279,6 +290,7 @@ namespace CarX.Modding.Creator.Editor
 				"lights" => typeof(LightHierarchyMeta),
 				"clipzones" => typeof(ClipZonesMeta),
 				"miniature" => typeof(MiniatureMeta),
+				"sounds" => typeof(SoundsMeta),
 				"markers" => typeof(GameMarkerMeta),
 				"animations" => typeof(AnimationMeta),
 				_ => null

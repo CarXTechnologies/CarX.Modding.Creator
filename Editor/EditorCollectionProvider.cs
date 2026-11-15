@@ -39,7 +39,9 @@ namespace CarX.Modding.Creator.Editor
 				new ModProvider(typeof(GameMarkerMeta), new GameMarkerInstanceProvider<GameMarkerMeta>(s_defaultFileProvider)),
 				new ModProvider(typeof(LightHierarchyMeta), new LightsMetaProvider<LightHierarchyMeta>(s_defaultFileProvider)),
 				new ModProvider(typeof(ClipZonesMeta), new ClipZonesMetaProvider<ClipZonesMeta>(s_defaultFileProvider)),
-				new ModProvider(typeof(MiniatureMeta), new MiniatureMetaProvider<MiniatureMeta>(s_defaultFileProvider))
+				new ModProvider(typeof(MiniatureMeta), new MiniatureMetaProvider<MiniatureMeta>(s_defaultFileProvider)),
+				new ModProvider(typeof(SoundsMeta), new SoundsMetaProvider<SoundsMeta>(s_defaultFileProvider)),
+				new ModProvider(typeof(ModSoundFile), new SoundFileProvider(s_defaultFileProvider))
 			),
 		};
 	}
