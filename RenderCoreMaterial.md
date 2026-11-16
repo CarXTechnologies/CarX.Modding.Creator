@@ -96,6 +96,10 @@ Emission variants multiply emission by the vertex colour (rgb) and use its alpha
 
 Interior mapping reads a second UV set (`TEXCOORD1`); mod meshes carry only UV0. The variant is unavailable until the mesh format gains UV1: it is not offered, the MapUploader scene validator reports existing markers as errors, the export writes only the fallback material and the client never applies it.
 
+### WATER
+
+`WATER` (`ModWater.Definition`) is not a Standard variant: it is the rendercore Water shader, not in the mirror table (`All`), offered last in `Offered`, and `TryGet` / `TryFind` return it. Its document holds only `u_fTiling`, `rippleSpeed` and `foamSpeed` (Float, no textures, no vertex colours); the colour, foam, normals and caustics of the water are global and come from the map lighting. The shader repeats the waves by mesh UV0 × `u_fTiling`, so UVs in metres with the default 0.05 match the stock look (one repeat per 20 m). Suggest never returns it, Export from material only resets its values to the defaults, and the export writes the defaults for values the entry does not store. A client without water falls back to the MTL material. The Water/Sea game marker (`WaterMarkerSettings`) adds the endless sea at the marker height; the export keeps the first one and warns `[Water]` about the others.
+
 ## Export
 
 During a Binary build `RenderCoreMaterialOverrides` substitutes each material with an available variant by a proxy whose stable id is the source id plus a hash of the canonical variant name, the authored values sorted by property name (a property reorder in rendercore does not change ids) and, from revision 2, the baked revision. The same source material without a marker, or with other values, therefore stays a separate material. The MTL entry of the proxy keeps the ordinary fallback and adds:

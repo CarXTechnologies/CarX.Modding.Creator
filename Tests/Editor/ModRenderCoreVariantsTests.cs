@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CarX.Modding.Creator.Editor;
 using CarX.Modding.Creator.Runtime;
 using NUnit.Framework;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CarX.Modding.Creator.Tests
 {
@@ -108,6 +110,97 @@ namespace CarX.Modding.Creator.Tests
 			Assert.IsNotNull(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.Opaque, hasNormal: true, hasEmission: false, isFoliage: true));
 			Assert.AreEqual(ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: true),
 				ModRenderCoreVariants.Suggest(ModRenderCoreRenderType.AlphaTest, hasNormal: true, hasEmission: true, isFoliage: true));
+		}
+
+		[Test]
+		public void WaterIsOfferedLastButIsNotAStandardVariant()
+		{
+			IReadOnlyList<ModRenderCoreVariant> offered = ModRenderCoreVariants.Offered;
+
+			Assert.AreSame(ModWater.Definition, offered[offered.Count - 1]);
+			Assert.AreEqual(1, offered.Count(variant => ModWater.IsWater(variant.name)));
+			Assert.IsFalse(ModRenderCoreVariants.All.Any(variant => ModWater.IsWater(variant.name)));
+
+			Assert.IsTrue(ModRenderCoreVariants.TryGet(ModWater.Variant, out ModRenderCoreVariant water));
+			Assert.AreSame(ModWater.Definition, water);
+			Assert.IsTrue(ModRenderCoreVariants.TryFind(ModWater.Variant, out ModRenderCoreVariant found));
+			Assert.AreSame(ModWater.Definition, found);
+			Assert.IsFalse(ModRenderCoreVariants.TryGet("water", out _));
+		}
+
+		[Test]
+		public void WaterHasOnlyItsNumbers()
+		{
+			ModRenderCoreVariant water = ModWater.Definition;
+
+			Assert.IsTrue(water.Available);
+			Assert.AreEqual(ModWater.Revision, water.revision);
+			Assert.AreEqual(ModWater.Queue, water.queue);
+			Assert.AreEqual(ModRenderCoreRenderType.Opaque, water.renderType);
+			Assert.IsEmpty(water.keywords);
+			Assert.AreEqual(ModRenderCoreVertexColors.None, water.vertexColors);
+			Assert.IsTrue(ModRenderCoreVariants.HasSupportedStreams(water));
+			CollectionAssert.AreEqual(new[] { ModWater.TilingProperty, ModWater.RippleSpeedProperty, ModWater.FoamSpeedProperty },
+				water.properties.Select(property => property.name).ToArray());
+			Assert.IsTrue(water.properties.All(property => property.type == ModRenderCorePropertyType.Float && property.source == ModRenderCoreSource.None &&
+				property.channels == null));
+			Assert.AreEqual(ModWater.DefaultTiling, water.properties[0].defaultValue.x);
+			Assert.AreEqual(ModWater.DefaultRippleSpeed, water.properties[1].defaultValue.x);
+			Assert.AreEqual(ModWater.DefaultFoamSpeed, water.properties[2].defaultValue.x);
+			Assert.That(ModWater.DefaultTiling, Is.InRange(ModWater.MinTiling, ModWater.MaxTiling));
+			Assert.That(Mathf.Abs(ModWater.DefaultRippleSpeed), Is.LessThanOrEqualTo(ModWater.MaxSpeed));
+			Assert.That(Mathf.Abs(ModWater.DefaultFoamSpeed), Is.LessThanOrEqualTo(ModWater.MaxSpeed));
+		}
+
+		[Test]
+		public void SuggestNeverReturnsWater()
+		{
+			foreach (ModRenderCoreRenderType renderType in Enum.GetValues(typeof(ModRenderCoreRenderType)))
+			{
+				foreach (bool hasNormal in new[] { false, true })
+				{
+					foreach (bool hasEmission in new[] { false, true })
+					{
+						foreach (bool isFoliage in new[] { false, true })
+						{
+							string suggested = ModRenderCoreVariants.Suggest(renderType, hasNormal, hasEmission, isFoliage);
+							Assert.IsFalse(ModWater.IsWater(suggested), $"{renderType}/normal={hasNormal}/emission={hasEmission}/foliage={isFoliage}");
+						}
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void ExportFromMaterialResetsWaterToDefaults()
+		{
+			// Any shader: water takes nothing from the source material
+			var source = new Material(Shader.Find("Hidden/InternalErrorShader"));
+
+			try
+			{
+				var target = new RenderCoreMaterialOverride { source = source, variant = ModWater.Variant };
+				target.values.Add(new RenderCoreMaterialValue { name = ModWater.TilingProperty, vector = new Vector4(2, 0, 0, 0) });
+				target.values.Add(new RenderCoreMaterialValue { name = "u_sTexture0", vector = Vector4.one });
+
+				IReadOnlyList<string> manual = RenderCoreMaterialBaker.Bake(target);
+
+				Assert.IsEmpty(manual);
+				Assert.AreEqual(ModWater.Revision, target.revision);
+				Assert.AreEqual(ModWater.Definition.properties.Count, target.values.Count);
+
+				foreach (ModRenderCoreVariantProperty property in ModWater.Definition.properties)
+				{
+					RenderCoreMaterialValue value = target.Find(property.name);
+					Assert.IsNotNull(value, property.name);
+					Assert.AreEqual(property.defaultValue, value.vector, property.name);
+					Assert.IsNull(value.texture, property.name);
+				}
+			}
+			finally
+			{
+				Object.DestroyImmediate(source);
+			}
 		}
 
 		[Test]

@@ -33,13 +33,17 @@ namespace CarX.Modding.Creator.Runtime
 			s_variants = ModRenderCoreVariantTable.CreateVariants();
 			s_suggestions = ModRenderCoreVariantTable.CreateSuggestions();
 			s_byName = BuildLookup(s_variants, out s_duplicates);
-			s_offered = Array.FindAll(s_variants, variant => variant.Available);
+			// Water is not a Standard variant and stays out of All (the mirror of the rendercore lock)
+			ModRenderCoreVariant[] standard = Array.FindAll(s_variants, variant => variant.Available);
+			s_offered = new ModRenderCoreVariant[standard.Length + 1];
+			standard.CopyTo(s_offered, 0);
+			s_offered[standard.Length] = ModWater.Definition;
 		}
 
 		/// <summary>All mirror variants, including ones unavailable in mods.</summary>
 		public static IReadOnlyList<ModRenderCoreVariant> All => s_variants;
 
-		/// <summary>Variants that can be selected in the marker.</summary>
+		/// <summary>Variants that can be selected in the marker, with <see cref="ModWater.Definition"/> last.</summary>
 		public static IReadOnlyList<ModRenderCoreVariant> Offered => s_offered;
 
 		/// <summary>Names repeated in the table (the first one wins); empty for a correct table.</summary>
@@ -58,6 +62,12 @@ namespace CarX.Modding.Creator.Runtime
 			{
 				variant = null;
 				return false;
+			}
+
+			if (ModWater.IsWater(name))
+			{
+				variant = ModWater.Definition;
+				return true;
 			}
 
 			return s_byName.TryGetValue(name, out variant);

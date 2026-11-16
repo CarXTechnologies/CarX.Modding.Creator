@@ -127,15 +127,16 @@ namespace CarX.Modding.Creator.Editor
 		{
 			IReadOnlyList<ModRenderCoreVariant> offered = ModRenderCoreVariants.Offered;
 
+			// Water is offered but never suggested: it is not a Standard surface and has nothing to take from an HDRP material
 			foreach (ModRenderCoreVariant variant in offered)
 			{
-				if (variant.renderType == renderType)
+				if (variant.renderType == renderType && !ModWater.IsWater(variant.name))
 				{
 					return variant.name;
 				}
 			}
 
-			return offered.Count > 0 ? offered[0].name : null;
+			return offered.Count > 0 && !ModWater.IsWater(offered[0].name) ? offered[0].name : null;
 		}
 
 		/// <summary>RenderCore next to the material; Assets/RenderCore for materials outside Assets.</summary>
@@ -153,6 +154,7 @@ namespace CarX.Modding.Creator.Editor
 		/// Fills the values of <see cref="RenderCoreMaterialOverride.variant"/> (empty means <see cref="SuggestVariant"/>) from
 		/// <see cref="RenderCoreMaterialOverride.source"/> and stores the variant revision they were baked for
 		/// (<see cref="RenderCoreMaterialOverride.revision"/>). Returns labels of properties with no HDRP source and notes for manual review.
+		/// <see cref="ModWater.Variant"/> takes nothing from the material: its values are reset to the defaults and no textures are baked.
 		/// </summary>
 		public static IReadOnlyList<string> Bake(RenderCoreMaterialOverride target)
 		{
@@ -171,6 +173,12 @@ namespace CarX.Modding.Creator.Editor
 				throw new InvalidDataException(ModRenderCoreVariants.TryFind(target.variant, out ModRenderCoreVariant unavailable)
 					? $"Render core variant '{unavailable.name}' is unavailable in mods: {unavailable.unavailableReason}"
 					: $"Unknown render core variant '{target.variant}'.");
+			}
+
+			if (ModWater.IsWater(variant.name))
+			{
+				ResetToDefaults(target, variant);
+				return Array.Empty<string>();
 			}
 
 			var hdrp = new HdrpMaterial(target.source);
@@ -200,6 +208,18 @@ namespace CarX.Modding.Creator.Editor
 			target.values.RemoveAll(value => value == null || !variant.TryGetProperty(value.name, out _));
 			target.revision = variant.revision;
 			return manual;
+		}
+
+		private static void ResetToDefaults(RenderCoreMaterialOverride target, ModRenderCoreVariant variant)
+		{
+			target.values.Clear();
+
+			foreach (ModRenderCoreVariantProperty property in variant.properties)
+			{
+				target.GetOrAdd(property);
+			}
+
+			target.revision = variant.revision;
 		}
 
 		private static bool TryFill(ModRenderCoreVariantProperty property, ModRenderCoreVariant variant, HdrpMaterial hdrp, TextureOutput output,

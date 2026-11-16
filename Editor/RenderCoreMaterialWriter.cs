@@ -11,7 +11,8 @@ namespace CarX.Modding.Creator.Editor
 		private const int NormalPass = 3;
 
 		/// <summary>
-		/// <paramref name="revision"/> is the variant revision written to the document. Properties without a value or texture are skipped.
+		/// <paramref name="revision"/> is the variant revision written to the document. Properties without a value or texture are skipped,
+		/// except the values of <see cref="ModWater.Variant"/>, which are written with their defaults.
 		/// The revision is the one the values were baked for (<see cref="RenderCoreMaterialOverride.BakedRevision"/>), not the current table
 		/// revision: after a revision bump the marker textures keep the old layout, and the client must use the fallback material until the
 		/// author repeats Export from material. Export warns about outdated values.
@@ -41,10 +42,17 @@ namespace CarX.Modding.Creator.Editor
 
 			Directory.CreateDirectory(directory);
 			var properties = new List<ModRenderCoreProperty>();
+			bool isWater = ModWater.IsWater(variant.name);
 
 			foreach (ModRenderCoreVariantProperty property in variant.properties)
 			{
 				RenderCoreMaterialValue value = materialOverride.Find(property.name);
+
+				// Water has only numbers: an entry that was never expanded in the Inspector exports the defaults, not an empty document
+				if (value == null && isWater)
+				{
+					value = new RenderCoreMaterialValue { name = property.name, vector = property.defaultValue };
+				}
 
 				if (value == null)
 				{

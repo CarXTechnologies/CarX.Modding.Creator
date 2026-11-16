@@ -491,6 +491,7 @@ namespace CarX.Modding.Creator.Editor
 			var staticInstances = new List<StaticInstance>();
 			var lods = new List<LodInstance>();
 			var markers = new List<MarkerInstance>();
+			GameObject sea = null;
 
 			var objectToStaticIndex = new Dictionary<int, int>();
 
@@ -568,9 +569,22 @@ namespace CarX.Modding.Creator.Editor
 			m_roots.HierarchyIterateAllComponents(m_tagGarbage, null, (o, component) =>
 			{
 				if (component is not IMarkerDataSource markerData ||
-					(markerData.MarkerHead != "SpawnPoint" && markerData.MarkerHead != "Road"))
+					(markerData.MarkerHead != "SpawnPoint" && markerData.MarkerHead != "Road" && !IsSeaMarker(o, component, markerData)))
 				{
 					return;
+				}
+
+				// The game has one sea per map: the first marker wins
+				if (markerData.MarkerHead == WaterMarkerSettings.MarkerHead)
+				{
+					if (sea != null)
+					{
+						Debug.LogWarning($"[Water] '{o.name}' is a second {WaterMarkerSettings.SeaParam} marker and is not exported: a map has one sea, " +
+							$"the first marker '{sea.name}' is used.", o);
+						return;
+					}
+
+					sea = o;
 				}
 
 				var instanceId = o.GetInstanceID();
@@ -595,6 +609,11 @@ namespace CarX.Modding.Creator.Editor
 				{
 					markerValue = null;
 				}
+				// A sea marker without settings (added before them) gets the defaults, so the game reads the same data from every map
+				if (markerData.MarkerHead == WaterMarkerSettings.MarkerHead && markerValue is not WaterMarkerSettings)
+				{
+					markerValue = new WaterMarkerSettings();
+				}
 				string markerDataJson = markerValue != null ? JsonUtility.ToJson(markerValue) : string.Empty;
 				markers.Add(new MarkerInstance(staticInstanceId, markerData.MarkerHead, markerData.MarkerParam, markerDataJson));
 			});
@@ -602,6 +621,13 @@ namespace CarX.Modding.Creator.Editor
 			lodInstances = lods;
 			markerInstances = markers;
 			return staticInstances;
+		}
+
+		// Water/Sea of an active object with an enabled marker: an inactive sea is not turned on in the game
+		private static bool IsSeaMarker(GameObject gameObject, Component component, IMarkerDataSource markerData)
+		{
+			return markerData.MarkerHead == WaterMarkerSettings.MarkerHead && markerData.MarkerParam == WaterMarkerSettings.SeaParam &&
+				gameObject.activeInHierarchy && (component is not Behaviour behaviour || behaviour.enabled);
 		}
 
 		// The exported spawn point markers, so the preview of the map shows them without loading the map hierarchies
