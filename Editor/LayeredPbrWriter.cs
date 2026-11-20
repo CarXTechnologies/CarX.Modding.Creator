@@ -172,27 +172,7 @@ namespace CarX.Modding.Creator.Editor
 				return null;
 			}
 
-			string name = MeshExportUtility.GetStableObjectId(source) + (normal ? "_pbr_normal.png" : "_pbr.png");
-			string path = Path.Combine(directory, name);
-
-			if (ExportTextureUtility.IsProcessed(path))
-			{
-				return name;
-			}
-
-			Texture2D readable = normal ? ExportTextureUtility.Blit(source, pass: 3, normalScale: 1) : ExportTextureUtility.AcquireReadable(source);
-
-			try
-			{
-				File.WriteAllBytes(path, readable.EncodeToPNG());
-				ExportTextureUtility.MarkProcessed(path);
-			}
-			finally
-			{
-				ExportTextureUtility.Release(readable, source);
-			}
-
-			return name;
+			return ExportTextureUtility.WritePng(source, normal, suffix: "_pbr", directory);
 		}
 
 		/// <summary>

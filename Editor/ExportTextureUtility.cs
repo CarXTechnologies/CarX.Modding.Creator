@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using CarX.Modding.Creator.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -13,6 +14,11 @@ namespace CarX.Modding.Creator.Editor
 	/// </summary>
 	public static class ExportTextureUtility
 	{
+		/// <summary>
+		/// <see cref="Blit(Texture2D, int, float)"/> pass of ConvertingEx that unpacks a normal map to RGB.
+		/// </summary>
+		public const int NormalPass = 3;
+
 		private const string ConvertShaderName = "Hidden/ConvertingEx";
 
 		private static readonly HashSet<string> s_processedTexturePaths = new();
@@ -156,6 +162,36 @@ namespace CarX.Modding.Creator.Editor
 			{
 				texture.name = originalName;
 			}
+		}
+
+		/// <summary>
+		/// Writes the texture as PNG once per export, named by its stable id and <paramref name="suffix"/>;
+		/// a normal map is unpacked to RGB by <see cref="NormalPass"/> (as for map_Bump) and gets "_normal" after the suffix.
+		/// Returns the file name.
+		/// </summary>
+		public static string WritePng(Texture2D source, bool isNormalMap, string suffix, string directory)
+		{
+			string name = MeshExportUtility.GetStableObjectId(source) + suffix + (isNormalMap ? "_normal.png" : ".png");
+			string path = Path.Combine(directory, name);
+
+			if (IsProcessed(path))
+			{
+				return name;
+			}
+
+			Texture2D readable = isNormalMap ? Blit(source, NormalPass, normalScale: 1) : AcquireReadable(source);
+
+			try
+			{
+				File.WriteAllBytes(path, readable.EncodeToPNG());
+				MarkProcessed(path);
+			}
+			finally
+			{
+				Release(readable, source);
+			}
+
+			return name;
 		}
 
 		private static Material GetBlitMaterial()

@@ -8,8 +8,6 @@ namespace CarX.Modding.Creator.Editor
 	/// <summary>Writes a Material marker override to a <see cref="ModRenderCoreMaterial"/> document (.rc.json) with textures next to it.</summary>
 	internal static class RenderCoreMaterialWriter
 	{
-		private const int NormalPass = 3;
-
 		/// <summary>
 		/// <paramref name="revision"/> is the variant revision written to the document. Properties without a value or texture are skipped.
 		/// The revision is the one the values were baked for (<see cref="RenderCoreMaterialOverride.BakedRevision"/>), not the current table
@@ -60,7 +58,8 @@ namespace CarX.Modding.Creator.Editor
 						continue;
 					}
 
-					texture = WriteTexture(value.texture, property.IsNormalMap, directory);
+					texture = ExportTextureUtility.WritePng(value.texture, property.IsNormalMap, suffix: "_rc",
+						directory);
 				}
 
 				properties.Add(new ModRenderCoreProperty { name = property.name, type = property.type, value = value.vector, texture = texture });
@@ -71,32 +70,6 @@ namespace CarX.Modding.Creator.Editor
 			fileName = MeshExportUtility.GetStableObjectId(proxy) + ModRenderCoreMaterial.Extension;
 			File.WriteAllText(Path.Combine(directory, fileName), JsonUtility.ToJson(document));
 			return true;
-		}
-
-		/// <summary>Texture PNG as is; a normal map is unpacked to RGB by the same pass as map_Bump.</summary>
-		private static string WriteTexture(Texture2D source, bool isNormalMap, string directory)
-		{
-			string name = MeshExportUtility.GetStableObjectId(source) + (isNormalMap ? "_rc_normal.png" : "_rc.png");
-			string path = Path.Combine(directory, name);
-
-			if (ExportTextureUtility.IsProcessed(path))
-			{
-				return name;
-			}
-
-			Texture2D readable = isNormalMap ? ExportTextureUtility.Blit(source, NormalPass, normalScale: 1) : ExportTextureUtility.AcquireReadable(source);
-
-			try
-			{
-				File.WriteAllBytes(path, readable.EncodeToPNG());
-				ExportTextureUtility.MarkProcessed(path);
-			}
-			finally
-			{
-				ExportTextureUtility.Release(readable, source);
-			}
-
-			return name;
 		}
 	}
 }

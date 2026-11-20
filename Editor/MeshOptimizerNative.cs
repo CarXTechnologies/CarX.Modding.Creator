@@ -35,19 +35,32 @@ namespace CarX.Modding.Creator.Editor
 			var attributes = collider ? null : new float[vertices.Length * 9];
 			var weights = collider ? null : new[] { 0.5f, 0.5f, 0.5f, 1f, 1f, 1f, 1f, 1f, 1f };
 			if (!collider)
+			{
 				for (int i = 0; i < vertices.Length; i++)
 				{
 					var n = normals.Length == vertices.Length ? normals[i] : Vector3.up;
 					var u = uv.Length == vertices.Length ? uv[i] : Vector2.zero;
 					var c = colors.Length == vertices.Length ? colors[i] : Color.white;
 					int o = i * 9;
-					attributes[o] = n.x; attributes[o + 1] = n.y; attributes[o + 2] = n.z;
-					attributes[o + 3] = u.x; attributes[o + 4] = u.y;
-					attributes[o + 5] = c.r; attributes[o + 6] = c.g; attributes[o + 7] = c.b; attributes[o + 8] = c.a;
+					attributes[o] = n.x;
+					attributes[o + 1] = n.y;
+					attributes[o + 2] = n.z;
+					attributes[o + 3] = u.x;
+					attributes[o + 4] = u.y;
+					attributes[o + 5] = c.r;
+					attributes[o + 6] = c.g;
+					attributes[o + 7] = c.b;
+					attributes[o + 8] = c.a;
 				}
+			}
+
 			var result = new int[mesh.subMeshCount][];
+
 			for (int sub = 0; sub < result.Length; sub++)
+			{
 				result[sub] = Simplify(mesh.GetTriangles(sub), vertices, attributes, weights, collider, locks, ratio, errorMeters);
+			}
+
 			return result;
 		}
 
@@ -59,7 +72,11 @@ namespace CarX.Modding.Creator.Editor
 			int count = checked((int)meshopt_simplifyWithAttributes(result, indices, (UIntPtr)indices.Length,
 				vertices, (UIntPtr)vertices.Length, (UIntPtr)12, attributes, (UIntPtr)(collider ? 0 : 36),
 				weights, (UIntPtr)(collider ? 0 : 9), locks, (UIntPtr)target, errorMeters, 1 | 4, out _).ToUInt64());
-			if (count == 0) return indices;
+			if (count == 0)
+			{
+				return indices;
+			}
+
 			Array.Resize(ref result, count);
 			return Optimize(result, vertices.Length);
 		}

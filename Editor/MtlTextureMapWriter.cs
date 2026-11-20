@@ -15,7 +15,6 @@ namespace CarX.Modding.Creator.Editor
 		private const int MetallicPass = 0;
 		private const int AlphaPass = 1;
 		private const int RoughnessPass = 2;
-		private const int NormalPass = 3;
 		private const int AlphaTestPass = 4;
 
 		private static readonly string[] s_baseProperties = { "_BaseColorMap", "_BaseColorMap0", "_MainTex" };
@@ -113,7 +112,7 @@ namespace CarX.Modding.Creator.Editor
 
 			if (!ExportTextureUtility.IsProcessed(path))
 			{
-				PackBlit(collectionProvider, normalMap, NormalPass, normalScale, name, directory);
+				PackBlit(collectionProvider, normalMap, ExportTextureUtility.NormalPass, normalScale, name, directory);
 			}
 
 			mtl.AppendFormat("map_Bump {0}{1}", GetTilingOptions(material, property), Path.GetFileName(path)).AppendLine();

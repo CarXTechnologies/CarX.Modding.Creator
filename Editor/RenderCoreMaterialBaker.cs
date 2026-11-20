@@ -20,7 +20,6 @@ namespace CarX.Modding.Creator.Editor
 		private const string OutputFolderName = "RenderCore";
 		private const string FallbackRoot = "Assets";
 		private const int SolidTextureSize = 4;
-		private const int NormalPass = 3;
 		private const float WhiteTolerance = 0.001f;
 		private const string ChannelNames = "RGBA";
 		private const float OcclusionTolerance = 0.5f / 255;
@@ -308,7 +307,7 @@ namespace CarX.Modding.Creator.Editor
 				return normalMap;
 			}
 
-			Texture2D unpacked = ExportTextureUtility.Blit(normalMap, NormalPass, scale);
+			Texture2D unpacked = ExportTextureUtility.Blit(normalMap, ExportTextureUtility.NormalPass, scale);
 
 			try
 			{
@@ -346,7 +345,8 @@ namespace CarX.Modding.Creator.Editor
 
 			if (normalMap != null)
 			{
-				Texture2D unpacked = ExportTextureUtility.Blit(normalMap, NormalPass, hdrp.GetFloat(hdrp.Key("_NormalScale", layer), fallback: 1));
+				float normalScale = hdrp.GetFloat(hdrp.Key("_NormalScale", layer), fallback: 1);
+				Texture2D unpacked = ExportTextureUtility.Blit(normalMap, ExportTextureUtility.NormalPass, normalScale);
 				normal = new PixelGrid(unpacked);
 				Object.DestroyImmediate(unpacked);
 			}

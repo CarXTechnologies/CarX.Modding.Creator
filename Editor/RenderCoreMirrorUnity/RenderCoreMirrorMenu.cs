@@ -64,8 +64,8 @@ namespace CarX.Modding.Creator.Editor
 
 			try
 			{
-				result = RenderCoreMirrorPipeline.Update(RenderCoreMirrorUnityPaths.CreateRenderCoreSource(package), committed, RenderCoreMirrorAnnotations.Create(),
-					out changes, out lockText, out table);
+				result = RenderCoreMirrorPipeline.Update(RenderCoreMirrorUnityPaths.CreateRenderCoreSourceWithCommit(package), committed,
+					RenderCoreMirrorAnnotations.Create(), out changes, out lockText, out table);
 			}
 			catch (RenderCoreMirrorException exception)
 			{

@@ -8,6 +8,7 @@ using CarX.Modding.Creator.RenderCoreMirror;
 using UnityEditor;
 using UnityEditor.Compilation;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+using PackageSource = UnityEditor.PackageManager.PackageSource;
 
 namespace CarX.Modding.Creator.Editor
 {
@@ -78,15 +79,40 @@ namespace CarX.Modding.Creator.Editor
 			return AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name == LoaderAssemblyName);
 		}
 
-		/// <summary>The package as the snapshot source; the commit (for provenance) comes from the package's git working copy, if any.</summary>
+		/// <summary>
+		/// The package as the snapshot source without provenance: the check does not compare the commit, so git is not run.
+		/// </summary>
 		public static IRenderCoreSourceProvider CreateRenderCoreSource(PackageInfo package)
 		{
-			return new DirectoryRenderCoreSourceProvider(package.resolvedPath, DescribeCommit(package.resolvedPath));
+			return new DirectoryRenderCoreSourceProvider(package.resolvedPath, commit: null);
 		}
 
-		/// <summary>Working copy HEAD (with "-dirty" if the folder has changes) or null: outside git, git not installed, error.</summary>
-		private static string DescribeCommit(string directory)
+		/// <summary>The package as the snapshot source with its commit for the lock provenance (Update Lock).</summary>
+		public static IRenderCoreSourceProvider CreateRenderCoreSourceWithCommit(PackageInfo package)
 		{
+			return new DirectoryRenderCoreSourceProvider(package.resolvedPath, DescribeCommit(package));
+		}
+
+		/// <summary>
+		/// Package commit or null. A git package: the hash resolved by Package Manager. Otherwise the HEAD of the package's
+		/// own working copy (with "-dirty" if the folder has changes); a folder inside another repository (the game's) has
+		/// no commit of its own. null also when git is not installed or fails.
+		/// </summary>
+		private static string DescribeCommit(PackageInfo package)
+		{
+			if (package.source == PackageSource.Git)
+			{
+				return package.git?.hash;
+			}
+
+			string directory = package.resolvedPath;
+			string topLevel = RunGit(directory, "rev-parse --show-toplevel");
+
+			if (string.IsNullOrEmpty(topLevel) || !IsSameDirectory(topLevel, directory))
+			{
+				return null;
+			}
+
 			string head = RunGit(directory, "rev-parse HEAD");
 
 			if (string.IsNullOrEmpty(head))
@@ -96,6 +122,14 @@ namespace CarX.Modding.Creator.Editor
 
 			string status = RunGit(directory, "status --porcelain --untracked-files=no -- .");
 			return string.IsNullOrEmpty(status) ? head : head + "-dirty";
+		}
+
+		private static bool IsSameDirectory(string first, string second)
+		{
+			char[] separators = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+			string a = Path.GetFullPath(first).TrimEnd(separators);
+			string b = Path.GetFullPath(second).TrimEnd(separators);
+			return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 		}
 
 		/// <summary>
