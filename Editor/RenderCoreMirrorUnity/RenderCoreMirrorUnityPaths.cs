@@ -106,9 +106,10 @@ namespace CarX.Modding.Creator.Editor
 			}
 
 			string directory = package.resolvedPath;
-			string topLevel = RunGit(directory, "rev-parse --show-toplevel");
+			// Empty at the root of a working copy; a path inside another repository, null outside git or on an error
+			string prefix = RunGit(directory, "rev-parse --show-prefix");
 
-			if (string.IsNullOrEmpty(topLevel) || !IsSameDirectory(topLevel, directory))
+			if (prefix == null || prefix.Length > 0)
 			{
 				return null;
 			}
@@ -122,14 +123,6 @@ namespace CarX.Modding.Creator.Editor
 
 			string status = RunGit(directory, "status --porcelain --untracked-files=no -- .");
 			return string.IsNullOrEmpty(status) ? head : head + "-dirty";
-		}
-
-		private static bool IsSameDirectory(string first, string second)
-		{
-			char[] separators = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-			string a = Path.GetFullPath(first).TrimEnd(separators);
-			string b = Path.GetFullPath(second).TrimEnd(separators);
-			return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 		}
 
 		/// <summary>

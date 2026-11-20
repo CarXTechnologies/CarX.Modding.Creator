@@ -12,11 +12,6 @@ namespace CarX.Modding.Creator.Editor
 	/// </summary>
 	internal static class MtlTextureMapWriter
 	{
-		private const int MetallicPass = 0;
-		private const int AlphaPass = 1;
-		private const int RoughnessPass = 2;
-		private const int AlphaTestPass = 4;
-
 		private static readonly string[] s_baseProperties = { "_BaseColorMap", "_BaseColorMap0", "_MainTex" };
 		private static readonly string[] s_maskProperties = { "_MaskMap0", "_MaskMap" };
 		private static readonly string[] s_emissiveProperties = { "_EmissiveColorMap", "_EmissionMap" };
@@ -69,8 +64,9 @@ namespace CarX.Modding.Creator.Editor
 
 				if (packAlpha)
 				{
-					PackConverted(collectionProvider, ExportTextureUtility.Blit(readable, isAlphaTest ? AlphaTestPass : AlphaPass, normalScale: 1f, alphaRemap), alphaName,
-						directory);
+					int alphaPass = isAlphaTest ? ExportTextureUtility.AlphaTestPass : ExportTextureUtility.AlphaPass;
+					Texture2D alpha = ExportTextureUtility.Blit(readable, alphaPass, normalScale: 1f, alphaRemap);
+					PackConverted(collectionProvider, alpha, alphaName, directory);
 				}
 			}
 			finally
@@ -139,12 +135,12 @@ namespace CarX.Modding.Creator.Editor
 
 			if (!ExportTextureUtility.IsProcessed(roughnessPath))
 			{
-				PackBlit(collectionProvider, maskMap, RoughnessPass, normalScale: 1f, roughnessName, directory);
+				PackBlit(collectionProvider, maskMap, ExportTextureUtility.RoughnessPass, normalScale: 1f, roughnessName, directory);
 			}
 
 			if (!ExportTextureUtility.IsProcessed(metallicPath))
 			{
-				PackBlit(collectionProvider, maskMap, MetallicPass, normalScale: 1f, metallicName, directory);
+				PackBlit(collectionProvider, maskMap, ExportTextureUtility.MetallicPass, normalScale: 1f, metallicName, directory);
 			}
 
 			mtl.AppendFormat("map_Pr {0}{1}", tilingOptions, Path.GetFileName(roughnessPath)).AppendLine();

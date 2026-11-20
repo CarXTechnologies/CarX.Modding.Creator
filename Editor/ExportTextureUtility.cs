@@ -14,10 +14,12 @@ namespace CarX.Modding.Creator.Editor
 	/// </summary>
 	public static class ExportTextureUtility
 	{
-		/// <summary>
-		/// <see cref="Blit(Texture2D, int, float)"/> pass of ConvertingEx that unpacks a normal map to RGB.
-		/// </summary>
+		// Passes of the ConvertingEx shader for Blit; NormalPass unpacks a normal map to RGB (as for map_Bump)
+		public const int MetallicPass = 0;
+		public const int AlphaPass = 1;
+		public const int RoughnessPass = 2;
 		public const int NormalPass = 3;
+		public const int AlphaTestPass = 4;
 
 		private const string ConvertShaderName = "Hidden/ConvertingEx";
 

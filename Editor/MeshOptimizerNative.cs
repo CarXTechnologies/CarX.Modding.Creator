@@ -7,8 +7,10 @@ namespace CarX.Modding.Creator.Editor
 	public static class MeshOptimizerNative
 	{
 		private const string Library = "meshoptimizer";
+
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 		private static extern void meshopt_optimizeVertexCache([Out] int[] destination, int[] indices, UIntPtr indexCount, UIntPtr vertexCount);
+
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 		private static extern UIntPtr meshopt_simplifyWithAttributes([Out] int[] destination, int[] indices, UIntPtr indexCount,
 			Vector3[] positions, UIntPtr vertexCount, UIntPtr positionStride, float[] attributes, UIntPtr attributeStride,
@@ -27,20 +29,21 @@ namespace CarX.Modding.Creator.Editor
 		/// </summary>
 		public static int[][] Simplify(Mesh mesh, float ratio, float errorMeters, bool collider, byte[] locks)
 		{
-			var vertices = mesh.vertices;
-			var normals = mesh.normals;
-			var uv = mesh.uv;
-			var colors = mesh.colors;
+			Vector3[] vertices = mesh.vertices;
+			Vector3[] normals = mesh.normals;
+			Vector2[] uv = mesh.uv;
+			Color[] colors = mesh.colors;
 			// Preserve the render channels exported by both existing formats, including layer blend weights.
-			var attributes = collider ? null : new float[vertices.Length * 9];
-			var weights = collider ? null : new[] { 0.5f, 0.5f, 0.5f, 1f, 1f, 1f, 1f, 1f, 1f };
+			float[] attributes = collider ? null : new float[vertices.Length * 9];
+			float[] weights = collider ? null : new[] { 0.5f, 0.5f, 0.5f, 1f, 1f, 1f, 1f, 1f, 1f };
+
 			if (!collider)
 			{
 				for (int i = 0; i < vertices.Length; i++)
 				{
-					var n = normals.Length == vertices.Length ? normals[i] : Vector3.up;
-					var u = uv.Length == vertices.Length ? uv[i] : Vector2.zero;
-					var c = colors.Length == vertices.Length ? colors[i] : Color.white;
+					Vector3 n = normals.Length == vertices.Length ? normals[i] : Vector3.up;
+					Vector2 u = uv.Length == vertices.Length ? uv[i] : Vector2.zero;
+					Color c = colors.Length == vertices.Length ? colors[i] : Color.white;
 					int o = i * 9;
 					attributes[o] = n.x;
 					attributes[o + 1] = n.y;

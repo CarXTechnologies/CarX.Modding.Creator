@@ -223,9 +223,9 @@ namespace CarX.Modding.Creator.Editor
 			}
 		}
 
-		private void CollectCollider(Transform t, BuildOptimizationSettings s, CancellationToken token)
+		private void CollectCollider(Transform transform, BuildOptimizationSettings settings, CancellationToken token)
 		{
-			MeshCollider[] colliders = t.GetComponents<MeshCollider>();
+			MeshCollider[] colliders = transform.GetComponents<MeshCollider>();
 
 			// The current source collector supports one mesh collider per object.
 			if (colliders.Length != 1 || !colliders[0].enabled || colliders[0].isTrigger || colliders[0].convex ||
@@ -241,15 +241,15 @@ namespace CarX.Modding.Creator.Editor
 				return;
 			}
 
-			AddMesh(c.sharedMesh, t, null, c, s, token);
-			m_colliderSources.Add(t.gameObject.GetInstanceID());
+			AddMesh(c.sharedMesh, transform, null, c, settings, token);
+			m_colliderSources.Add(transform.gameObject.GetInstanceID());
 			SourceColliders++;
 		}
 
-		private void CollectRenderer(Transform t, BuildOptimizationSettings s, CancellationToken token)
+		private void CollectRenderer(Transform transform, BuildOptimizationSettings settings, CancellationToken token)
 		{
-			MeshRenderer renderer = t.GetComponent<MeshRenderer>();
-			MeshFilter filter = t.GetComponent<MeshFilter>();
+			MeshRenderer renderer = transform.GetComponent<MeshRenderer>();
+			MeshFilter filter = transform.GetComponent<MeshFilter>();
 
 			if (renderer == null || !renderer.enabled || filter == null || filter.sharedMesh == null)
 			{
@@ -260,7 +260,7 @@ namespace CarX.Modding.Creator.Editor
 
 			if (renderer.HasPropertyBlock() || (renderer.lightmapIndex >= 0 && renderer.lightmapIndex < 65534) ||
 				renderer.sharedMaterials.Length != mesh.subMeshCount || renderer.sharedMaterials.Any(m => m == null || m.renderQueue >= 3000) ||
-				RenderCoreMaterialOverrides.Resolve(t.gameObject, renderer.sharedMaterials).Any(RenderCoreMaterialOverrides.IsTransparent))
+				RenderCoreMaterialOverrides.Resolve(transform.gameObject, renderer.sharedMaterials).Any(RenderCoreMaterialOverrides.IsTransparent))
 			{
 				return;
 			}
@@ -270,8 +270,8 @@ namespace CarX.Modding.Creator.Editor
 				return;
 			}
 
-			AddMesh(mesh, t, renderer, null, s, token);
-			m_renderSources.Add(t.gameObject.GetInstanceID());
+			AddMesh(mesh, transform, renderer, null, settings, token);
+			m_renderSources.Add(transform.gameObject.GetInstanceID());
 			SourceRenderers++;
 		}
 
@@ -547,11 +547,12 @@ namespace CarX.Modding.Creator.Editor
 			return go;
 		}
 
-		private void CreateColliderSector(GameObject go, Mesh mesh, byte[] locks, BuildOptimizationSettings s)
+		private void CreateColliderSector(GameObject go, Mesh mesh, byte[] locks, BuildOptimizationSettings settings)
 		{
-			if (s.simplifyColliders)
+			if (settings.simplifyColliders)
 			{
-				int[][] indices = MeshOptimizerNative.Simplify(mesh, s.colliderTriangleRatio, s.colliderErrorMeters, collider: true, locks);
+				int[][] indices = MeshOptimizerNative.Simplify(mesh, settings.colliderTriangleRatio, settings.colliderErrorMeters,
+					collider: true, locks);
 				mesh = SectorMeshGeometry.Compact(mesh, indices, go.name + "_collision");
 				m_meshes.Add(mesh);
 			}
@@ -561,8 +562,14 @@ namespace CarX.Modding.Creator.Editor
 			OutputColliders++;
 		}
 
-		private void CreateRenderSector(GameObject go, Mesh mesh, Material[] materials, Bucket bucket, byte[] locks,
-			BuildOptimizationSettings s, CancellationToken token)
+		private void CreateRenderSector(
+			GameObject go,
+			Mesh mesh,
+			Material[] materials,
+			Bucket bucket,
+			byte[] locks,
+			BuildOptimizationSettings settings,
+			CancellationToken token)
 		{
 			int baseTriangles = SectorMeshGeometry.TriangleCount(mesh);
 			OutputBaseTriangles += baseTriangles;
@@ -572,9 +579,9 @@ namespace CarX.Modding.Creator.Editor
 			OutputMeshes++;
 			OutputSubMeshes += materials.Length;
 
-			if (s.generateSectorLods)
+			if (settings.generateSectorLods)
 			{
-				AddSectorLods(go, sector, bucket, locks, s, token);
+				AddSectorLods(go, sector, bucket, locks, settings, token);
 			}
 			else
 			{
@@ -585,7 +592,12 @@ namespace CarX.Modding.Creator.Editor
 		/// <summary>
 		/// The LOD0 renderer lives on a child as well: a renderer on the group object would export its mesh twice.
 		/// </summary>
-		private void AddSectorLods(GameObject go, RenderSector sector, Bucket bucket, byte[] locks, BuildOptimizationSettings s,
+		private void AddSectorLods(
+			GameObject go,
+			RenderSector sector,
+			Bucket bucket,
+			byte[] locks,
+			BuildOptimizationSettings settings,
 			CancellationToken token)
 		{
 			(Mesh mesh, Material[] materials) = sector.meshes[0];
@@ -599,10 +611,11 @@ namespace CarX.Modding.Creator.Editor
 			levels.Add(new LOD(0.6f, new Renderer[] { AddRenderer(child, mesh, bucket, materials) }));
 			int lastCount = sector.triangles;
 
-			for (int level = 1; level <= s.lodLevels; level++)
+			for (int level = 1; level <= settings.lodLevels; level++)
 			{
 				token.ThrowIfCancellationRequested();
-				int[][] indices = MeshOptimizerNative.Simplify(mesh, Mathf.Pow(s.lodTriangleRatio, level), s.lodErrorMeters * level, collider: false, locks);
+				int[][] indices = MeshOptimizerNative.Simplify(mesh, Mathf.Pow(settings.lodTriangleRatio, level), settings.lodErrorMeters * level,
+					collider: false, locks);
 				int count = indices.Sum(i => i.Length) / 3;
 
 				if (count >= lastCount)
