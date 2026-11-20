@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 53
+  m_Script: {fileID: 11500000, guid: 684cf8c6d7a54004ba819a64163548b5, type: 3}
+  m_Name: 
+  materialVariantData:
+  - name: MAT_UNSUPPORTED
+    variant: 0
+    propertyData: []
+    info:
+      queue:
+        value: 0
+        offset: 0
+      type: 0
+      additionalKeywords: 
+  - name: MAT_DEFAULT
+    variant: 1
+    propertyData:
+    - name: u_sTexture
+      label:
+        text: Diffuse Map
+        tooltip: Default diffuse/albedo texture.
+      type: 4
+      vectorLabels: []
+    info:
+      queue:
+        value: 2000
+        offset: 0
+      type: 0
+      additionalKeywords: 
+  - name: MAT_ROUGHNESS_ALPHATEST
+    variant: 1027
+    propertyData:
+    - name: u_vThirdColor
+      label:
+        text: Alpha Chanel
+        tooltip: The alpha channel value is responsible for the alpha parameter during
+          rendering.
+      type: 0
+      vectorLabels: []
+    - name: u_sTexture
+      label:
+        text: Diffuse Map
+        tooltip: Default diffuse/albedo texture.
+      type: 4
+      vectorLabels: []
+    - name: u_sPackedMap
+      label:
+        text: Surface Map
+        tooltip: R - roughness, G - unused, B - ao and alpha, A - unused.
+      type: 4
+      vectorLabels: []
+    info:
+      queue:
+        value: 2450
+        offset: 0
+      type: 2
+      additionalKeywords: ALPHATEST
+  - name: MAT_EMISSION
+    variant: 1048591
+    propertyData:
+    - name: u_sTexture
+      label:
+        text: Diffuse Map
+        tooltip: Default diffuse/albedo texture.
+      type: 4
+      vectorLabels: []
+    - name: u_sTexture1
+      label:
+        text: Emission Map
+        tooltip: Default emission texture.
+      type: 4
+      vectorLabels: []
+    - name: u_sPackedMap
+      label:
+        text: Surface Map
+        tooltip: R - roughness, G - metalness, B - ao, A - unused.
+      type: 4
+      vectorLabels: []
+    - name: u_sNormalMap
+      label:
+        text: Normal Map
+        tooltip: Default surface normals.
+      type: 4
+      vectorLabels: []
+    - name: u_fParams
+      label:
+        text: Emission Parameters
+        tooltip: X - inverse period, Y - rising time, Z - delta, W - min emission amount.
+      type: 1
+      vectorLabels:
+      - text: Inverse Period
+        tooltip: 
+      - text: Rising Time
+        tooltip: 
+      - text: Emission Delta
+        tooltip: 
+      - text: Min Emission
+        tooltip: 
+    info:
+      queue:
+        value: 2000
+        offset: 0
+      type: 0
+      additionalKeywords: 
+  - name: MAT_CAR_DEFAULT
+    variant: 135
+    propertyData: []
+    info:
+      queue:
+        value: 2200
+        offset: 0
+      type: 0
+      additionalKeywords: 

@@ -1,7 +1,7 @@
 using System.Text;
 using UnityEditor;
 
-namespace Plugins.CarX.Modding.Creator.Editor.Publishing
+namespace CarX.Modding.Creator.Editor.Publishing
 {
 	/// <summary>
 	/// Remembers the parts of a sign in flow that a person should not have to repeat.

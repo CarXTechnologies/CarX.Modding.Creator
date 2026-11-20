@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Editor.Publishing
+namespace CarX.Modding.Creator.Editor.Publishing
 {
 	/// <summary>
 	/// Modal prompts for the interactive parts of a vendor sign in: a single line of text, or a terms of use wall.

@@ -51,5 +51,17 @@
 
             ENDCG
         }
+
+        Pass
+        {
+            CGPROGRAM
+
+            #include "ConvertingEx.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment CopyFourthChannelAlphaTest
+
+            ENDCG
+        }
     }
 }

@@ -4,6 +4,9 @@ sampler2D _MainTex;
 float4 _MainTex_ST;
 
 float _NormalScale;
+// Alpha passes: x - remap min, y - remap max, z - alpha multiplier before the remap (HDRP Lit: lerp(min, max, a * baseColor.a)),
+// w - HDRP Alpha Clipping threshold (alpha-test pass only)
+float4 _AlphaRemap;
 
 struct appdata
 {
@@ -33,8 +36,19 @@ fixed4 CopyFirstChannel(v2f i) : SV_Target
 
 fixed4 CopyFourthChannel(v2f i) : SV_Target
 {
-	fixed4 col = fixed4(tex2D(_MainTex, i.uv).a, tex2D(_MainTex, i.uv).a, tex2D(_MainTex, i.uv).a, 1.0);
-	return col;
+	float alpha = lerp(_AlphaRemap.x, _AlphaRemap.y, tex2D(_MainTex, i.uv).a * _AlphaRemap.z);
+	return fixed4(alpha, alpha, alpha, 1.0);
+}
+
+// Render core alpha test keeps a texel when B - dither * 0.45 - 0.15 > 0 (dither band 0.15..0.6); HDRP clips hard at the threshold.
+// The HDRP threshold maps to the band centre (50% coverage), threshold -/+ the window to its edges. Same formula: RenderCoreAlphaClip.ToRenderCore.
+fixed4 CopyFourthChannelAlphaTest(v2f i) : SV_Target
+{
+	float alpha = lerp(_AlphaRemap.x, _AlphaRemap.y, tex2D(_MainTex, i.uv).a * _AlphaRemap.z);
+	// Window min(0.05, threshold, 1 - threshold); a threshold of about 0 or 1 is a hard step.
+	float window = min(_AlphaRemap.w, 1.0 - _AlphaRemap.w);
+	alpha = window <= 0.5 / 255.0 ? step(_AlphaRemap.w, alpha) : saturate(0.375 + (alpha - _AlphaRemap.w) * (0.225 / min(window, 0.05)));
+	return fixed4(alpha, alpha, alpha, 1.0);
 }
 
 fixed4 CopyFourthInvertedChannel(v2f i) : SV_Target

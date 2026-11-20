@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	public class HierarchiesMetaProvider<T> : MetaProvider<T> where T : IModResources
 	{

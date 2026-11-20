@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Plugins.CarX.Modding.Creator.Runtime
+namespace CarX.Modding.Creator.Runtime
 {
 	[Serializable]
 	public class StaticHierarchyMeta : IModResources, IModResourcesVersion
@@ -29,6 +29,11 @@ namespace Plugins.CarX.Modding.Creator.Runtime
 			this.staticObjects = staticObjects;
 			this.Id = id;
 			this.Version = version;
+		}
+
+		// For BinaryModData: fields missing from the document get their initializer values, not default.
+		private StaticHierarchyMeta()
+		{
 		}
 	}
 }
