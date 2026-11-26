@@ -100,13 +100,13 @@ namespace CarX.Modding.Creator.RenderCoreMirror
 			Variant("MAT_ROAD_SIGN_EMISSION", revision: 1, layoutKey: "Base AO EMISSION METALNESS NORMAL ROAD_SIGN_EMISSION ROUGHNESS",
 				reviewedDecodeHash: "b81c1f6de961", MirrorVertexColors.EmissionMultiplier,
 				Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero), unavailableReason: null),
-			Variant("MAT_WINDOW", revision: 1, layoutKey: "Base AO EMISSION METALNESS NORMAL ROUGHNESS WINDOW", reviewedDecodeHash: "eac9e24de3f7",
+			Variant("MAT_WINDOW", revision: 1, layoutKey: "Base AO EMISSION METALNESS NORMAL ROUGHNESS WINDOW", reviewedDecodeHash: "6efa0992c6bc",
 				MirrorVertexColors.EmissionMultiplier, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.AmbientOcclusion, MirrorChannel.Zero),
 				unavailableReason: null),
 
 			// Interior: channels are not derived by rules (InteriorMaterialFunc), annotation only. Vertex color is not read: window emission comes
 			// from the global brightness and the u_sTexture1 atlas in room coordinates.
-			Variant("MAT_INTERIOR", revision: 1, layoutKey: "Interior EMISSION METALNESS NORMAL ROUGHNESS WINDOW", reviewedDecodeHash: "550745410d88",
+			Variant("MAT_INTERIOR", revision: 1, layoutKey: "Interior EMISSION METALNESS NORMAL ROUGHNESS WINDOW", reviewedDecodeHash: "0b8e651f41a5",
 				MirrorVertexColors.None, Ch(MirrorChannel.Roughness, MirrorChannel.Metalness, MirrorChannel.Zero, MirrorChannel.Zero),
 				unavailableReason: NoSecondUv)
 		};
