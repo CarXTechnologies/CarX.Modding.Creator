@@ -40,6 +40,7 @@ namespace CarX.Modding.Creator.Runtime
 		public string icon;
 		public string largeIcon;
 		public ModMinimapMeta minimap;
+		public ModFogMeta fog = new();
 		public string madeIn;
 		public string url;
 		public string[] authors;
