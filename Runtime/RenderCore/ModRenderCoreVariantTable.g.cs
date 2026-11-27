@@ -12,7 +12,7 @@ namespace CarX.Modding.Creator.Runtime
 	/// <summary>rendercore mirror data for <see cref="ModRenderCoreVariants"/>.</summary>
 	internal static class ModRenderCoreVariantTable
 	{
-		public const string LockContentHash = "9c34f0dc7d1c";
+		public const string LockContentHash = "64b2e64e9de6";
 
 		public static ModRenderCoreVariant[] CreateVariants()
 		{

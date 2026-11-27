@@ -2,7 +2,7 @@
 # Update: ModSystem/Render Core/Update Lock From Project Render Core or Tools~/RenderCoreMirror (extract).
 format	2
 provenance	package	3.2.0
-provenance	commit	b9fde1a3788ba371842cf2dc1def7cb97b02379a
+provenance	commit	6eb624d00dbee93db4325319c211b121f09f8f34
 provenance	tool	2
 scope	excludeName	MAT_MATTESHADOW|MAT_SKIDMARK|MAT_SLOD|MAT_UNSUPPORTED
 scope	excludePrefix	MAT_CAR_|MAT_PARTICLE
@@ -206,7 +206,7 @@ decode	MAT_DEFAULT_ALPHATEST	func=BaseMaterialFunc	hash=994ec483c0f8
 decode	MAT_EMISSION	func=BaseMaterialFunc	hash=29ab28dc2384
 decode	MAT_FOLIAGE_ALPHATEST	func=BaseMaterialFunc	hash=0885199ed7d9
 decode	MAT_FOLIAGE_SIMPLE_ALPHATEST	func=BaseMaterialFunc	hash=9c7ead25cb89
-decode	MAT_INTERIOR	func=InteriorMaterialFunc	hash=550745410d88
+decode	MAT_INTERIOR	func=InteriorMaterialFunc	hash=0b8e651f41a5
 decode	MAT_LAYERS4	func=LayeredMaterialFunc	hash=c86c330d411d
 decode	MAT_ROAD_SIGN_EMISSION	func=BaseMaterialFunc	hash=b81c1f6de961
 decode	MAT_ROUGHNESS	func=BaseMaterialFunc	hash=ae8f407f8c00
@@ -218,7 +218,7 @@ decode	MAT_ROUGHNESS_NORMAL	func=BaseMaterialFunc	hash=af4f388cfded
 decode	MAT_ROUGHNESS_NORMAL_ALPHABLEND	func=BaseMaterialFunc	hash=bbe009805610
 decode	MAT_ROUGHNESS_NORMAL_ALPHATEST	func=BaseMaterialFunc	hash=7acc19d9baaa
 decode	MAT_ROUGHNESS_NORMAL_EMISSION	func=BaseMaterialFunc	hash=4016783f2d91
-decode	MAT_WINDOW	func=BaseMaterialFunc	hash=eac9e24de3f7
+decode	MAT_WINDOW	func=BaseMaterialFunc	hash=6efa0992c6bc
 pass	DepthOnly	ALPHATEST	multi_compile_local
 pass	DepthOnly	MAT_COLORMASK_ROUGHNESS_METALNESS	absent
 pass	DepthOnly	MAT_COLORMASK_ROUGHNESS_METALNESS_NORMAL	absent
