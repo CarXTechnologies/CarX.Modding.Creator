@@ -77,6 +77,35 @@ namespace CarX.Modding.Creator.Tests
 		}
 
 		[Test]
+		public void ModMetaPublishedBeforeFogKeepsMapFog()
+		{
+			var older = new SchemaOld.ModMeta { id = "old_map", name = "Old map", authors = new[] { "author" } };
+
+			foreach (byte[] bytes in new[] { BinaryModData.Write(older), LegacyBinaryModDataWriter.Write(older) })
+			{
+				ModMeta result = BinaryModData.Read<ModMeta>(bytes);
+
+				Assert.AreEqual("old_map", result.id);
+				Assert.IsNotNull(result.fog);
+				Assert.IsFalse(result.fog.enabled);
+				Assert.AreEqual(ModFogMeta.DefaultDensity, result.fog.density);
+				Assert.AreEqual(ModFogMeta.DefaultInscatteringColor, result.fog.inscatteringColor);
+			}
+		}
+
+		[Test]
+		public void ModMetaPublishedBeforeFogReadsFromJson()
+		{
+			string json = JsonUtility.ToJson(new SchemaOld.ModMeta { id = "old_map" });
+
+			ModMeta result = JsonUtility.FromJson<ModMeta>(json);
+
+			Assert.IsNotNull(result.fog);
+			Assert.IsFalse(result.fog.enabled);
+			Assert.AreEqual(ModFogMeta.DefaultStartDistance, result.fog.startDistance);
+		}
+
+		[Test]
 		public void ReadsVersion1LodHierarchyWithUnusedLodSlots()
 		{
 			LodHierarchyMeta source = CreateLodHierarchy();
@@ -271,6 +300,15 @@ namespace CarX.Modding.Creator.Tests
 					boundsCenterY = -2f,
 					boundsSizeX = 100f,
 					boundsSizeY = 200f
+				},
+				fog = new ModFogMeta
+				{
+					enabled = true,
+					density = 0.8f,
+					startDistance = 300f,
+					baseHeight = -20f,
+					heightFalloff = 5f,
+					inscatteringColor = new Color(0.9f, 0.8f, 0.7f, 1f)
 				}
 			};
 		}
@@ -310,6 +348,12 @@ namespace CarX.Modding.Creator.Tests
 			Assert.AreEqual(expected.minimap.boundsCenterY, actual.minimap.boundsCenterY);
 			Assert.AreEqual(expected.minimap.boundsSizeX, actual.minimap.boundsSizeX);
 			Assert.AreEqual(expected.minimap.boundsSizeY, actual.minimap.boundsSizeY);
+			Assert.AreEqual(expected.fog.enabled, actual.fog.enabled);
+			Assert.AreEqual(expected.fog.density, actual.fog.density);
+			Assert.AreEqual(expected.fog.startDistance, actual.fog.startDistance);
+			Assert.AreEqual(expected.fog.baseHeight, actual.fog.baseHeight);
+			Assert.AreEqual(expected.fog.heightFalloff, actual.fog.heightFalloff);
+			Assert.AreEqual(expected.fog.inscatteringColor, actual.fog.inscatteringColor);
 		}
 
 		private static void AssertLodHierarchy(LodHierarchyMeta expected, LodHierarchyMeta actual)

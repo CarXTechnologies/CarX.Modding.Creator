@@ -12,5 +12,23 @@ namespace CarX.Modding.Creator.Runtime
 			public string name;
 			public int count;
 		}
+
+		/// <summary>ModMeta before the fog block (DR3C-7578).</summary>
+		[Serializable]
+		public sealed class ModMeta
+		{
+			public string contentType = global::CarX.Modding.Creator.Runtime.ModMeta.MapContentType;
+			public string id;
+			public string version;
+			public string contentVersion;
+			public string name;
+			public string description;
+			public string icon;
+			public string largeIcon;
+			public ModMinimapMeta minimap;
+			public string madeIn;
+			public string url;
+			public string[] authors;
+		}
 	}
 }
